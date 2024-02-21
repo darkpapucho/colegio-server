@@ -1,0 +1,18 @@
+### test pagina landing
+GET http://localhost:4000/ping
+
+### login request
+POST http://localhost:4000/user/login
+Content-Type: application/json
+Year: 2023
+Nivel: primaria
+
+{
+  "username":"darioedmundo",
+  "password":"colegio2020"
+}
+
+### verify verifyCredentials
+GET http://localhost:4000/user/verify
+Content-Type: application/json
+Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2M2VmMGQ2MWQ1NmMwNmFhNzUxMzNlMTQiLCJpYXQiOjE3MDUyNjc3OTAsImV4cCI6MTcwNTI3NDk5MH0.FgxehNsIOrTwpo5BxXUx620NRlSRyTFhLm-9oXkXnEM

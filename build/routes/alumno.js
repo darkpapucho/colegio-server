@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.alumnoRouter = void 0;
+const express_1 = require("express");
+const alumno_1 = require("../controllers/alumno");
+const verifyCredentials_1 = require("../middleware/verifyCredentials");
+exports.alumnoRouter = (0, express_1.Router)();
+exports.alumnoRouter.get('/matriculados', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.fetchMatriculados);
+exports.alumnoRouter.post('/matricular', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.nuevaMatricula);
+exports.alumnoRouter.get('/get-ratificar-list', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.fetchRatificarList);
+exports.alumnoRouter.post('/ratificar-matricula', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.ratificarMatricula);
+exports.alumnoRouter.put('/alumno/retirar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.retirarAlumno);
+exports.alumnoRouter.post('/alumno/buscar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.buscarAlumno);
