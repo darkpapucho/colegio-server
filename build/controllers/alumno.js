@@ -19,13 +19,28 @@ const validators_1 = require("../utils/validators");
 const enums_2 = require("../types/enums");
 const mongodb_1 = require("mongodb");
 class AlumnoControllers {
+    static editarAlumno(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const alumno = req.body.alumno;
+                const collectionName = `matriculados${nivel}${year}`;
+                const confirmation = yield alumno_1.Alumno.editarAlumno({ alumno, collectionName });
+                res.send((0, responses_1.responseOk)(confirmation));
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+    }
     static buscarAlumno(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { nombreCompleto } = req.body;
+                const { nombreCompleto, estadosMatricula } = req.body;
+                //TODO: ASSERT ESTADOSMATRICULA
                 const collectionName = `matriculados${nivel}${year}`;
-                const alumnos = yield alumno_1.Alumno.buscarAlumno({ nombreCompleto, collectionName });
+                const alumnos = yield alumno_1.Alumno.buscarAlumno({ nombreCompleto, collectionName, estadosMatricula });
                 res.send((0, responses_1.responseOk)(alumnos));
             }
             catch (error) {
@@ -39,8 +54,8 @@ class AlumnoControllers {
                 const { _id, fechaRetiro } = req.body;
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const collectionName = `matriculados${nivel}${year}`;
-                yield alumno_1.Alumno.retirarAlumno({ _id: new mongodb_1.ObjectId(_id), fechaRetiro, collectionName });
-                res.send((0, responses_1.responseOk)(null));
+                const modifiedCount = yield alumno_1.Alumno.retirarAlumno({ _id: new mongodb_1.ObjectId(_id), fechaRetiro, collectionName });
+                res.send((0, responses_1.responseOk)({ modifiedCount }));
             }
             catch (error) {
                 (0, errors_1.errorResponseHandler)(res, error);
@@ -86,14 +101,12 @@ class AlumnoControllers {
                     currentYearCollectionName = `matriculados${nivel}${currentYear}`;
                     lastYearCollectionName = `ratificar${nivel}${year}`;
                 }
-                console.log({ currentYearCollectionName, lastYearCollectionName });
                 const { alumnos } = req.body;
                 //assert alumnos data
                 const alumnosParsed = alumnos.map((alumno) => {
                     (0, validators_1.assertIsAMatriculado)(alumno);
                     const currentGradoIndex = enums_2.VALID_GRADOS.indexOf(alumno.grado);
                     alumno.grado = enums_2.VALID_GRADOS[currentGradoIndex + 1];
-                    console.log({ gradoDestino: alumno.grado });
                     return alumno;
                 });
                 yield alumno_1.Alumno.ratificarMatricula({ alumnos: alumnosParsed, currentYearCollectionName, lastYearCollectionName });

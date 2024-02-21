@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CursosKeyInicial = exports.CursosLabelInicial = exports.CursosKeyPrimaria = exports.CursosLabelPrimaria = exports.SalonesPrimaria = exports.SalonesInicial = exports.GradosInicial = exports.GradosPrimaria = exports.VALID_GRADOS = exports.Secciones = exports.VALID_SECCIONES = exports.Niveles = exports.VALID_NIVELES = exports.VALID_SEXOS = exports.VALID_YEARS = exports.ESTADOS_MATRICULA = void 0;
+exports.CursosKeyInicial = exports.CursosLabelInicial = exports.CursosKeyPrimaria = exports.CursosLabelPrimaria = exports.SalonesPrimaria = exports.SalonesInicial = exports.GradosInicial = exports.GradosPrimaria = exports.VALID_GRADOS = exports.Secciones = exports.VALID_SECCIONES = exports.Niveles = exports.VALID_NIVELES = exports.VALID_SEXOS = exports.VALID_YEARS = exports.ESTADOS_MATRICULA = exports.VALID_GRADOS_DESTINO = exports.VALID_NOTAS = void 0;
+exports.VALID_NOTAS = ['A', 'B', 'C', 'AD'];
+//grados destino
+exports.VALID_GRADOS_DESTINO = ['Grupo 3 años', 'Grupo 4 años', 'Grupo 5 años', 'PRIMERO PRIMARIA', 'PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO', 'QUINTO', 'SEXTO', 'PRIMERO SECUNDARIA'];
 // estados matricula
 exports.ESTADOS_MATRICULA = ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE', 'TRASLADADO'];
 //years
@@ -8,7 +11,7 @@ exports.VALID_YEARS = ['2020', '2021', '2022', '2023', '2024', '2025'];
 //sexo
 exports.VALID_SEXOS = ['Hombre', 'Mujer'];
 //Niveles
-exports.VALID_NIVELES = ['primaria', 'inicial', 'secundaria'];
+exports.VALID_NIVELES = ['primaria', 'inicial'];
 var Niveles;
 (function (Niveles) {
     Niveles["PRIMARIA"] = "primaria";

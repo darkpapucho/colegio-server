@@ -9,5 +9,6 @@ exports.alumnoRouter.get('/matriculados', verifyCredentials_1.verifyCredentials,
 exports.alumnoRouter.post('/matricular', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.nuevaMatricula);
 exports.alumnoRouter.get('/get-ratificar-list', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.fetchRatificarList);
 exports.alumnoRouter.post('/ratificar-matricula', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.ratificarMatricula);
-exports.alumnoRouter.put('/alumno/retirar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.retirarAlumno);
-exports.alumnoRouter.post('/alumno/buscar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.buscarAlumno);
+exports.alumnoRouter.put('/retirar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.retirarAlumno);
+exports.alumnoRouter.post('/buscar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.buscarAlumno);
+exports.alumnoRouter.post('/editar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.editarAlumno);

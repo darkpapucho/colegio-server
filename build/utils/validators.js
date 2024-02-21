@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assertIsAMatriculado = exports.assertIsNuevoAlumno = void 0;
+exports.assertIsEmitirDocumentsData = exports.assertIsAMatriculado = exports.assertIsNuevoAlumno = void 0;
 const zod_1 = require("zod");
 const enums_1 = require("../types/enums");
 const enums_2 = require("../error/enums");
@@ -39,10 +39,26 @@ const AMatriculadoSchema = zod_1.z.object({
     codigoEstudiante: zod_1.z.string({ required_error: 'falta el codigo de estudiante del alumno' }).min(14, 'el codigo de estudiante debe tener 14 dígitos').max(14, 'el codigo de estudiante debe tener 14 dígitos'),
     nombreCompleto: zod_1.z.string({ required_error: 'faltan los datos del alumno' }).max(52, 'los datos del alumno no deben exceder los 52 caracteres'),
 });
+const EmitirDocumentosDataSchema = zod_1.z.object({
+    colegioDestino: zod_1.z.string(),
+    codigoModular: zod_1.z.string(),
+    selectedDocuments: zod_1.z.object({ resolucionTraslado: zod_1.z.boolean(), certificadoNoAdeudo: zod_1.z.boolean(), certificadoConducta: zod_1.z.boolean() }),
+    fechaEmision: zod_1.z.string(),
+    gradoDestino: zod_1.z.enum(enums_1.VALID_GRADOS_DESTINO),
+});
 function assertIsAMatriculado(alumno) {
     const result = AMatriculadoSchema.safeParse(alumno);
     if (!result.success) {
         throw new Error(result.error.issues[0].message);
     }
+    return;
 }
 exports.assertIsAMatriculado = assertIsAMatriculado;
+function assertIsEmitirDocumentsData(data) {
+    const result = EmitirDocumentosDataSchema.safeParse(data);
+    if (!result.success) {
+        throw new Error(enums_2.ErrorMessages.INVALID_REQUEST);
+    }
+    return;
+}
+exports.assertIsEmitirDocumentsData = assertIsEmitirDocumentsData;

@@ -25,6 +25,7 @@ class UserControllers {
             try {
                 //extract data from the request
                 const { usersCollectionName, empleadosCollectionName, username, password } = (0, loginProcess_1.getLoginRequestData)(req);
+                console.log({ username, password });
                 //fetch user from database
                 const userCredentials = yield user_1.User.getByUsername({ collectionName: usersCollectionName, username });
                 (0, global_1.assert)(userCredentials != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);

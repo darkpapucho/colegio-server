@@ -20,7 +20,6 @@ const verifyCredentials = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     const token = req.get('Token');
     try {
         const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
-        console.log({ nivel });
         (0, global_1.assert)(token != undefined, enums_1.ErrorMessages.INVALID_REQUEST);
         const userID = (0, jwt_1.verifyToken)(token);
         const collectionName = `users${nivel}`;

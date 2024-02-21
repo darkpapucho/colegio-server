@@ -8,13 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __asyncValues = (this && this.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-};
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -26,20 +19,38 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Alumno = void 0;
 const db_1 = require("../db");
 const mongodb_1 = require("mongodb");
 const enums_1 = require("../error/enums");
 class Alumno {
-    static buscarAlumno({ nombreCompleto, collectionName }) {
+    static editarAlumno({ alumno, collectionName }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { _id } = alumno, data = __rest(alumno, ["_id"]);
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(collectionName)
+                .updateOne({ _id: new mongodb_1.ObjectId(_id) }, { $set: Object.assign({}, data) });
+            return response.acknowledged;
+        });
+    }
+    //busca alumnos con estado de matricula no "TRASLADADO"
+    static buscarAlumno({ nombreCompleto, collectionName, estadosMatricula }) {
         var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             let alumnos = [];
             const cursor = db_1.mongoClient
                 .db()
                 .collection(collectionName)
-                .find({ $text: { $search: nombreCompleto } }, { sort: { grado: -1 } });
+                .find({ $text: { $search: nombreCompleto }, estadoMatricula: { $in: estadosMatricula } }, { sort: { grado: -1 } });
             try {
                 for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
                     _c = cursor_1_1.value;
@@ -60,11 +71,11 @@ class Alumno {
     }
     static retirarAlumno({ _id, fechaRetiro, collectionName }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = db_1.mongoClient
+            const response = yield db_1.mongoClient
                 .db()
                 .collection(collectionName)
-                .updateOne({ _id, estadoMatricula: 'DEFINITIVA' }, { $set: { estadoMatricula: 'TRASLADADO', fechaRetiro } });
-            console.log({ responseRetiro: response });
+                .updateOne({ _id, estadoMatricula: { $in: ['DEFINITIVA', 'PENDIENTE'] } }, { $set: { estadoMatricula: 'TRASLADADO', fechaRetiro } });
+            return response.modifiedCount;
         });
     }
     static getRatificarList({ grado, seccion, collectionName }) {
@@ -105,7 +116,6 @@ class Alumno {
                     .db()
                     .collection(currentYearCollectionName)
                     .insertMany([...alumnosNoId], { session });
-                console.log({ response1 });
                 if (!response1.acknowledged || response1.insertedCount !== cantidadAlumnos) {
                     throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
                 }
@@ -113,7 +123,6 @@ class Alumno {
                     .db()
                     .collection(lastYearCollectionName)
                     .deleteMany({ _id: { $in: alumnosIds } });
-                console.log({ response2 });
                 if (!response2.acknowledged || response2.deletedCount !== cantidadAlumnos) {
                     throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
                 }
@@ -123,7 +132,6 @@ class Alumno {
                 // }
             }
             catch (error) {
-                console.log({ ratificarMatriculaError: error });
                 yield session.abortTransaction();
                 session.endSession();
             }
