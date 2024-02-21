@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express'
-
 import { cors } from './middleware/cors'
 import { userRouter } from './routes/user'
 import { alumnoRouter } from './routes/alumno'
@@ -21,6 +20,5 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 })
 
 app.listen(PORT, () => {
-  console.log('app updated')
-  console.log(`server is running up in ${PORT}`)
+  console.log(`server UPDATED is running up in ${PORT}`)
 })
