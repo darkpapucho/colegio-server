@@ -9,7 +9,6 @@ const user_1 = require("./routes/user");
 const alumno_1 = require("./routes/alumno");
 const documento_1 = require("./routes/documento");
 const errors_1 = require("./error/errors");
-console.log('please log this message!!!!!!');
 const PORT = process.env.PORT || 4000;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -23,5 +22,5 @@ app.use((err, _req, res, _next) => {
     (0, errors_1.errorResponseHandler)(res, err);
 });
 app.listen(PORT, () => {
-    console.log(`server UPDATED is running up in ${PORT}`);
+    console.log(`jesus nazareno server is listening`);
 });
