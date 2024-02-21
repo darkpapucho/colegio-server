@@ -4,7 +4,7 @@ import { userRouter } from './routes/user'
 import { alumnoRouter } from './routes/alumno'
 import { documentoRouter } from './routes/documento'
 import { errorResponseHandler } from './error/errors'
-console.log('please log this message!!!!!!')
+
 const PORT = process.env.PORT || 4000
 const app = express()
 app.use(express.json())
@@ -20,5 +20,5 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`server UPDATED is running up in ${PORT}`)
+  console.log(`jesus nazareno server is listening`)
 })

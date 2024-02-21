@@ -14,7 +14,6 @@ export class UserControllers {
     try {
       //extract data from the request
       const { usersCollectionName, empleadosCollectionName, username, password } = getLoginRequestData(req)
-      console.log({ username, password })
       //fetch user from database
       const userCredentials = await User.getByUsername({ collectionName: usersCollectionName, username })
       assert(userCredentials != null, ErrorMessages.INVALID_CREDENTIALS)
