@@ -9,7 +9,7 @@ import { errorResponseHandler } from './error/errors'
 const PORT = process.env.PORT || 4000
 const app = express()
 app.use(express.json())
-app.use('*', cors)
+app.use(cors)
 
 app.use('/user', userRouter)
 app.use('/alumno', alumnoRouter)
@@ -21,5 +21,6 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 })
 
 app.listen(PORT, () => {
+  console.log('app updated')
   console.log(`server is running up in ${PORT}`)
 })
