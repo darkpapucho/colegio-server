@@ -19,6 +19,7 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.log({ err })
   errorResponseHandler(res, err)
 })
+
 app.listen(PORT, () => {
   console.log(`server is running up in ${PORT}`)
 })

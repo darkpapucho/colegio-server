@@ -12,14 +12,14 @@ export const cors = (req: Request, res: Response, next: NextFunction) => {
   //   if (req.method === 'OPTIONS') {
   //     return res.status(200).end()
   //   }
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin!)
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, DELETE, PUT, OPTIONS, PATCH')
-    res.setHeader('Access-Control-Allow-Headers', ['Year', 'Nivel', 'Token', 'Content-Type'])
-    res.setHeader('Access-Control-Expose-Headers', 'Token')
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end()
-    }
+
+  res.setHeader('Access-Control-Allow-Origin', 'https://jesusnazareno.netlify.app')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, DELETE, PUT, OPTIONS, PATCH')
+  res.setHeader('Access-Control-Allow-Headers', ['Year', 'Nivel', 'Token', 'Content-Type', 'Content-Length', 'Accept', 'Authentication', 'File-Size', 'Accept-Encoding', 'Accept-Language'])
+  res.setHeader('Access-Control-Expose-Headers', 'Token')
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
+
   return next()
 }
