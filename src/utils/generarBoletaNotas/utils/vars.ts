@@ -1,0 +1,22 @@
+export const DRE = 'DRE Lima Metropolitana'
+export const UGEL = 'UGEL 04 Comas'
+export const NOMBRE_COLEGIO = 'Jesús el Nazareno de Villas de Ancón'
+export const HEADER_FONT_COLOR = 'white'
+export const HEADER_COLOR_CONTENT = '#1D5D9B'
+export const TEXT_COLOR = 'black'
+export const FILL_COLOR = '#32407B'
+export const BORDER_COLOR = 'black'
+export const BOLETA_NOTA_HEADERS = ['DRE:', 'UGEL:', 'Nivel:', 'Institución Educativa:', 'Grado:', 'Sección:', 'Apellidos y nombres: ']
+export const NORMAL_FONT = 'Courier'
+export const BOLD_FONT = 'Courier-Bold'
+
+export const NOTA_CELDA_HEIGHT = 22
+export const NOTA_CELDA_WIDTH = 30
+export const NOTAS_TABLE_WIDTH = 500
+export const NOTAS_TABLE_HEADER_HEIGHT = 30
+export const CURSO_CELDA_WIDTH = 95
+export const COMPETENCIA_CELDA_WIDTH = 140 + 30
+export const MARGIN_LEFT = 50
+export const CONCLUSION_DESCRIPTIVA_CELDA_WIDTH = 55
+export const TABLE_NOTAS_WIDTH = 500
+export const TABLE_NOTAS_HEIGHT = 624
