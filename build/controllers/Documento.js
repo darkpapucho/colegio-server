@@ -26,6 +26,44 @@ const mongodb_1 = require("mongodb");
 const pdfkit_2 = __importDefault(require("pdfkit"));
 const generarBoletaNotas_1 = __importDefault(require("../utils/generarBoletaNotas/generarBoletaNotas"));
 class DocumentoControllers {
+    static generateLibretaIndividual(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId } = req.query;
+                console.log({ alumnoId });
+                (0, validators_1.assertIsString)(alumnoId);
+                const notasRecord = yield documentos_1.default.getRecordNotasAlumno({ nivel, year, alumnoId });
+                if (!notasRecord) {
+                    throw new Error('No se encontró el record de notas del alumno');
+                }
+                const libreta = new pdfkit_2.default({
+                    layout: 'portrait',
+                    size: 'A4',
+                    font: 'Courier',
+                    margins: { top: 20, left: 20, right: 20, bottom: 20 },
+                    autoFirstPage: false,
+                });
+                console.log({ notasRecord });
+                libreta.pipe(fs_1.default.createWriteStream('./files/libretaIndividual.pdf'));
+                libreta.pipe(res);
+                if (notasRecord.length === 0) {
+                    libreta.addPage();
+                    libreta.text('NO HAY ALUMNOS EN ESTE AÑO/SALÓN', 0, 100, {
+                        width: 600,
+                        align: 'center',
+                    });
+                }
+                else {
+                    (0, generarBoletaNotas_1.default)({ document: libreta, registros: notasRecord, year, nivel });
+                }
+                libreta.end();
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static generateLibretasByGradoSeccion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

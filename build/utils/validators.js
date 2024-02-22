@@ -1,9 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assertIsEmitirDocumentsData = exports.assertIsAMatriculado = exports.assertIsNuevoAlumno = void 0;
+exports.assertIsEmitirDocumentsData = exports.assertIsAMatriculado = exports.assertIsNuevoAlumno = exports.assertIsString = void 0;
 const zod_1 = require("zod");
 const enums_1 = require("../types/enums");
 const enums_2 = require("../error/enums");
+function assertIsString(value) {
+    console.log(typeof value);
+    if (typeof value === 'string')
+        return;
+    throw new Error(`Invalid String Value: ${value}`);
+}
+exports.assertIsString = assertIsString;
 const nuevoAlumnoSchema = zod_1.z.object({
     nombres: zod_1.z.string().min(4).max(30),
     apellidos: zod_1.z.string().min(4).max(30),

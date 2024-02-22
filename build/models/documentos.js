@@ -19,15 +19,49 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 class Documento {
-    static getRegistrosByGradoSeccion({ nivel, year, grado, seccion }) {
+    static getRecordNotasAlumno({ alumnoId, nivel, year }) {
+        var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
+            const notasCollection = `notas${nivel}${year}`;
+            const alumnosCollection = `matriculados${nivel}${year}`;
             const cursor = db_1.mongoClient
                 .db()
-                .collection(`notas${nivel}${year}`)
+                .collection(notasCollection)
+                .aggregate([
+                { $match: { alumnoId: new mongodb_1.ObjectId(alumnoId) } },
+                { $lookup: { from: alumnosCollection, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+                { $project: { _id: 0, alumnoId: 1, estudiante: 1, tardanzas: 1, inasistencias: 1, conclusionesDescriptivas: 1, cursos: 1 } },
+            ]);
+            let registros = [];
+            try {
+                for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
+                    _c = cursor_1_1.value;
+                    _d = false;
+                    const registro = _c;
+                    registros.push(registro);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            return registros;
+        });
+    }
+    static getRegistrosByGradoSeccion({ nivel, year, grado, seccion }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const notasCollection = `notas${nivel}${year}`;
+            const alumnosCollection = `matriculados${nivel}${year}`;
+            const cursor = db_1.mongoClient
+                .db()
+                .collection(notasCollection)
                 .aggregate([
                 {
                     $lookup: {
-                        from: `matriculados${nivel}${year}`,
+                        from: alumnosCollection,
                         localField: 'alumnoId',
                         foreignField: '_id',
                         as: 'estudiante',
@@ -59,7 +93,7 @@ class Documento {
         });
     }
     static fetchRegistroNotasBySalon({ nivel, year, alumnosIds }) {
-        var _a, e_1, _b, _c;
+        var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const notasCollection = `notas${nivel}${year}`;
             const alumnosCollection = `matriculados${nivel}${year}`;
@@ -111,12 +145,12 @@ class Documento {
                     registroNotas.push(registro);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = registrosCursos_1.return)) yield _b.call(registrosCursos_1);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
             // await notasCursor.forEach((registro) => {
             //   registroNotas.push(registro)

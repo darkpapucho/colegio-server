@@ -9,15 +9,6 @@ function generarBoletasDeNotas({ registros, document, year, nivel }) {
         });
         return;
     }
-    // const libreta = new pdf({
-    //   layout: 'portrait',
-    //   size: 'A4',
-    //   font: 'Courier',
-    //   autoFirstPage: false,
-    //   margins: { top: 20, left: 20, right: 20, bottom: 20 },
-    // });
-    // libreta.pipe(fs.createWriteStream('./files/libreta.pdf'));
-    // libreta.pipe(res);
     registros.forEach((registro) => {
         document.addPage();
         document.fontSize(14).text(`INFORME DE PROGRESO DEL APRENDIZAJE DEL ESTUDIANTE ${year}`, 0, 30, { width: 600, align: 'center', stroke: true });
