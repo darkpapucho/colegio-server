@@ -5,14 +5,33 @@ import { Grado, Nivel, Seccion, Year } from '../types/enums'
 import { ExtendedRegistroNota, RegistroNota } from '../types/documents'
 
 export default class Documento {
-  static async getRegistrosByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+  static async getRecordNotasAlumno({ alumnoId, nivel, year }: { nivel: Nivel; year: Year; alumnoId: string }) {
+    const notasCollection = `notas${nivel}${year}`
+    const alumnosCollection = `matriculados${nivel}${year}`
     const cursor = mongoClient
       .db()
-      .collection(`notas${nivel}${year}`)
+      .collection(notasCollection)
+      .aggregate<ExtendedRegistroNota>([
+        { $match: { alumnoId: new ObjectId(alumnoId) } },
+        { $lookup: { from: alumnosCollection, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+        { $project: { _id: 0, alumnoId: 1, estudiante: 1, tardanzas: 1, inasistencias: 1, conclusionesDescriptivas: 1, cursos: 1 } },
+      ])
+    let registros: ExtendedRegistroNota[] = []
+    for await (const registro of cursor) {
+      registros.push(registro)
+    }
+    return registros
+  }
+  static async getRegistrosByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+    const notasCollection = `notas${nivel}${year}`
+    const alumnosCollection = `matriculados${nivel}${year}`
+    const cursor = mongoClient
+      .db()
+      .collection(notasCollection)
       .aggregate<ExtendedRegistroNota>([
         {
           $lookup: {
-            from: `matriculados${nivel}${year}`,
+            from: alumnosCollection,
             localField: 'alumnoId',
             foreignField: '_id',
             as: 'estudiante',

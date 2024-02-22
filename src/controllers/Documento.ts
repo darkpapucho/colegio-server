@@ -1,7 +1,7 @@
 import Documento from '../models/documentos'
 import { GenerateCertificadoConducta, GenerateCertificadoNoAdeudo, GenerateResolucionTraslado } from '../utils/generarDocumentos'
 import { assertGrado, assertSeccion, extractNivelYearFromHeaders } from '../utils/global'
-import { assertIsAMatriculado, assertIsEmitirDocumentsData } from '../utils/validators'
+import { assertIsAMatriculado, assertIsEmitirDocumentsData, assertIsString } from '../utils/validators'
 import { Request, Response } from 'express'
 import PdfDocument from 'pdfkit'
 import fs from 'fs'
@@ -15,6 +15,41 @@ import PDFDocument from 'pdfkit'
 import generarBoletasDeNotas from '../utils/generarBoletaNotas/generarBoletaNotas'
 
 export default class DocumentoControllers {
+  static async generateLibretaIndividual(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { alumnoId } = req.query
+      console.log({ alumnoId })
+      assertIsString(alumnoId)
+      const notasRecord = await Documento.getRecordNotasAlumno({ nivel, year, alumnoId })
+      if (!notasRecord) {
+        throw new Error('No se encontró el record de notas del alumno')
+      }
+      const libreta = new PDFDocument({
+        layout: 'portrait',
+        size: 'A4',
+        font: 'Courier',
+        margins: { top: 20, left: 20, right: 20, bottom: 20 },
+        autoFirstPage: false,
+      })
+      console.log({ notasRecord })
+      libreta.pipe(fs.createWriteStream('./files/libretaIndividual.pdf'))
+      libreta.pipe(res)
+      if (notasRecord.length === 0) {
+        libreta.addPage()
+        libreta.text('NO HAY ALUMNOS EN ESTE AÑO/SALÓN', 0, 100, {
+          width: 600,
+          align: 'center',
+        })
+      } else {
+        generarBoletasDeNotas({ document: libreta, registros: notasRecord, year, nivel })
+      }
+      libreta.end()
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+
   static async generateLibretasByGradoSeccion(req: Request, res: Response) {
     try {
       const { grado, seccion } = req.body

@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb'
 import { AMatriculado } from './alumno'
 import { EstadoMatricula, Grado, GradoDestino, Nota, Seccion } from './enums'
 export type TardanzaInasistencia = {
@@ -26,7 +27,7 @@ export type CursoNotaRecord = {
 }
 
 export interface RegistroNota {
-  alumnoId: string
+  alumnoId: string | ObjectId
   nombres: string
   apellidos: string
   estadoMatricula: EstadoMatricula
@@ -41,7 +42,15 @@ export interface RegistroNota {
   }
 }
 
-export interface ExtendedRegistroNota extends RegistroNota {
+export interface ExtendedRegistroNota {
+  alumnoId: string | ObjectId
+  conclusionesDescriptivas: [string, string, string, string]
+  tardanzas: TardanzaInasistencia
+  inasistencias: TardanzaInasistencia
+  // [key: string]: CursoNotaRecord
+  cursos: {
+    [key: string]: CursoNotaRecord
+  }
   estudiante: [AMatriculado]
 }
 

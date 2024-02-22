@@ -4,6 +4,12 @@ import { AMatriculado, NuevoAlumno } from '../types/alumno'
 import { ErrorMessages } from '../error/enums'
 import { EmitirDocumentosData } from '../types/documents'
 
+export function assertIsString(value: unknown): asserts value is string {
+  console.log(typeof value)
+  if (typeof value === 'string') return
+  throw new Error(`Invalid String Value: ${value}`)
+}
+
 const nuevoAlumnoSchema = z.object({
   nombres: z.string().min(4).max(30),
   apellidos: z.string().min(4).max(30),

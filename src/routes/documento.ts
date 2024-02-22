@@ -6,3 +6,4 @@ documentoRouter.post('/emitirdocumentos', verifyCredentials, DocumentoController
 documentoRouter.get('/fetch-registro-notas-salon', verifyCredentials, DocumentoControllers.fetchRegistroNotasBySalon)
 documentoRouter.post('/update-registro-notas', verifyCredentials, DocumentoControllers.updateRegistroNotas)
 documentoRouter.post('/generar-boletas-notas-grado-seccion', verifyCredentials, DocumentoControllers.generateLibretasByGradoSeccion)
+documentoRouter.get('/generar-boleta-nota-individual', verifyCredentials, DocumentoControllers.generateLibretaIndividual)
