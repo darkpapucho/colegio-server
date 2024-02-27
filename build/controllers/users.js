@@ -18,7 +18,6 @@ const user_1 = require("../models/user");
 const global_1 = require("../utils/global");
 const enums_1 = require("../error/enums");
 const bcrypt_1 = require("bcrypt");
-// import { generateJWKS } from '../utils/generateJWKS'
 class UserControllers {
     static login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -35,6 +34,7 @@ class UserControllers {
                 const userInfo = yield user_1.User.getInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id });
                 (0, global_1.assert)(userInfo != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 const token = (0, jwt_1.signToken)({ _id: userCredentials._id.toString() });
+                // const token = signToken({ _id: 'cristhiam' })
                 return res.status(200).send((0, responses_1.responseOk)({ userInfo, token }));
             }
             catch (error) {

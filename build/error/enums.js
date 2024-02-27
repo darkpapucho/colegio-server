@@ -12,4 +12,5 @@ var ErrorMessages;
     ErrorMessages["RATIFICACION_MATRICULA_INVALID_A\u00D1O"] = "la ratificaci\u00F3n de matr\u00EDcula se limita a los alumnos del a\u00F1o acad\u00E9mico pasado";
     ErrorMessages["RATIFICACION_MATRICULA_INVALID_GRADO"] = "la ratificaci\u00F3n de matr\u00EDcula no est\u00E1 disponible para los alumnos de sexto grado";
     ErrorMessages["INVALID_ALUMNO_DATA"] = "los datos de los alumnos no son v\u00E1lidos";
+    ErrorMessages["USER_ALREADY_EXISTS"] = "Ya existe un usuario con ese DNI";
 })(ErrorMessages || (exports.ErrorMessages = ErrorMessages = {}));

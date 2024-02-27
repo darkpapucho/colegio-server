@@ -20,6 +20,8 @@ export function errorResponseHandler(res: Response, error: unknown) {
     } else if (error instanceof JsonWebTokenError) {
       console.log({ jwtMessage: error.message })
       return res.status(401).send(responseError(ErrorMessages.INVALID_TOKEN))
+    } else if (error.message === ErrorMessages.USER_ALREADY_EXISTS) {
+      return res.status(406).send(responseError(error.message))
     } else {
       console.log({ error })
       return res.status(500).send(responseError(ErrorMessages.SERVER_ERROR))

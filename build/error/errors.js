@@ -25,6 +25,9 @@ function errorResponseHandler(res, error) {
             console.log({ jwtMessage: error.message });
             return res.status(401).send((0, responses_1.responseError)(enums_1.ErrorMessages.INVALID_TOKEN));
         }
+        else if (error.message === enums_1.ErrorMessages.USER_ALREADY_EXISTS) {
+            return res.status(406).send((0, responses_1.responseError)(error.message));
+        }
         else {
             console.log({ error });
             return res.status(500).send((0, responses_1.responseError)(enums_1.ErrorMessages.SERVER_ERROR));

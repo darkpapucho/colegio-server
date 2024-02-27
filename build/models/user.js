@@ -11,8 +11,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const db_1 = require("../db");
+const bcrypt_1 = require("bcrypt");
 const db = db_1.mongoClient.db();
 class User {
+    static crearNuevoUsuarioProfesor({ nivel, dni }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log({ dni });
+            const usersCollection = `users${nivel}`;
+            // const username = nombres.slice(0, 1) + apellidos.split(' ')[0] + apellidos.split(' ')[1].slice(0, 1)
+            const password = yield (0, bcrypt_1.hash)('' + dni, 10);
+            const response = yield db.collection(usersCollection).insertOne({ username: '' + dni, password });
+            return response;
+        });
+    }
     static getById({ collectionName, _id }) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {

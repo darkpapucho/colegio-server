@@ -7,7 +7,6 @@ import { User } from '../models/user'
 import { assert } from '../utils/global'
 import { ErrorMessages } from '../error/enums'
 import { compare } from 'bcrypt'
-// import { generateJWKS } from '../utils/generateJWKS'
 
 export class UserControllers {
   static async login(req: Request, res: Response) {
@@ -24,6 +23,7 @@ export class UserControllers {
       const userInfo = await User.getInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id })
       assert(userInfo != null, ErrorMessages.INVALID_CREDENTIALS)
       const token = signToken({ _id: userCredentials._id.toString() })
+      // const token = signToken({ _id: 'cristhiam' })
       return res.status(200).send(responseOk({ userInfo, token }))
     } catch (error) {
       return errorResponseHandler(res, error)

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assertIsEmitirDocumentsData = exports.assertIsAMatriculado = exports.assertIsNuevoAlumno = exports.assertIsString = void 0;
+exports.assertIsProfesorData = exports.assertIsEmitirDocumentsData = exports.assertIsAMatriculado = exports.assertIsNuevoAlumno = exports.assertIsString = void 0;
 const zod_1 = require("zod");
 const enums_1 = require("../types/enums");
 const enums_2 = require("../error/enums");
@@ -20,6 +20,24 @@ const nuevoAlumnoSchema = zod_1.z.object({
     sexo: zod_1.z.enum(enums_1.VALID_SEXOS),
     dni: zod_1.z.string().length(8).optional(),
     codigoEstudiante: zod_1.z.string().length(14),
+});
+const profesorDataSchema = zod_1.z.object({
+    nombres: zod_1.z.string().min(4).max(30),
+    apellidos: zod_1.z.string().min(4).max(30),
+    dni: zod_1.z.number(),
+    telefono: zod_1.z.number().optional(),
+    salones: zod_1.z
+        .object({
+        label: zod_1.z.string(),
+        value: zod_1.z.object({
+            grado: zod_1.z.enum(enums_1.VALID_GRADOS),
+            seccion: zod_1.z.enum(enums_1.VALID_SECCIONES),
+        }),
+        tutor: zod_1.z.boolean(),
+        order: zod_1.z.number(),
+        cursos: zod_1.z.object({ label: zod_1.z.string(), key: zod_1.z.string() }).array(),
+    })
+        .array(),
 });
 function assertIsNuevoAlumno(alumno) {
     const result = nuevoAlumnoSchema.safeParse(alumno);
@@ -63,9 +81,18 @@ function assertIsAMatriculado(alumno) {
 exports.assertIsAMatriculado = assertIsAMatriculado;
 function assertIsEmitirDocumentsData(data) {
     const result = EmitirDocumentosDataSchema.safeParse(data);
+    console.log({ result });
     if (!result.success) {
         throw new Error(enums_2.ErrorMessages.INVALID_REQUEST);
     }
     return;
 }
 exports.assertIsEmitirDocumentsData = assertIsEmitirDocumentsData;
+function assertIsProfesorData(data) {
+    const result = profesorDataSchema.safeParse(data);
+    if (!result.success) {
+        throw new Error(enums_2.ErrorMessages.INVALID_REQUEST);
+    }
+    return;
+}
+exports.assertIsProfesorData = assertIsProfesorData;

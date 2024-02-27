@@ -15,7 +15,7 @@ interface UserInfo {
   userId: ObjectId
   nombres: string
   apellidos: string
-  type: UserType
+  rol: UserType
   dni: string
   correo: string
   telefono: string
@@ -43,4 +43,13 @@ export interface SelectedDocuments {
   certificadoNoAdeudo: boolean
   certificadoConducta: boolean
   resolucionTraslado: boolean
+}
+
+export type SalonProfesor = { tutor: boolean; label: string; value: { grado: Grado; seccion: Seccion }; order: number; cursos: { label: string; key: string }[] }
+export type ProfesorData = {
+  nombres: string
+  apellidos: string
+  dni: number
+  telefono?: number
+  salones: SalonProfesor[]
 }

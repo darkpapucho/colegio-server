@@ -3,6 +3,7 @@ import { ESTADOS_MATRICULA, VALID_GRADOS, VALID_GRADOS_DESTINO, VALID_SECCIONES,
 import { AMatriculado, NuevoAlumno } from '../types/alumno'
 import { ErrorMessages } from '../error/enums'
 import { EmitirDocumentosData } from '../types/documents'
+import { ProfesorData } from '../types/user'
 
 export function assertIsString(value: unknown): asserts value is string {
   console.log(typeof value)
@@ -20,7 +21,24 @@ const nuevoAlumnoSchema = z.object({
   dni: z.string().length(8).optional(),
   codigoEstudiante: z.string().length(14),
 })
-
+const profesorDataSchema = z.object({
+  nombres: z.string().min(4).max(30),
+  apellidos: z.string().min(4).max(30),
+  dni: z.number(),
+  telefono: z.number().optional(),
+  salones: z
+    .object({
+      label: z.string(),
+      value: z.object({
+        grado: z.enum(VALID_GRADOS),
+        seccion: z.enum(VALID_SECCIONES),
+      }),
+      tutor: z.boolean(),
+      order: z.number(),
+      cursos: z.object({ label: z.string(), key: z.string() }).array(),
+    })
+    .array(),
+})
 export function assertIsNuevoAlumno(alumno: any): asserts alumno is NuevoAlumno {
   const result = nuevoAlumnoSchema.safeParse(alumno)
 
@@ -66,7 +84,15 @@ export function assertIsAMatriculado(alumno: any): asserts alumno is AMatriculad
 
 export function assertIsEmitirDocumentsData(data: any): asserts data is EmitirDocumentosData {
   const result = EmitirDocumentosDataSchema.safeParse(data)
+  console.log({ result })
+  if (!result.success) {
+    throw new Error(ErrorMessages.INVALID_REQUEST)
+  }
+  return
+}
 
+export function assertIsProfesorData(data: any): asserts data is ProfesorData {
+  const result = profesorDataSchema.safeParse(data)
   if (!result.success) {
     throw new Error(ErrorMessages.INVALID_REQUEST)
   }
