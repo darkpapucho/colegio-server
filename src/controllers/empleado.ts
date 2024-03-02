@@ -7,6 +7,27 @@ import { responseOk } from '../utils/responses'
 import { assertIsProfesorData } from '../utils/validators'
 import { Request, Response } from 'express'
 export default class EmpleadoControllers {
+  static async updateProfesor(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const profesor = req.body.profesor
+      //TODO: assertProfesor
+      const response = await Empleado.updateProfesor({ nivel, year, profesor })
+      console.log({ response })
+      res.send(responseOk(null))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async fetchProfesores(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const profesores = await Empleado.fetchProfesores({ nivel, year })
+      res.send(responseOk(profesores))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async crearProfesor(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

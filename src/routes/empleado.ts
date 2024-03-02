@@ -5,3 +5,5 @@ import EmpleadoControllers from '../controllers/empleado'
 export const empleadoRouter = Router()
 
 empleadoRouter.post('/crear-profesor', verifyCredentials, EmpleadoControllers.crearProfesor)
+empleadoRouter.get('/fetch-profesores', verifyCredentials, EmpleadoControllers.fetchProfesores)
+empleadoRouter.post('/update-profesor', verifyCredentials, EmpleadoControllers.updateProfesor)

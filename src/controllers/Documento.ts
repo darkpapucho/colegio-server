@@ -56,7 +56,9 @@ export default class DocumentoControllers {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       assertGrado(grado)
       assertSeccion(seccion)
+      console.log({ grado, seccion, nivel, year })
       const registros = await Documento.getRegistrosByGradoSeccion({ grado, seccion, nivel, year })
+      console.log({ registros })
       //creacion de la libreta
       const libretas = new PDFDocument({
         layout: 'portrait',
@@ -101,12 +103,15 @@ export default class DocumentoControllers {
     const { nivel, year } = extractNivelYearFromHeaders(req)
     assertGrado(grado)
     assertSeccion(seccion)
-
+    console.log({ grado, seccion, nivel, year })
     // const cursos = generadorCursos(nivel, grado)
     try {
       const alumnos = await Alumno.getByGradoSeccion({ grado, seccion, collectionName: `matriculados${nivel}${year}` })
+
       const alumnosIds = alumnos.map((alumno) => new ObjectId(alumno._id))
+      console.log({ alumnosIds })
       const registroNotas = await Documento.fetchRegistroNotasBySalon({ nivel, year, alumnosIds })
+      console.log({ registroNotas })
       res.send(responseOk(registroNotas))
     } catch (error) {
       errorResponseHandler(res, error)
@@ -117,6 +122,7 @@ export default class DocumentoControllers {
     try {
       const { alumno, data } = req.body
       const { nivel, year } = extractNivelYearFromHeaders(req)
+      console.log({ alumno, data })
       assertIsAMatriculado(alumno)
       assertIsEmitirDocumentsData(data)
       const document = new PdfDocument({ autoFirstPage: false, layout: 'portrait' })
