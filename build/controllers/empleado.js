@@ -20,6 +20,33 @@ const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 const validators_1 = require("../utils/validators");
 class EmpleadoControllers {
+    static updateProfesor(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const profesor = req.body.profesor;
+                //TODO: assertProfesor
+                const response = yield empleado_1.default.updateProfesor({ nivel, year, profesor });
+                console.log({ response });
+                res.send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static fetchProfesores(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const profesores = yield empleado_1.default.fetchProfesores({ nivel, year });
+                res.send((0, responses_1.responseOk)(profesores));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static crearProfesor(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

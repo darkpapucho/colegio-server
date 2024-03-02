@@ -71,7 +71,9 @@ class DocumentoControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 (0, global_1.assertGrado)(grado);
                 (0, global_1.assertSeccion)(seccion);
+                console.log({ grado, seccion, nivel, year });
                 const registros = yield documentos_1.default.getRegistrosByGradoSeccion({ grado, seccion, nivel, year });
+                console.log({ registros });
                 //creacion de la libreta
                 const libretas = new pdfkit_2.default({
                     layout: 'portrait',
@@ -121,11 +123,14 @@ class DocumentoControllers {
             const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
             (0, global_1.assertGrado)(grado);
             (0, global_1.assertSeccion)(seccion);
+            console.log({ grado, seccion, nivel, year });
             // const cursos = generadorCursos(nivel, grado)
             try {
                 const alumnos = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, collectionName: `matriculados${nivel}${year}` });
                 const alumnosIds = alumnos.map((alumno) => new mongodb_1.ObjectId(alumno._id));
+                console.log({ alumnosIds });
                 const registroNotas = yield documentos_1.default.fetchRegistroNotasBySalon({ nivel, year, alumnosIds });
+                console.log({ registroNotas });
                 res.send((0, responses_1.responseOk)(registroNotas));
             }
             catch (error) {
@@ -138,6 +143,7 @@ class DocumentoControllers {
             try {
                 const { alumno, data } = req.body;
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                console.log({ alumno, data });
                 (0, validators_1.assertIsAMatriculado)(alumno);
                 (0, validators_1.assertIsEmitirDocumentsData)(data);
                 const document = new pdfkit_1.default({ autoFirstPage: false, layout: 'portrait' });
