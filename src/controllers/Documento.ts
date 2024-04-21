@@ -13,8 +13,26 @@ import { ObjectId } from 'mongodb'
 import { RegistroNota } from '../types/documents'
 import PDFDocument from 'pdfkit'
 import generarBoletasDeNotas from '../utils/generarBoletaNotas/generarBoletaNotas'
+import { SalonProfesor } from '../types/user'
 
 export default class DocumentoControllers {
+  static async fetchNotasByCursos(req: Request, res: Response) {
+    const { nivel, year } = extractNivelYearFromHeaders(req)
+    const salon = req.body.salon as SalonProfesor
+
+    console.log({ nivel, year, salon })
+    try {
+      //se supone que esta ruta solo es usada por profresores
+      const alumnosIdsList = await Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado: salon.value.grado, seccion: salon.value.seccion })
+      console.log({ alumnosIdsList })
+      const recordNotas = await Documento.fetchNotasPorAlumnosYCursos({ nivel, year, alumnosIdsList, salon })
+      console.log({ recordNotas })
+      res.send(responseOk(recordNotas))
+    } catch (error) {
+      errorResponseHandler(res, error)
+    }
+  }
+
   static async generateLibretaIndividual(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -81,6 +99,17 @@ export default class DocumentoControllers {
       libretas.end()
     } catch (err) {
       errorResponseHandler(res, err)
+    }
+  }
+
+  static async updateRegistroNotasProfesor(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { registro, isTutor } = req.body
+      await Documento.updateRegistroNotasProfesor({ nivel, year, isTutor, registro })
+      res.send(responseOk(null))
+    } catch (error) {
+      errorResponseHandler(res, error)
     }
   }
 

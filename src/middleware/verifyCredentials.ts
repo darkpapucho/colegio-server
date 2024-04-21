@@ -13,11 +13,11 @@ export const verifyCredentials = async (req: Request, res: Response, next: NextF
     assert(token != undefined, ErrorMessages.INVALID_REQUEST)
     const userID = verifyToken(token)
     const collectionName = `users${nivel}`
-
     const user = await User.getById({ _id: new ObjectId(userID), collectionName })
     if (!user) {
       throw new Error(ErrorMessages.INVALID_CREDENTIALS)
     }
+    req.body.issuer = userID
     const refreshedToken = signToken({ _id: userID })
     res.setHeader('Token', refreshedToken)
     return next()

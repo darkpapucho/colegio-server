@@ -11,3 +11,5 @@ alumnoRouter.post('/ratificar-matricula', verifyCredentials, AlumnoControllers.r
 alumnoRouter.put('/retirar', verifyCredentials, AlumnoControllers.retirarAlumno)
 alumnoRouter.post('/buscar', verifyCredentials, AlumnoControllers.buscarAlumno)
 alumnoRouter.post('/editar', verifyCredentials, AlumnoControllers.editarAlumno)
+alumnoRouter.post('/fetch-asistencia-list', verifyCredentials, AlumnoControllers.fetchAsistenciaList)
+alumnoRouter.post('/update-asistencia-list', verifyCredentials, AlumnoControllers.updateAsistenciaList)

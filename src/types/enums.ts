@@ -4,7 +4,7 @@ export type Nota = (typeof VALID_NOTAS)[number]
 export const VALID_GRADOS_DESTINO = ['Grupo 3 años', 'Grupo 4 años', 'Grupo 5 años', 'PRIMERO PRIMARIA', 'PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO', 'QUINTO', 'SEXTO', 'PRIMERO SECUNDARIA'] as const
 export type GradoDestino = (typeof VALID_GRADOS_DESTINO)[number]
 // estados matricula
-export const ESTADOS_MATRICULA = ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE', 'TRASLADADO'] as const
+export const ESTADOS_MATRICULA = ['DEFINITIVA', 'PENDIENTE', 'TRASLADADO', 'EN PROCESO'] as const
 export type EstadoMatricula = (typeof ESTADOS_MATRICULA)[number]
 //years
 export const VALID_YEARS = ['2020', '2021', '2022', '2023', '2024', '2025'] as const

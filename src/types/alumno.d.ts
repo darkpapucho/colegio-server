@@ -33,3 +33,14 @@ export type AMatriculadoNoId = Omit<AMatriculado, '_id'>
 export type PartialAlumno = {
   [item in keyof AMatriculado]: AMatriculado[item]
 }
+
+export type AsistenciaValue = 'A' | 'F' | 'T' | ''
+
+export type AsistenciaList = {
+  dayId: string
+  month: string
+  periodo: Periodo
+  list: { alumnoId: string; asistencia: AsistenciaValue }[]
+}
+
+export type Periodo = 'primerPeriodo' | 'segundoPeriodo' | 'tercerPeriodo' | 'cuartoPeriodo'

@@ -46,10 +46,23 @@ export interface SelectedDocuments {
 }
 
 export type SalonProfesor = { tutor: boolean; label: string; value: { grado: Grado; seccion: Seccion }; order: number; cursos: { label: string; key: string }[] }
+
 export type ProfesorData = {
   nombres: string
   apellidos: string
   dni: number
   telefono?: number
+  rol: 'profesor'
+  userId: string
+  salones: SalonProfesor[]
+}
+export type Profesor = {
+  nombres: string
+  apellidos: string
+  dni: number
+  telefono?: number
+  rol: 'profesor'
+  userId: string
+  _id: string
   salones: SalonProfesor[]
 }

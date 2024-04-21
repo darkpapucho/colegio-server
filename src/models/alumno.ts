@@ -1,10 +1,70 @@
-import { EstadoMatricula, Grado, Seccion } from '../types/enums'
+import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { mongoClient } from '../db'
-import { AMatriculado, AMatriculadoNoId, NuevoAlumno, PartialAlumno } from '../types/alumno'
+import { AMatriculado, AMatriculadoNoId, AsistenciaList, AsistenciaValue, NuevoAlumno, PartialAlumno } from '../types/alumno'
 import { ObjectId, WithId } from 'mongodb'
 import { ErrorMessages } from '../error/enums'
+import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/utils'
+import { Month } from '../types/asistencia'
 
 export class Alumno {
+  static async fetchAsistenciaList({ grado, seccion, nivel, year, month, dayId }: { dayId: string; month: Month; grado: Grado; seccion: Seccion; nivel: Nivel; year: Year }) {
+    const asistenciasCollection = `asistencias${nivel}${year}`
+    const matriculadosCollection = `matriculados${nivel}${year}`
+
+    return new Promise(async (resolve) => {
+      let asistenciaList: { nombreCompleto: string; alumnoId: ObjectId; asistencia: AsistenciaValue }[] = []
+      const cursor = mongoClient
+        .db()
+        .collection(matriculadosCollection)
+        .aggregate<{ nombreCompleto: string; alumnoId: ObjectId; asistencia: AsistenciaValue }>([
+          { $match: { grado, seccion, estadoMatricula: 'DEFINITIVA' } },
+          { $lookup: { from: asistenciasCollection, localField: '_id', foreignField: 'alumnoId', as: 'asistencia' } },
+          { $project: { nombreCompleto: 1, _id: 0, recordAsistencia: { $arrayElemAt: ['$asistencia', 0] } } },
+          { $project: { nombreCompleto: 1, alumnoId: '$recordAsistencia.alumnoId', month: `$recordAsistencia.${month}` } },
+          { $project: { nombreCompleto: 1, alumnoId: 1, month: { $filter: { input: '$month', as: 'month', cond: { $eq: ['$$month.dayId', new ObjectId(dayId)] } } } } },
+          { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$month', 0] } } },
+          { $project: { alumnoId: 1, nombreCompleto: 1, asistencia: '$asistencia.asistencia' } },
+        ])
+
+      for await (let doc of cursor) {
+        asistenciaList.push(doc)
+      }
+
+      resolve({ asistenciaList, dayId, month })
+    })
+  }
+
+  static async updateAsistenciaList({ nivel, year, asistenciaList }: { nivel: Nivel; year: Year; asistenciaList: AsistenciaList }) {
+    const { month, list, dayId, periodo } = asistenciaList
+    console.log({ list, month, dayId, periodo })
+    const asistenciasCollection = mongoClient.db().collection(`asistencias${nivel}${year}`)
+    list.forEach(async (record) => {
+      //only process F and A values, ingore T because they dont have to be addressed here.
+      if (record.asistencia === 'F') {
+        //increase inasistencias.injustificadas by 1 in "notas collection"
+        const key = `inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`
+        await mongoClient
+          .db()
+          .collection(`notas${nivel}${year}`)
+          .updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $inc: { [key]: 1 } })
+      }
+      /////
+      const response = await asistenciasCollection.updateOne(
+        { alumnoId: new ObjectId(record.alumnoId) },
+        { $set: { [`${month}.$[element].asistencia`]: record.asistencia } },
+        { arrayFilters: [{ 'element.dayId': new ObjectId(dayId) }] },
+      )
+      console.log({ response })
+    })
+  }
+  static async fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+    const cursor = await mongoClient.db().collection(`matriculados${nivel}${year}`).distinct('_id', { grado, seccion })
+    const records = []
+    for await (const doc of cursor) {
+      records.push(doc)
+    }
+    return records
+  }
   static async editarAlumno({ alumno, collectionName }: { alumno: PartialAlumno; collectionName: string }) {
     const { _id, ...data } = alumno
     const response = await mongoClient
@@ -15,12 +75,20 @@ export class Alumno {
     return response.acknowledged
   }
   //busca alumnos con estado de matricula no "TRASLADADO"
-  static async buscarAlumno({ nombreCompleto, collectionName, estadosMatricula }: { nombreCompleto: string; collectionName: string; estadosMatricula: EstadoMatricula[] }): Promise<WithId<AMatriculadoNoId>[]> {
+  static async buscarAlumno({
+    nombreCompleto,
+    collectionName,
+    estadosMatricula,
+  }: {
+    nombreCompleto: string
+    collectionName: string
+    estadosMatricula: EstadoMatricula[]
+  }): Promise<WithId<AMatriculadoNoId>[]> {
     let alumnos: WithId<AMatriculadoNoId>[] = []
     const cursor = mongoClient
       .db()
       .collection<AMatriculadoNoId>(collectionName)
-      .find({ $text: { $search: nombreCompleto }, estadoMatricula: { $in: estadosMatricula } }, { sort: { grado: -1 } })
+      .find({ $text: { $search: nombreCompleto }, estadoMatricula: { $in: [...estadosMatricula] } }, { sort: { grado: -1 } })
     for await (let doc of cursor) {
       alumnos.push(doc)
     }
@@ -44,7 +112,15 @@ export class Alumno {
     return alumnos
   }
 
-  static async ratificarMatricula({ alumnos, currentYearCollectionName, lastYearCollectionName }: { alumnos: AMatriculado[]; currentYearCollectionName: string; lastYearCollectionName: string }): Promise<void> {
+  static async ratificarMatricula({
+    alumnos,
+    currentYearCollectionName,
+    lastYearCollectionName,
+  }: {
+    alumnos: AMatriculado[]
+    currentYearCollectionName: string
+    lastYearCollectionName: string
+  }): Promise<void> {
     const alumnosNoId: AMatriculadoNoId[] = alumnos.map((alumno) => {
       const { _id, ...rest } = alumno
       return { ...rest }

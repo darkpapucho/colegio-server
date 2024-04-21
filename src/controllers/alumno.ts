@@ -1,15 +1,52 @@
 import { NextFunction, Request, Response } from 'express'
 import { assertGrado, assertSeccion, extractNivelYearFromHeaders } from '../utils/global'
 import { Alumno } from '../models/alumno'
-import { responseOk } from '../utils/responses'
+import { responseError, responseOk } from '../utils/responses'
 import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
 import { GradosInicial, VALID_GRADOS } from '../types/enums'
 import { AMatriculado, PartialAlumno } from '../types/alumno'
 import { ObjectId } from 'mongodb'
+import Calendario from '../models/Calendario'
 
 export class AlumnoControllers {
+  static async fetchAsistenciaList(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { grado, seccion, month, day } = req.body
+      assertGrado(grado)
+      assertSeccion(seccion)
+      const response = await Calendario.checkSalonDayStatusByMonthDay({ nivel, year, month, day })
+      if (!response) throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
+      if (response.status === 'disabled') {
+        return res.status(409).send(responseError('La asistencia no se encuentra disponible en este momento'))
+      }
+      const alumnosList = await Alumno.fetchAsistenciaList({ grado, seccion, nivel, year, month, dayId: response._id.toString() })
+      return res.status(200).send(responseOk(alumnosList))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
+
+  static async updateAsistenciaList(req: Request, res: Response) {
+    try {
+      console.log('hihih')
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { asistenciaList } = req.body
+      //check enabled status from calendario dayId
+      const response = await Calendario.checkSalonDayStatus({ nivel, year, dayId: asistenciaList.dayId })
+      console.log({ response })
+      if (!response) throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
+      if (response.status === 'disabled') {
+        return res.status(409).send(responseError('El tiempo de asistencia a pasado.'))
+      }
+      await Alumno.updateAsistenciaList({ nivel, year, asistenciaList })
+      return res.status(200).send(responseOk(null))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
   static async editarAlumno(req: Request, res: Response, next: NextFunction) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -111,6 +148,7 @@ export class AlumnoControllers {
       errorResponseHandler(res, err)
     }
   }
+
   static async nuevaMatricula(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

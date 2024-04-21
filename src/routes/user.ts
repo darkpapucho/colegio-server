@@ -5,4 +5,5 @@ import { UserControllers } from '../controllers/users'
 export const userRouter = Router()
 
 userRouter.post('/login', UserControllers.login)
+userRouter.post('/login-profesor', UserControllers.loginProfesor)
 userRouter.get('/verify', UserControllers.verify)

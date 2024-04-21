@@ -7,3 +7,5 @@ documentoRouter.get('/fetch-registro-notas-salon', verifyCredentials, DocumentoC
 documentoRouter.post('/update-registro-notas', verifyCredentials, DocumentoControllers.updateRegistroNotas)
 documentoRouter.post('/generar-boletas-notas-grado-seccion', verifyCredentials, DocumentoControllers.generateLibretasByGradoSeccion)
 documentoRouter.get('/generar-boleta-nota-individual', verifyCredentials, DocumentoControllers.generateLibretaIndividual)
+documentoRouter.post('/get-notas-by-cursos', verifyCredentials, DocumentoControllers.fetchNotasByCursos)
+documentoRouter.post('/update-registro-notas-profesor', verifyCredentials, DocumentoControllers.updateRegistroNotasProfesor)

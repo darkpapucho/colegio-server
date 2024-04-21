@@ -3,8 +3,73 @@ import { mongoClient } from '../db'
 
 import { Grado, Nivel, Seccion, Year } from '../types/enums'
 import { ExtendedRegistroNota, RegistroNota } from '../types/documents'
+import { SalonProfesor } from '../types/user'
 
 export default class Documento {
+  static async updateRegistroNotasProfesor({ nivel, year, isTutor, registro }: { registro: RegistroNota[]; isTutor: boolean; nivel: Nivel; year: Year }) {
+    const collection = mongoClient.db().collection(`notas${nivel}${year}`)
+    if (isTutor) {
+      for (const record of registro) {
+        const { tardanzas, inasistencias, conclusionesDescriptivas, cursos } = record
+        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, cursos: { ...cursos } } })
+      }
+    } else {
+      for (const record of registro) {
+        const { cursos } = record
+        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { cursos: { ...cursos } } })
+      }
+    }
+  }
+
+  static async fetchNotasPorAlumnosYCursos({ nivel, year, alumnosIdsList, salon }: { salon: SalonProfesor; nivel: Nivel; year: Year; alumnosIdsList: ObjectId[] }) {
+    const notasCollection = mongoClient.db().collection(`notas${nivel}${year}`)
+
+    const cursosList: { [key: string]: 1 } = {}
+    salon.cursos.forEach((curso) => {
+      cursosList[curso.key] = 1
+    })
+    console.log({ cursosList })
+    const cursor = notasCollection.aggregate([
+      { $match: { alumnoId: { $in: alumnosIdsList } } },
+      {
+        $lookup: {
+          from: `matriculados${nivel}${year}`,
+          localField: 'alumnoId',
+          foreignField: '_id',
+          as: 'estudiante',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          alumnoId: 1,
+          tardanzas: salon.tutor ? 1 : 0,
+          inasistencias: salon.tutor ? 1 : 0,
+          conclusionesDescriptivas: salon.tutor ? 1 : 0,
+          cursos: 1,
+          educando: { $arrayElemAt: ['$estudiante', 0] },
+        },
+      },
+      {
+        $project: {
+          alumnoId: 1,
+          tardanzas: salon.tutor ? 1 : 0,
+          inasistencias: salon.tutor ? 1 : 0,
+          conclusionesDescriptivas: salon.tutor ? 1 : 0,
+          cursos: { ...cursosList },
+          nombres: '$educando.nombres',
+          apellidos: '$educando.apellidos',
+        },
+      },
+    ])
+    const records = []
+    for await (const doc of cursor) {
+      records.push(doc)
+    }
+
+    return records
+  }
+
   static async getRecordNotasAlumno({ alumnoId, nivel, year }: { nivel: Nivel; year: Year; alumnoId: string }) {
     const notasCollection = `notas${nivel}${year}`
     const alumnosCollection = `matriculados${nivel}${year}`
@@ -57,7 +122,7 @@ export default class Documento {
       await mongoClient
         .db()
         .collection(collectionName)
-        .updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, cursos } })
+        .updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, cursos: { ...cursos } } })
     }
   }
 

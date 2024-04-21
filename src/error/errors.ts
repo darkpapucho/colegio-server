@@ -2,6 +2,7 @@ import { Response } from 'express'
 import { ErrorMessages } from './enums'
 import { responseError } from '../utils/responses'
 import { JsonWebTokenError } from 'jsonwebtoken'
+import { MongoServerError } from 'mongodb'
 
 export function assertIsError(error: unknown): asserts error is Error {
   if (error instanceof Error) return
@@ -13,7 +14,9 @@ export function errorResponseHandler(res: Response, error: unknown) {
   console.log({ error })
   try {
     assertIsError(error)
-    if (error.message === ErrorMessages.INVALID_CREDENTIALS) {
+    if (error instanceof MongoServerError) {
+      return res.status(501).send(responseError(ErrorMessages.SERVER_ERROR))
+    } else if (error.message === ErrorMessages.INVALID_CREDENTIALS) {
       return res.status(401).send(responseError(error.message))
     } else if (error.message === ErrorMessages.INVALID_REQUEST) {
       return res.status(400).send(responseError(error.message))

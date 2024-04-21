@@ -31,7 +31,12 @@ export class User {
       resolve(user)
     })
   }
-
+  static getProfesorInfo({ collectionName, userId }: { collectionName: string; userId: ObjectId }) {
+    return new Promise((resolve) => {
+      const userInfo = db.collection<UserInfo>(collectionName).findOne({ userId: userId, rol: 'profesor' })
+      resolve(userInfo)
+    })
+  }
   static getInfo({ collectionName, userId }: { collectionName: string; userId: ObjectId }): Promise<WithId<UserInfo> | null> {
     return new Promise((resolve) => {
       const userInfo = db.collection<UserInfo>(collectionName).findOne({ userId: userId })
