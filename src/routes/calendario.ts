@@ -9,3 +9,5 @@ calendarioRouter.get('/fetch-calendario', verifyCredentials, CalendarioControlle
 calendarioRouter.post('/delete-day', verifyCredentials, CalendarioControllers.deleteDayFromCalendar)
 calendarioRouter.post('/report-tardanza-alumno', verifyCredentials, CalendarioControllers.reportTardanzaAlumno)
 calendarioRouter.get('/fetch-day-id', verifyCredentials, CalendarioControllers.fetchDayId)
+calendarioRouter.get('/fetch-current-periodo', verifyCredentials, CalendarioControllers.fetchCurrentPeriodo)
+calendarioRouter.post('/set-current-periodo', verifyCredentials, CalendarioControllers.setCurrentPeriodo)

@@ -28,7 +28,7 @@ export default class Documento {
     salon.cursos.forEach((curso) => {
       cursosList[curso.key] = 1
     })
-    console.log({ cursosList })
+
     const cursor = notasCollection.aggregate([
       { $match: { alumnoId: { $in: alumnosIdsList } } },
       {

@@ -20,13 +20,12 @@ export default class DocumentoControllers {
     const { nivel, year } = extractNivelYearFromHeaders(req)
     const salon = req.body.salon as SalonProfesor
 
-    console.log({ nivel, year, salon })
     try {
       //se supone que esta ruta solo es usada por profresores
       const alumnosIdsList = await Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado: salon.value.grado, seccion: salon.value.seccion })
-      console.log({ alumnosIdsList })
+
       const recordNotas = await Documento.fetchNotasPorAlumnosYCursos({ nivel, year, alumnosIdsList, salon })
-      console.log({ recordNotas })
+
       res.send(responseOk(recordNotas))
     } catch (error) {
       errorResponseHandler(res, error)
@@ -37,7 +36,7 @@ export default class DocumentoControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { alumnoId } = req.query
-      console.log({ alumnoId })
+
       assertIsString(alumnoId)
       const notasRecord = await Documento.getRecordNotasAlumno({ nivel, year, alumnoId })
       if (!notasRecord) {
@@ -50,7 +49,7 @@ export default class DocumentoControllers {
         margins: { top: 20, left: 20, right: 20, bottom: 20 },
         autoFirstPage: false,
       })
-      console.log({ notasRecord })
+
       libreta.pipe(fs.createWriteStream('./files/libretaIndividual.pdf'))
       libreta.pipe(res)
       if (notasRecord.length === 0) {
@@ -74,9 +73,9 @@ export default class DocumentoControllers {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       assertGrado(grado)
       assertSeccion(seccion)
-      console.log({ grado, seccion, nivel, year })
+
       const registros = await Documento.getRegistrosByGradoSeccion({ grado, seccion, nivel, year })
-      console.log({ registros })
+
       //creacion de la libreta
       const libretas = new PDFDocument({
         layout: 'portrait',
@@ -132,15 +131,15 @@ export default class DocumentoControllers {
     const { nivel, year } = extractNivelYearFromHeaders(req)
     assertGrado(grado)
     assertSeccion(seccion)
-    console.log({ grado, seccion, nivel, year })
+
     // const cursos = generadorCursos(nivel, grado)
     try {
       const alumnos = await Alumno.getByGradoSeccion({ grado, seccion, collectionName: `matriculados${nivel}${year}` })
 
       const alumnosIds = alumnos.map((alumno) => new ObjectId(alumno._id))
-      console.log({ alumnosIds })
+
       const registroNotas = await Documento.fetchRegistroNotasBySalon({ nivel, year, alumnosIds })
-      console.log({ registroNotas })
+
       res.send(responseOk(registroNotas))
     } catch (error) {
       errorResponseHandler(res, error)
@@ -151,7 +150,7 @@ export default class DocumentoControllers {
     try {
       const { alumno, data } = req.body
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      console.log({ alumno, data })
+
       assertIsAMatriculado(alumno)
       assertIsEmitirDocumentsData(data)
       const document = new PdfDocument({ autoFirstPage: false, layout: 'portrait' })

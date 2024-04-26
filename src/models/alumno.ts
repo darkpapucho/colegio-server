@@ -1,6 +1,6 @@
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { mongoClient } from '../db'
-import { AMatriculado, AMatriculadoNoId, AsistenciaList, AsistenciaValue, NuevoAlumno, PartialAlumno } from '../types/alumno'
+import { AMatriculado, AMatriculadoNoId, AsistenciaValue, NuevoAlumno, PartialAlumno, Periodo } from '../types/alumno'
 import { ObjectId, WithId } from 'mongodb'
 import { ErrorMessages } from '../error/enums'
 import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/utils'
@@ -17,13 +17,14 @@ export class Alumno {
         .db()
         .collection(matriculadosCollection)
         .aggregate<{ nombreCompleto: string; alumnoId: ObjectId; asistencia: AsistenciaValue }>([
-          { $match: { grado, seccion, estadoMatricula: 'DEFINITIVA' } },
+          { $match: { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO'] } } },
           { $lookup: { from: asistenciasCollection, localField: '_id', foreignField: 'alumnoId', as: 'asistencia' } },
           { $project: { nombreCompleto: 1, _id: 0, recordAsistencia: { $arrayElemAt: ['$asistencia', 0] } } },
-          { $project: { nombreCompleto: 1, alumnoId: '$recordAsistencia.alumnoId', month: `$recordAsistencia.${month}` } },
-          { $project: { nombreCompleto: 1, alumnoId: 1, month: { $filter: { input: '$month', as: 'month', cond: { $eq: ['$$month.dayId', new ObjectId(dayId)] } } } } },
-          { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$month', 0] } } },
+          { $project: { nombreCompleto: 1, alumnoId: '$recordAsistencia.alumnoId', records: `$recordAsistencia.records` } },
+          { $project: { nombreCompleto: 1, alumnoId: 1, records: { $filter: { input: '$records', as: 'records', cond: { $eq: ['$$records.dayId', new ObjectId(dayId)] } } } } },
+          { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$records', 0] } } },
           { $project: { alumnoId: 1, nombreCompleto: 1, asistencia: '$asistencia.asistencia' } },
+          { $sort: { nombreCompleto: 1 } },
         ])
 
       for await (let doc of cursor) {
@@ -34,29 +35,68 @@ export class Alumno {
     })
   }
 
-  static async updateAsistenciaList({ nivel, year, asistenciaList }: { nivel: Nivel; year: Year; asistenciaList: AsistenciaList }) {
-    const { month, list, dayId, periodo } = asistenciaList
-    console.log({ list, month, dayId, periodo })
-    const asistenciasCollection = mongoClient.db().collection(`asistencias${nivel}${year}`)
-    list.forEach(async (record) => {
-      //only process F and A values, ingore T because they dont have to be addressed here.
-      if (record.asistencia === 'F') {
-        //increase inasistencias.injustificadas by 1 in "notas collection"
-        const key = `inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`
-        await mongoClient
-          .db()
-          .collection(`notas${nivel}${year}`)
-          .updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $inc: { [key]: 1 } })
-      }
-      /////
-      const response = await asistenciasCollection.updateOne(
-        { alumnoId: new ObjectId(record.alumnoId) },
-        { $set: { [`${month}.$[element].asistencia`]: record.asistencia } },
-        { arrayFilters: [{ 'element.dayId': new ObjectId(dayId) }] },
-      )
-      console.log({ response })
-    })
+  static async increaseInasistenciaInjustificadaAlumno({
+    nivel,
+    year,
+    alumnoId,
+    periodo,
+    quantity,
+  }: {
+    quantity: number
+    nivel: Nivel
+    year: Year
+    alumnoId: string
+    periodo: Periodo
+  }) {
+    const response = await mongoClient
+      .db()
+      .collection(`notas${nivel}${year}`)
+      .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: quantity } })
+    return response
   }
+  static async increaseTardanzaInjustificadaAlumno({
+    nivel,
+    year,
+    alumnoId,
+    periodo,
+    quantity,
+  }: {
+    quantity: number
+    nivel: Nivel
+    year: Year
+    alumnoId: string
+    periodo: Periodo
+  }) {
+    const response = await mongoClient
+      .db()
+      .collection(`notas${nivel}${year}`)
+      .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`tardanzas.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: quantity } })
+    return response
+  }
+  // static async updateAsistenciaList({ nivel, year, asistenciaList }: { nivel: Nivel; year: Year; asistenciaList: AsistenciaList }) {
+  //   const { list, dayId, periodo } = asistenciaList
+  //   console.log({ list, dayId, periodo })
+  //   const asistenciasCollection = mongoClient.db().collection(`asistencias${nivel}${year}`)
+  //   list.forEach(async (record) => {
+  //     //only process F and A values, ingore T because they dont have to be addressed here.
+  //     if (record.asistencia === 'F') {
+  //       //increase inasistencias.injustificadas by 1 in "notas collection"
+  //       const key = `inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`
+  //       await mongoClient
+  //         .db()
+  //         .collection(`notas${nivel}${year}`)
+  //         .updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $inc: { [key]: 1 } })
+  //     }
+  //     /////
+  //     if (record.asistencia !== 'T') {
+  //       await asistenciasCollection.updateOne(
+  //         { alumnoId: new ObjectId(record.alumnoId) },
+  //         { $set: { 'records.$[element].asistencia': record.asistencia } },
+  //         { arrayFilters: [{ 'element.dayId': new ObjectId(dayId) }] },
+  //       )
+  //     }
+  //   })
+  // }
   static async fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
     const cursor = await mongoClient.db().collection(`matriculados${nivel}${year}`).distinct('_id', { grado, seccion })
     const records = []

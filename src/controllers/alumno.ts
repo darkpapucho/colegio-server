@@ -6,7 +6,7 @@ import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
 import { GradosInicial, VALID_GRADOS } from '../types/enums'
-import { AMatriculado, PartialAlumno } from '../types/alumno'
+import { AMatriculado, AsistenciaValue, PartialAlumno, Periodo } from '../types/alumno'
 import { ObjectId } from 'mongodb'
 import Calendario from '../models/Calendario'
 
@@ -17,10 +17,11 @@ export class AlumnoControllers {
       const { grado, seccion, month, day } = req.body
       assertGrado(grado)
       assertSeccion(seccion)
+      //check enabled status
       const response = await Calendario.checkSalonDayStatusByMonthDay({ nivel, year, month, day })
       if (!response) throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
       if (response.status === 'disabled') {
-        return res.status(409).send(responseError('La asistencia no se encuentra disponible en este momento'))
+        return res.send(responseError('La asistencia no se encuentra disponible en este momento'))
       }
       const alumnosList = await Alumno.fetchAsistenciaList({ grado, seccion, nivel, year, month, dayId: response._id.toString() })
       return res.status(200).send(responseOk(alumnosList))
@@ -31,17 +32,50 @@ export class AlumnoControllers {
 
   static async updateAsistenciaList(req: Request, res: Response) {
     try {
-      console.log('hihih')
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { asistenciaList } = req.body
+      const list = asistenciaList.list as { alumnoId: string; asistencia: AsistenciaValue }[]
+      const periodo = asistenciaList.periodo as Periodo
+      const dayId = asistenciaList.dayId as string
       //check enabled status from calendario dayId
       const response = await Calendario.checkSalonDayStatus({ nivel, year, dayId: asistenciaList.dayId })
-      console.log({ response })
+
       if (!response) throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
       if (response.status === 'disabled') {
-        return res.status(409).send(responseError('El tiempo de asistencia a pasado.'))
+        return res.send(responseError('La asistencia para este día no se encuentra habilitada.'))
       }
-      await Alumno.updateAsistenciaList({ nivel, year, asistenciaList })
+      //for each element in the list
+      list.forEach(async (record) => {
+        //solo procesamos F y A
+        //CHECK the current asistencia status
+        const asistenciaResults = await Calendario.fetchADayAsistenciaRecord({ nivel, year, alumnoId: record.alumnoId, dayId })
+        if (!asistenciaResults.length) throw new Error(ErrorMessages.INVALID_REQUEST)
+        const oldAsistenciaValue = asistenciaResults[0].records.asistencia
+
+        if (record.asistencia === 'F') {
+          //cheeck q no se haga por segunda vez
+          if (oldAsistenciaValue === '' || oldAsistenciaValue === 'A') {
+            //incrementamos la falta injustificada
+            await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 })
+            //pasamos la nueva asistencia
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+          }
+          //si el valor anterior ya era F o T no se hace nada
+        } else if (record.asistencia === 'A') {
+          if (oldAsistenciaValue === 'F') {
+            //DECREMENTAMOS las inasistencias injustificadas
+            await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            //pasamos la nueva asistencia
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+          } else if (oldAsistenciaValue === '') {
+            //pasamos la nueva asistencia
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+          }
+          //en caso de T o A no es necesario hacer nada
+        }
+      })
+      //old Code:await Alumno.updateAsistenciaList({ nivel, year, asistenciaList })
+
       return res.status(200).send(responseOk(null))
     } catch (err) {
       return errorResponseHandler(res, err)

@@ -12,8 +12,8 @@ export default class EmpleadoControllers {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const profesor = req.body.profesor
       //TODO: assertProfesor
-      const response = await Empleado.updateProfesor({ nivel, year, profesor })
-      console.log({ response })
+      await Empleado.updateProfesor({ nivel, year, profesor })
+
       res.send(responseOk(null))
     } catch (err) {
       errorResponseHandler(res, err)
@@ -32,7 +32,7 @@ export default class EmpleadoControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const data = req.body //assert data:ProfesorData
-      console.log(data)
+
       assertIsProfesorData(data)
       const user = await User.getByUsername({ collectionName: `users${nivel}`, username: '' + data.dni })
       if (user !== null) throw new Error(ErrorMessages.USER_ALREADY_EXISTS)

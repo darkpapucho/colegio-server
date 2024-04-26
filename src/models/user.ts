@@ -8,7 +8,6 @@ const db = mongoClient.db()
 
 export class User {
   static async crearNuevoUsuarioProfesor({ nivel, dni }: { nivel: Nivel; dni: number }) {
-    console.log({ dni })
     const usersCollection = `users${nivel}`
 
     // const username = nombres.slice(0, 1) + apellidos.split(' ')[0] + apellidos.split(' ')[1].slice(0, 1)

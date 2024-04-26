@@ -7,14 +7,37 @@ import { ErrorMessages } from '../error/enums'
 import { MONTHS_YEAR } from '../utils/calendario'
 import { Month } from '../types/asistencia'
 export default class CalendarioControllers {
+  static async setCurrentPeriodo(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const periodo = req.body.periodo
+      await Calendario.setCurrentPeriodo({ nivel, year, periodo })
+      res.send(responseOk(null))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async fetchCurrentPeriodo(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const response = await Calendario.fetchCurrentPeriodo({ nivel, year })
+      if (!response) {
+        return res.send(responseError(ErrorMessages.PERIODO_NOT_SET))
+      }
+      return res.send(responseOk(response.periodo))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
+
   static async fetchDayId(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const day = new Date().getDate()
       const month = MONTHS_YEAR[new Date().getMonth()] as Month
-      console.log({ day, month })
+
       const response = await Calendario.fetchDayId({ day, month, nivel, year })
-      console.log({ response })
+
       res.status(200).send(responseOk(response))
     } catch (err) {
       errorResponseHandler(res, err)
@@ -23,12 +46,16 @@ export default class CalendarioControllers {
   static async reportTardanzaAlumno(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { alumnoId, dayId, month, issuer } = req.body
-      const response = await Calendario.reportTardanzaAlumno({ nivel, year, alumnoId, dayId, issuer, month })
-      console.log({ response })
-      if (!response.acknowledged || !response.modifiedCount) {
-        return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
-      }
+      const { alumnoId, dayId, issuer } = req.body
+      //el status enabled no es imprecindible aqui
+      //revisar que no se haya reportado una tardanza con aterioridad
+      const results = await Calendario.fetchADayAsistenciaRecord({ nivel, year, alumnoId, dayId })
+      if (results.length === 0) return res.send(responseError(ErrorMessages.INVALID_REQUEST))
+      const oldAsistenciaValue = results[0].records.asistencia
+      if (oldAsistenciaValue === 'T') return res.send(responseError(ErrorMessages.TARDANZA_ALREADY_REPORTED))
+      //reportar la tardanza
+      if (oldAsistenciaValue === 'A' || oldAsistenciaValue === 'F') return res.send(responseError(ErrorMessages.ASISTENCIA_ALREADY_REPORTED))
+      await Calendario.reportTardanzaAlumno({ nivel, year, alumnoId, dayId, issuer })
       return res.send(responseOk(null))
     } catch (error) {
       return errorResponseHandler(res, error)
@@ -37,9 +64,9 @@ export default class CalendarioControllers {
   static async deleteDayFromCalendar(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { dayId, month } = req.body
-      const response = await Calendario.deleteDayFromCalendar({ nivel, year, dayId, month })
-      console.log({ nivel, year, dayId, response })
+      const { dayId } = req.body
+      const response = await Calendario.deleteDayFromCalendar({ nivel, year, dayId })
+
       if (!response.acknowledged || !response.deletedCount) {
         return res.status(503).send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
       }
