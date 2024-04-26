@@ -5,7 +5,7 @@ exports.VALID_NOTAS = ['A', 'B', 'C', 'AD'];
 //grados destino
 exports.VALID_GRADOS_DESTINO = ['Grupo 3 años', 'Grupo 4 años', 'Grupo 5 años', 'PRIMERO PRIMARIA', 'PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO', 'QUINTO', 'SEXTO', 'PRIMERO SECUNDARIA'];
 // estados matricula
-exports.ESTADOS_MATRICULA = ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE', 'TRASLADADO'];
+exports.ESTADOS_MATRICULA = ['DEFINITIVA', 'PENDIENTE', 'TRASLADADO', 'EN PROCESO'];
 //years
 exports.VALID_YEARS = ['2020', '2021', '2022', '2023', '2024', '2025'];
 //sexo

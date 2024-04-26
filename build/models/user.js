@@ -16,7 +16,6 @@ const db = db_1.mongoClient.db();
 class User {
     static crearNuevoUsuarioProfesor({ nivel, dni }) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log({ dni });
             const usersCollection = `users${nivel}`;
             // const username = nombres.slice(0, 1) + apellidos.split(' ')[0] + apellidos.split(' ')[1].slice(0, 1)
             const password = yield (0, bcrypt_1.hash)('' + dni, 10);
@@ -36,6 +35,12 @@ class User {
         return new Promise((resolve) => {
             const user = db.collection(collectionName).findOne({ username });
             resolve(user);
+        });
+    }
+    static getProfesorInfo({ collectionName, userId }) {
+        return new Promise((resolve) => {
+            const userInfo = db.collection(collectionName).findOne({ userId: userId, rol: 'profesor' });
+            resolve(userInfo);
         });
     }
     static getInfo({ collectionName, userId }) {

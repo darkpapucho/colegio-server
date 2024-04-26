@@ -13,3 +13,5 @@ exports.documentoRouter.get('/fetch-registro-notas-salon', verifyCredentials_1.v
 exports.documentoRouter.post('/update-registro-notas', verifyCredentials_1.verifyCredentials, Documento_1.default.updateRegistroNotas);
 exports.documentoRouter.post('/generar-boletas-notas-grado-seccion', verifyCredentials_1.verifyCredentials, Documento_1.default.generateLibretasByGradoSeccion);
 exports.documentoRouter.get('/generar-boleta-nota-individual', verifyCredentials_1.verifyCredentials, Documento_1.default.generateLibretaIndividual);
+exports.documentoRouter.post('/get-notas-by-cursos', verifyCredentials_1.verifyCredentials, Documento_1.default.fetchNotasByCursos);
+exports.documentoRouter.post('/update-registro-notas-profesor', verifyCredentials_1.verifyCredentials, Documento_1.default.updateRegistroNotasProfesor);

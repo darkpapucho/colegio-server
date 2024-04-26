@@ -27,6 +27,7 @@ const verifyCredentials = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         if (!user) {
             throw new Error(enums_1.ErrorMessages.INVALID_CREDENTIALS);
         }
+        req.body.issuer = userID;
         const refreshedToken = (0, jwt_1.signToken)({ _id: userID });
         res.setHeader('Token', refreshedToken);
         return next();

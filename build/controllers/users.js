@@ -19,6 +19,28 @@ const global_1 = require("../utils/global");
 const enums_1 = require("../error/enums");
 const bcrypt_1 = require("bcrypt");
 class UserControllers {
+    static loginProfesor(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { username, password, nivel, year } = req.body;
+                const usersCollectionName = `users${nivel}`;
+                const empleadosCollectionName = `empleados${nivel}${year}`;
+                const userCredentials = yield user_1.User.getByUsername({ collectionName: usersCollectionName, username });
+                (0, global_1.assert)(userCredentials != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);
+                //validation of the password:
+                const isValidPassword = yield (0, bcrypt_1.compare)(password, userCredentials.password);
+                (0, global_1.assert)(isValidPassword, enums_1.ErrorMessages.INVALID_CREDENTIALS);
+                //fetch profesor:
+                const profesorInfo = yield user_1.User.getProfesorInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id });
+                (0, global_1.assert)(profesorInfo != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);
+                const token = (0, jwt_1.signToken)({ _id: userCredentials._id.toString() });
+                res.status(200).send((0, responses_1.responseOk)({ profesor: profesorInfo, token }));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

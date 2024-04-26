@@ -12,3 +12,5 @@ exports.alumnoRouter.post('/ratificar-matricula', verifyCredentials_1.verifyCred
 exports.alumnoRouter.put('/retirar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.retirarAlumno);
 exports.alumnoRouter.post('/buscar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.buscarAlumno);
 exports.alumnoRouter.post('/editar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.editarAlumno);
+exports.alumnoRouter.post('/fetch-asistencia-list', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.fetchAsistenciaList);
+exports.alumnoRouter.post('/update-asistencia-list', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.updateAsistenciaList);

@@ -4,6 +4,7 @@ exports.errorResponseHandler = exports.assertIsError = void 0;
 const enums_1 = require("./enums");
 const responses_1 = require("../utils/responses");
 const jsonwebtoken_1 = require("jsonwebtoken");
+const mongodb_1 = require("mongodb");
 function assertIsError(error) {
     if (error instanceof Error)
         return;
@@ -15,7 +16,10 @@ function errorResponseHandler(res, error) {
     console.log({ error });
     try {
         assertIsError(error);
-        if (error.message === enums_1.ErrorMessages.INVALID_CREDENTIALS) {
+        if (error instanceof mongodb_1.MongoServerError) {
+            return res.status(501).send((0, responses_1.responseError)(enums_1.ErrorMessages.SERVER_ERROR));
+        }
+        else if (error.message === enums_1.ErrorMessages.INVALID_CREDENTIALS) {
             return res.status(401).send((0, responses_1.responseError)(error.message));
         }
         else if (error.message === enums_1.ErrorMessages.INVALID_REQUEST) {

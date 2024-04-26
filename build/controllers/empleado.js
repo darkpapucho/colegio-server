@@ -26,8 +26,7 @@ class EmpleadoControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const profesor = req.body.profesor;
                 //TODO: assertProfesor
-                const response = yield empleado_1.default.updateProfesor({ nivel, year, profesor });
-                console.log({ response });
+                yield empleado_1.default.updateProfesor({ nivel, year, profesor });
                 res.send((0, responses_1.responseOk)(null));
             }
             catch (err) {
@@ -52,7 +51,6 @@ class EmpleadoControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const data = req.body; //assert data:ProfesorData
-                console.log(data);
                 (0, validators_1.assertIsProfesorData)(data);
                 const user = yield user_1.User.getByUsername({ collectionName: `users${nivel}`, username: '' + data.dni });
                 if (user !== null)

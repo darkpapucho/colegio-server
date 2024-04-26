@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AlumnoControllers = void 0;
 const global_1 = require("../utils/global");
@@ -18,7 +21,85 @@ const enums_1 = require("../error/enums");
 const validators_1 = require("../utils/validators");
 const enums_2 = require("../types/enums");
 const mongodb_1 = require("mongodb");
+const Calendario_1 = __importDefault(require("../models/Calendario"));
 class AlumnoControllers {
+    static fetchAsistenciaList(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion, month, day } = req.body;
+                (0, global_1.assertGrado)(grado);
+                (0, global_1.assertSeccion)(seccion);
+                //check enabled status
+                const response = yield Calendario_1.default.checkSalonDayStatusByMonthDay({ nivel, year, month, day });
+                if (!response)
+                    throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
+                if (response.status === 'disabled') {
+                    return res.send((0, responses_1.responseError)('La asistencia no se encuentra disponible en este momento'));
+                }
+                const alumnosList = yield alumno_1.Alumno.fetchAsistenciaList({ grado, seccion, nivel, year, month, dayId: response._id.toString() });
+                return res.status(200).send((0, responses_1.responseOk)(alumnosList));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static updateAsistenciaList(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { asistenciaList } = req.body;
+                const list = asistenciaList.list;
+                const periodo = asistenciaList.periodo;
+                const dayId = asistenciaList.dayId;
+                //check enabled status from calendario dayId
+                const response = yield Calendario_1.default.checkSalonDayStatus({ nivel, year, dayId: asistenciaList.dayId });
+                if (!response)
+                    throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
+                if (response.status === 'disabled') {
+                    return res.send((0, responses_1.responseError)('La asistencia para este día no se encuentra habilitada.'));
+                }
+                //for each element in the list
+                list.forEach((record) => __awaiter(this, void 0, void 0, function* () {
+                    //solo procesamos F y A
+                    //CHECK the current asistencia status
+                    const asistenciaResults = yield Calendario_1.default.fetchADayAsistenciaRecord({ nivel, year, alumnoId: record.alumnoId, dayId });
+                    if (!asistenciaResults.length)
+                        throw new Error(enums_1.ErrorMessages.INVALID_REQUEST);
+                    const oldAsistenciaValue = asistenciaResults[0].records.asistencia;
+                    if (record.asistencia === 'F') {
+                        //cheeck q no se haga por segunda vez
+                        if (oldAsistenciaValue === '' || oldAsistenciaValue === 'A') {
+                            //incrementamos la falta injustificada
+                            yield alumno_1.Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 });
+                            //pasamos la nueva asistencia
+                            yield Calendario_1.default.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia });
+                        }
+                        //si el valor anterior ya era F o T no se hace nada
+                    }
+                    else if (record.asistencia === 'A') {
+                        if (oldAsistenciaValue === 'F') {
+                            //DECREMENTAMOS las inasistencias injustificadas
+                            yield alumno_1.Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 });
+                            //pasamos la nueva asistencia
+                            yield Calendario_1.default.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia });
+                        }
+                        else if (oldAsistenciaValue === '') {
+                            //pasamos la nueva asistencia
+                            yield Calendario_1.default.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia });
+                        }
+                        //en caso de T o A no es necesario hacer nada
+                    }
+                }));
+                //old Code:await Alumno.updateAsistenciaList({ nivel, year, asistenciaList })
+                return res.status(200).send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static editarAlumno(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

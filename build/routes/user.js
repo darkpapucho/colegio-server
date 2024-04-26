@@ -6,4 +6,5 @@ const users_1 = require("../controllers/users");
 // import { verifyCredentials } from '../middleware/verifyCredentials'
 exports.userRouter = (0, express_1.Router)();
 exports.userRouter.post('/login', users_1.UserControllers.login);
+exports.userRouter.post('/login-profesor', users_1.UserControllers.loginProfesor);
 exports.userRouter.get('/verify', users_1.UserControllers.verify);

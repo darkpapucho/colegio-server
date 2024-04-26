@@ -26,12 +26,26 @@ const mongodb_1 = require("mongodb");
 const pdfkit_2 = __importDefault(require("pdfkit"));
 const generarBoletaNotas_1 = __importDefault(require("../utils/generarBoletaNotas/generarBoletaNotas"));
 class DocumentoControllers {
+    static fetchNotasByCursos(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+            const salon = req.body.salon;
+            try {
+                //se supone que esta ruta solo es usada por profresores
+                const alumnosIdsList = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado: salon.value.grado, seccion: salon.value.seccion });
+                const recordNotas = yield documentos_1.default.fetchNotasPorAlumnosYCursos({ nivel, year, alumnosIdsList, salon });
+                res.send((0, responses_1.responseOk)(recordNotas));
+            }
+            catch (error) {
+                (0, errors_1.errorResponseHandler)(res, error);
+            }
+        });
+    }
     static generateLibretaIndividual(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumnoId } = req.query;
-                console.log({ alumnoId });
                 (0, validators_1.assertIsString)(alumnoId);
                 const notasRecord = yield documentos_1.default.getRecordNotasAlumno({ nivel, year, alumnoId });
                 if (!notasRecord) {
@@ -44,7 +58,6 @@ class DocumentoControllers {
                     margins: { top: 20, left: 20, right: 20, bottom: 20 },
                     autoFirstPage: false,
                 });
-                console.log({ notasRecord });
                 libreta.pipe(fs_1.default.createWriteStream('./files/libretaIndividual.pdf'));
                 libreta.pipe(res);
                 if (notasRecord.length === 0) {
@@ -71,9 +84,7 @@ class DocumentoControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 (0, global_1.assertGrado)(grado);
                 (0, global_1.assertSeccion)(seccion);
-                console.log({ grado, seccion, nivel, year });
                 const registros = yield documentos_1.default.getRegistrosByGradoSeccion({ grado, seccion, nivel, year });
-                console.log({ registros });
                 //creacion de la libreta
                 const libretas = new pdfkit_2.default({
                     layout: 'portrait',
@@ -101,6 +112,19 @@ class DocumentoControllers {
             }
         });
     }
+    static updateRegistroNotasProfesor(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { registro, isTutor } = req.body;
+                yield documentos_1.default.updateRegistroNotasProfesor({ nivel, year, isTutor, registro });
+                res.send((0, responses_1.responseOk)(null));
+            }
+            catch (error) {
+                (0, errors_1.errorResponseHandler)(res, error);
+            }
+        });
+    }
     static updateRegistroNotas(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -123,14 +147,11 @@ class DocumentoControllers {
             const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
             (0, global_1.assertGrado)(grado);
             (0, global_1.assertSeccion)(seccion);
-            console.log({ grado, seccion, nivel, year });
             // const cursos = generadorCursos(nivel, grado)
             try {
                 const alumnos = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, collectionName: `matriculados${nivel}${year}` });
                 const alumnosIds = alumnos.map((alumno) => new mongodb_1.ObjectId(alumno._id));
-                console.log({ alumnosIds });
                 const registroNotas = yield documentos_1.default.fetchRegistroNotasBySalon({ nivel, year, alumnosIds });
-                console.log({ registroNotas });
                 res.send((0, responses_1.responseOk)(registroNotas));
             }
             catch (error) {
@@ -143,7 +164,6 @@ class DocumentoControllers {
             try {
                 const { alumno, data } = req.body;
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                console.log({ alumno, data });
                 (0, validators_1.assertIsAMatriculado)(alumno);
                 (0, validators_1.assertIsEmitirDocumentsData)(data);
                 const document = new pdfkit_1.default({ autoFirstPage: false, layout: 'portrait' });
