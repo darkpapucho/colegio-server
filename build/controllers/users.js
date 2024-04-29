@@ -18,7 +18,26 @@ const user_1 = require("../models/user");
 const global_1 = require("../utils/global");
 const enums_1 = require("../error/enums");
 const bcrypt_1 = require("bcrypt");
+const hashPassword_1 = require("../utils/hashPassword");
 class UserControllers {
+    static resetProfesorPassword(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { dni, userId } = req.body;
+                console.log({ nivel, dni, userId });
+                const newPassword = yield (0, hashPassword_1.hashPassword)('' + dni);
+                const response = yield user_1.User.resetProfesorPassword({ nivel, newPassword, userId });
+                if (!response.acknowledged || !response.modifiedCount) {
+                    return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED));
+                }
+                return res.send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static loginProfesor(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

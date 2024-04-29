@@ -10,10 +10,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
+const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const hashPassword_1 = require("../utils/hashPassword");
 const db = db_1.mongoClient.db();
 class User {
+    static resetProfesorPassword({ newPassword, nivel, userId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`users${nivel}`)
+                .updateOne({ _id: new mongodb_1.ObjectId(userId) }, { $set: { password: newPassword } });
+            return response;
+        });
+    }
     static crearNuevoUsuarioProfesor({ nivel, dni }) {
         return __awaiter(this, void 0, void 0, function* () {
             const usersCollection = `users${nivel}`;

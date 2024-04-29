@@ -8,6 +8,14 @@ import { hashPassword } from '../utils/hashPassword'
 const db = mongoClient.db()
 
 export class User {
+  static async resetProfesorPassword({ newPassword, nivel, userId }: { userId: string; nivel: Nivel; newPassword: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`users${nivel}`)
+      .updateOne({ _id: new ObjectId(userId) }, { $set: { password: newPassword } })
+    return response
+  }
+
   static async crearNuevoUsuarioProfesor({ nivel, dni }: { nivel: Nivel; dni: number }) {
     const usersCollection = `users${nivel}`
 

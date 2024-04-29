@@ -1,14 +1,30 @@
 import { Response, Request } from 'express'
-import { responseOk } from '../utils/responses'
+import { responseError, responseOk } from '../utils/responses'
 import { errorResponseHandler } from '../error/errors'
 import { getLoginRequestData } from '../utils/loginProcess'
 import { signToken } from '../utils/jwt'
 import { User } from '../models/user'
-import { assert } from '../utils/global'
+import { assert, extractNivelYearFromHeaders } from '../utils/global'
 import { ErrorMessages } from '../error/enums'
 import { compare } from 'bcrypt'
+import { hashPassword } from '../utils/hashPassword'
 
 export class UserControllers {
+  static async resetProfesorPassword(req: Request, res: Response) {
+    try {
+      const { nivel } = extractNivelYearFromHeaders(req)
+      const { dni, userId } = req.body
+      console.log({ nivel, dni, userId })
+      const newPassword = await hashPassword('' + dni)
+      const response = await User.resetProfesorPassword({ nivel, newPassword, userId })
+      if (!response.acknowledged || !response.modifiedCount) {
+        return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
+      }
+      return res.send(responseOk(null))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
   static async loginProfesor(req: Request, res: Response) {
     try {
       const { username, password, nivel, year } = req.body
