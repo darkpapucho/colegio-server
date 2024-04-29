@@ -20,14 +20,17 @@ const user_1 = require("../models/user");
 const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 const validators_1 = require("../utils/validators");
+const mongodb_1 = require("mongodb");
 class EmpleadoControllers {
     static changeProfesorPassword(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { userId, newPassword, currentPassword } = req.body;
+                console.log({ userId, newPassword, currentPassword });
                 //confirmPassword
-                const userInfo = yield user_1.User.getById({ nivel, _id: userId });
+                const userInfo = yield user_1.User.getById({ nivel, _id: new mongodb_1.ObjectId(userId) });
+                console.log({ userInfo });
                 (0, global_1.assert)(userInfo, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 const result = yield (0, bcrypt_1.compare)(currentPassword, userInfo.password);
                 if (!result)
