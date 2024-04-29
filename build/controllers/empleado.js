@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const bcrypt_1 = require("bcrypt");
 const enums_1 = require("../error/enums");
 const errors_1 = require("../error/errors");
 const empleado_1 = __importDefault(require("../models/empleado"));
@@ -20,6 +21,28 @@ const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 const validators_1 = require("../utils/validators");
 class EmpleadoControllers {
+    static changeProfesorPassword(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { userId, newPassword, currentPassword } = req.body;
+                //confirmPassword
+                const userInfo = yield user_1.User.getById({ nivel, _id: userId });
+                (0, global_1.assert)(userInfo, enums_1.ErrorMessages.INVALID_CREDENTIALS);
+                const result = yield (0, bcrypt_1.compare)(currentPassword, userInfo.password);
+                if (!result)
+                    return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.INCORRECT_PASSWORD));
+                const response = yield empleado_1.default.updateProfesorPassword({ userId, newPassword, nivel });
+                if (!response.acknowledged || !response.modifiedCount) {
+                    return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED));
+                }
+                return res.send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static updateProfesor(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

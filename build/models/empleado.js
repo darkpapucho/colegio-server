@@ -29,7 +29,18 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = require("../db");
 const mongodb_1 = require("mongodb");
+const hashPassword_1 = require("../utils/hashPassword");
 class Empleado {
+    static updateProfesorPassword({ newPassword, userId, nivel }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const hashedPass = yield (0, hashPassword_1.hashPassword)(newPassword);
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`users${nivel}`)
+                .updateOne({ _id: new mongodb_1.ObjectId(userId) }, { $set: { password: hashedPass } });
+            return response;
+        });
+    }
     static updateProfesor({ nivel, year, profesor }) {
         return __awaiter(this, void 0, void 0, function* () {
             const { _id, userId } = profesor, rest = __rest(profesor, ["_id", "userId"]);

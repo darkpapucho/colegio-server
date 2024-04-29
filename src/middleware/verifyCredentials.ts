@@ -12,8 +12,7 @@ export const verifyCredentials = async (req: Request, res: Response, next: NextF
     const { nivel } = extractNivelYearFromHeaders(req)
     assert(token != undefined, ErrorMessages.INVALID_REQUEST)
     const userID = verifyToken(token)
-    const collectionName = `users${nivel}`
-    const user = await User.getById({ _id: new ObjectId(userID), collectionName })
+    const user = await User.getById({ _id: new ObjectId(userID), nivel })
     if (!user) {
       throw new Error(ErrorMessages.INVALID_CREDENTIALS)
     }

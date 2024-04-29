@@ -15,21 +15,21 @@ export function errorResponseHandler(res: Response, error: unknown) {
   try {
     assertIsError(error)
     if (error instanceof MongoServerError) {
-      return res.status(501).send(responseError(ErrorMessages.SERVER_ERROR))
+      return res.send(responseError(ErrorMessages.SERVER_ERROR))
     } else if (error.message === ErrorMessages.INVALID_CREDENTIALS) {
-      return res.status(401).send(responseError(error.message))
+      return res.send(responseError(error.message))
     } else if (error.message === ErrorMessages.INVALID_REQUEST) {
-      return res.status(400).send(responseError(error.message))
+      return res.send(responseError(error.message))
     } else if (error instanceof JsonWebTokenError) {
       console.log({ jwtMessage: error.message })
-      return res.status(401).send(responseError(ErrorMessages.INVALID_TOKEN))
+      return res.send(responseError(ErrorMessages.INVALID_TOKEN))
     } else if (error.message === ErrorMessages.USER_ALREADY_EXISTS) {
       return res.status(406).send(responseError(error.message))
     } else {
       console.log({ error })
-      return res.status(500).send(responseError(ErrorMessages.SERVER_ERROR))
+      return res.send(responseError(ErrorMessages.SERVER_ERROR))
     }
   } catch (err) {
-    return res.status(500).send(responseError(ErrorMessages.UNKNOWN_ERROR))
+    return res.send(responseError(ErrorMessages.UNKNOWN_ERROR))
   }
 }

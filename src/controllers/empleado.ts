@@ -1,12 +1,34 @@
+import { compare } from 'bcrypt'
 import { ErrorMessages } from '../error/enums'
 import { errorResponseHandler } from '../error/errors'
 import Empleado from '../models/empleado'
 import { User } from '../models/user'
-import { extractNivelYearFromHeaders } from '../utils/global'
-import { responseOk } from '../utils/responses'
+import { assert, extractNivelYearFromHeaders } from '../utils/global'
+import { responseError, responseOk } from '../utils/responses'
 import { assertIsProfesorData } from '../utils/validators'
 import { Request, Response } from 'express'
+import { ObjectId } from 'mongodb'
 export default class EmpleadoControllers {
+  static async changeProfesorPassword(req: Request, res: Response) {
+    try {
+      const { nivel } = extractNivelYearFromHeaders(req)
+      const { userId, newPassword, currentPassword } = req.body
+      console.log({ userId, newPassword, currentPassword })
+      //confirmPassword
+      const userInfo = await User.getById({ nivel, _id: new ObjectId(userId) })
+      console.log({ userInfo })
+      assert(userInfo, ErrorMessages.INVALID_CREDENTIALS)
+      const result = await compare(currentPassword, userInfo.password)
+      if (!result) return res.send(responseError(ErrorMessages.INCORRECT_PASSWORD))
+      const response = await Empleado.updateProfesorPassword({ userId, newPassword, nivel })
+      if (!response.acknowledged || !response.modifiedCount) {
+        return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
+      }
+      return res.send(responseOk(null))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
   static async updateProfesor(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

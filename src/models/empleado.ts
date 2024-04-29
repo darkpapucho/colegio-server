@@ -3,7 +3,16 @@ import { mongoClient } from '../db'
 import { ObjectId } from 'mongodb'
 import { ProfesorData } from '../types/user'
 import { Profesor } from '../types/empleado'
+import { hashPassword } from '../utils/hashPassword'
 export default class Empleado {
+  static async updateProfesorPassword({ newPassword, userId, nivel }: { nivel: Nivel; userId: string; newPassword: string }) {
+    const hashedPass = await hashPassword(newPassword)
+    const response = await mongoClient
+      .db()
+      .collection(`users${nivel}`)
+      .updateOne({ _id: new ObjectId(userId) }, { $set: { password: hashedPass } })
+    return response
+  }
   static async updateProfesor({ nivel, year, profesor }: { nivel: Nivel; year: Year; profesor: Profesor }) {
     const { _id, userId, ...rest } = profesor
     const collectionName = `empleados${nivel}${year}`

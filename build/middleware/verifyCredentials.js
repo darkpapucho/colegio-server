@@ -22,8 +22,7 @@ const verifyCredentials = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
         (0, global_1.assert)(token != undefined, enums_1.ErrorMessages.INVALID_REQUEST);
         const userID = (0, jwt_1.verifyToken)(token);
-        const collectionName = `users${nivel}`;
-        const user = yield user_1.User.getById({ _id: new mongodb_1.ObjectId(userID), collectionName });
+        const user = yield user_1.User.getById({ _id: new mongodb_1.ObjectId(userID), nivel });
         if (!user) {
             throw new Error(enums_1.ErrorMessages.INVALID_CREDENTIALS);
         }

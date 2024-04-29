@@ -2,7 +2,8 @@ import { ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
 import { UserCredentials, UserInfo } from '../types/user'
 import { Nivel } from '../types/enums'
-import { hash } from 'bcrypt'
+
+import { hashPassword } from '../utils/hashPassword'
 
 const db = mongoClient.db()
 
@@ -12,14 +13,14 @@ export class User {
 
     // const username = nombres.slice(0, 1) + apellidos.split(' ')[0] + apellidos.split(' ')[1].slice(0, 1)
 
-    const password = await hash('' + dni, 10)
+    const password = await hashPassword('' + dni)
     const response = await db.collection(usersCollection).insertOne({ username: '' + dni, password })
     return response
   }
 
-  static async getById({ collectionName, _id }: { collectionName: string; _id: ObjectId }) {
+  static async getById({ nivel, _id }: { nivel: Nivel; _id: ObjectId }): Promise<WithId<UserCredentials> | null> {
     return new Promise(async (resolve) => {
-      const user = db.collection(collectionName).findOne({ _id })
+      const user = db.collection<UserCredentials>(`users${nivel}`).findOne({ _id })
       resolve(user)
     })
   }

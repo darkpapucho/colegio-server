@@ -16,4 +16,5 @@ var ErrorMessages;
     ErrorMessages["TARDANZA_ALREADY_REPORTED"] = "La tardanza ya fue reportada con anterioridad.";
     ErrorMessages["ASISTENCIA_ALREADY_REPORTED"] = "La asistencia de este alumno ya fue reportada por el tutor.";
     ErrorMessages["PERIODO_NOT_SET"] = "Aun no se ha establecido un periodo.";
+    ErrorMessages["INCORRECT_PASSWORD"] = "la contrase\u00F1a actual es incorrecta";
 })(ErrorMessages || (exports.ErrorMessages = ErrorMessages = {}));

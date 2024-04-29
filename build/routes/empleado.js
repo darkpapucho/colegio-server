@@ -11,3 +11,4 @@ exports.empleadoRouter = (0, express_1.Router)();
 exports.empleadoRouter.post('/crear-profesor', verifyCredentials_1.verifyCredentials, empleado_1.default.crearProfesor);
 exports.empleadoRouter.get('/fetch-profesores', verifyCredentials_1.verifyCredentials, empleado_1.default.fetchProfesores);
 exports.empleadoRouter.post('/update-profesor', verifyCredentials_1.verifyCredentials, empleado_1.default.updateProfesor);
+exports.empleadoRouter.post('/change-profesor-password', verifyCredentials_1.verifyCredentials, empleado_1.default.changeProfesorPassword);
