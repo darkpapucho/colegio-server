@@ -9,6 +9,17 @@ import { assertIsProfesorData } from '../utils/validators'
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
 export default class EmpleadoControllers {
+  static async deleteProfesor(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { userId } = req.body
+      await Empleado.deleteProfesor({ nivel, year, userId })
+      await User.deleteUser({ userId, nivel })
+      res.send(responseOk(null))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async changeProfesorPassword(req: Request, res: Response) {
     try {
       const { nivel } = extractNivelYearFromHeaders(req)
@@ -52,10 +63,12 @@ export default class EmpleadoControllers {
   }
   static async crearProfesor(req: Request, res: Response) {
     try {
+      console.log('creando profesores')
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const data = req.body //assert data:ProfesorData
-
+      const { issuer, ...data } = req.body //assert data:ProfesorData
+      console.log({ data, nivel, year })
       assertIsProfesorData(data)
+      console.log('passed validation')
       const user = await User.getByUsername({ collectionName: `users${nivel}`, username: '' + data.dni })
       if (user !== null) throw new Error(ErrorMessages.USER_ALREADY_EXISTS)
       const response = await User.crearNuevoUsuarioProfesor({ nivel, dni: data.dni })

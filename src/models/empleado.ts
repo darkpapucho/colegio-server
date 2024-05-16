@@ -5,6 +5,13 @@ import { ProfesorData } from '../types/user'
 import { Profesor } from '../types/empleado'
 import { hashPassword } from '../utils/hashPassword'
 export default class Empleado {
+  static async deleteProfesor({ nivel, year, userId }: { nivel: Nivel; year: Year; userId: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`empleados${nivel}${year}`)
+      .deleteOne({ userId: new ObjectId(userId) })
+    return response
+  }
   static async updateProfesorPassword({ newPassword, userId, nivel }: { nivel: Nivel; userId: string; newPassword: string }) {
     const hashedPass = await hashPassword(newPassword)
     const response = await mongoClient

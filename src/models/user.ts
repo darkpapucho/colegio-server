@@ -8,6 +8,13 @@ import { hashPassword } from '../utils/hashPassword'
 const db = mongoClient.db()
 
 export class User {
+  static async deleteUser({ userId, nivel }: { nivel: Nivel; userId: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`users${nivel}`)
+      .deleteOne({ _id: new ObjectId(userId) })
+    return response
+  }
   static async resetProfesorPassword({ newPassword, nivel, userId }: { userId: string; nivel: Nivel; newPassword: string }) {
     const response = await mongoClient
       .db()
