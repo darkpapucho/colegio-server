@@ -63,17 +63,18 @@ export default class EmpleadoControllers {
   }
   static async crearProfesor(req: Request, res: Response) {
     try {
-      console.log('creando profesores')
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { issuer, ...data } = req.body //assert data:ProfesorData
-      console.log({ data, nivel, year })
-      assertIsProfesorData(data)
-      console.log('passed validation')
+
+      //CHECK THAT NO USER EXIST WITH USERNAME = PROFESOR.DNI
       const user = await User.getByUsername({ collectionName: `users${nivel}`, username: '' + data.dni })
       if (user !== null) throw new Error(ErrorMessages.USER_ALREADY_EXISTS)
       const response = await User.crearNuevoUsuarioProfesor({ nivel, dni: data.dni })
       if (!response.insertedId) throw new Error('Error creando nuevo profesor')
-      const response2 = await Empleado.crearProfesor({ nivel, year, userId: response.insertedId, data })
+      const newProfesor = { ...data, userId: response.insertedId.toString(), rol: 'profesor' }
+      assertIsProfesorData(data)
+
+      const response2 = await Empleado.crearProfesor({ nivel, year, newProfesor })
       if (!response2.insertedId) throw new Error('Error creando nuevo profesor')
 
       res.send(responseOk(null))

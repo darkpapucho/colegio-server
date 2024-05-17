@@ -29,12 +29,12 @@ export default class Empleado {
       .updateOne({ _id: new ObjectId(_id) }, { $set: { ...rest } })
     return response
   }
-  static async crearProfesor({ nivel, year, data, userId }: { nivel: Nivel; year: Year; data: ProfesorData; userId: ObjectId }) {
+  static async crearProfesor({ nivel, year, newProfesor }: { nivel: Nivel; year: Year; newProfesor: ProfesorData }) {
     const empleadosCollection = `empleados${nivel}${year}`
     const response = mongoClient
       .db()
       .collection(empleadosCollection)
-      .insertOne({ ...data, userId, rol: 'profesor' })
+      .insertOne({ ...newProfesor })
     return response
   }
   static async fetchProfesores({ nivel, year }: { nivel: Nivel; year: Year }) {
