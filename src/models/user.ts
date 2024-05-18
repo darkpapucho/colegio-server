@@ -26,8 +26,6 @@ export class User {
   static async crearNuevoUsuarioProfesor({ nivel, dni }: { nivel: Nivel; dni: number }) {
     const usersCollection = `users${nivel}`
 
-    // const username = nombres.slice(0, 1) + apellidos.split(' ')[0] + apellidos.split(' ')[1].slice(0, 1)
-
     const password = await hashPassword('' + dni)
     const response = await db.collection(usersCollection).insertOne({ username: '' + dni, password })
     return response
