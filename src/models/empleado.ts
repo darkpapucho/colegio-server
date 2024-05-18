@@ -34,7 +34,7 @@ export default class Empleado {
     const response = mongoClient
       .db()
       .collection(empleadosCollection)
-      .insertOne({ ...newProfesor })
+      .insertOne({ ...newProfesor, userId: new ObjectId(newProfesor.userId) })
     return response
   }
   static async fetchProfesores({ nivel, year }: { nivel: Nivel; year: Year }) {

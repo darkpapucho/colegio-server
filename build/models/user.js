@@ -15,6 +15,15 @@ const db_1 = require("../db");
 const hashPassword_1 = require("../utils/hashPassword");
 const db = db_1.mongoClient.db();
 class User {
+    static deleteUser({ userId, nivel }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`users${nivel}`)
+                .deleteOne({ _id: new mongodb_1.ObjectId(userId) });
+            return response;
+        });
+    }
     static resetProfesorPassword({ newPassword, nivel, userId }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
@@ -48,9 +57,11 @@ class User {
         });
     }
     static getProfesorInfo({ collectionName, userId }) {
-        return new Promise((resolve) => {
-            const userInfo = db.collection(collectionName).findOne({ userId: userId, rol: 'profesor' });
-            resolve(userInfo);
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                const userInfo = yield db.collection(collectionName).findOne({ userId: new mongodb_1.ObjectId(userId), rol: 'profesor' });
+                resolve(userInfo);
+            }));
         });
     }
     static getInfo({ collectionName, userId }) {

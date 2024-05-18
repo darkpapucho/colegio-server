@@ -21,8 +21,8 @@ const nuevoAlumnoSchema = zod_1.z.object({
     codigoEstudiante: zod_1.z.string().length(14),
 });
 const profesorDataSchema = zod_1.z.object({
-    userId: zod_1.z.string(),
-    rol: zod_1.z.string(),
+    // userId: z.string(),
+    // rol: z.string(),
     nombres: zod_1.z.string().min(4).max(30),
     apellidos: zod_1.z.string().min(4).max(30),
     dni: zod_1.z.number(),

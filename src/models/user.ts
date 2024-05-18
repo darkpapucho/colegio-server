@@ -46,9 +46,9 @@ export class User {
       resolve(user)
     })
   }
-  static getProfesorInfo({ collectionName, userId }: { collectionName: string; userId: ObjectId }) {
-    return new Promise((resolve) => {
-      const userInfo = db.collection<UserInfo>(collectionName).findOne({ userId: userId, rol: 'profesor' })
+  static async getProfesorInfo({ collectionName, userId }: { collectionName: string; userId: string }) {
+    return new Promise(async (resolve) => {
+      const userInfo = await db.collection<UserInfo>(collectionName).findOne({ userId: new ObjectId(userId), rol: 'profesor' })
       resolve(userInfo)
     })
   }

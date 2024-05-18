@@ -69,6 +69,7 @@ export default class EmpleadoControllers {
       //CHECK THAT NO USER EXIST WITH USERNAME = PROFESOR.DNI
       const user = await User.getByUsername({ collectionName: `users${nivel}`, username: '' + data.dni })
       if (user !== null) throw new Error(ErrorMessages.USER_ALREADY_EXISTS)
+      //create new user for the profesor
       const response = await User.crearNuevoUsuarioProfesor({ nivel, dni: data.dni })
       if (!response.insertedId) throw new Error('Error creando nuevo profesor')
       const newProfesor = { ...data, userId: response.insertedId.toString(), rol: 'profesor' }

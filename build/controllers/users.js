@@ -50,7 +50,7 @@ class UserControllers {
                 const isValidPassword = yield (0, bcrypt_1.compare)(password, userCredentials.password);
                 (0, global_1.assert)(isValidPassword, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 //fetch profesor:
-                const profesorInfo = yield user_1.User.getProfesorInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id });
+                const profesorInfo = yield user_1.User.getProfesorInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id.toString() });
                 (0, global_1.assert)(profesorInfo != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 const token = (0, jwt_1.signToken)({ _id: userCredentials._id.toString() });
                 res.status(200).send((0, responses_1.responseOk)({ profesor: profesorInfo, token }));

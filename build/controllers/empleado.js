@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -22,6 +33,20 @@ const responses_1 = require("../utils/responses");
 const validators_1 = require("../utils/validators");
 const mongodb_1 = require("mongodb");
 class EmpleadoControllers {
+    static deleteProfesor(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { userId } = req.body;
+                yield empleado_1.default.deleteProfesor({ nivel, year, userId });
+                yield user_1.User.deleteUser({ userId, nivel });
+                res.send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static changeProfesorPassword(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -76,15 +101,18 @@ class EmpleadoControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const data = req.body; //assert data:ProfesorData
-                (0, validators_1.assertIsProfesorData)(data);
+                const _a = req.body, { issuer } = _a, data = __rest(_a, ["issuer"]); //assert data:ProfesorData
+                //CHECK THAT NO USER EXIST WITH USERNAME = PROFESOR.DNI
                 const user = yield user_1.User.getByUsername({ collectionName: `users${nivel}`, username: '' + data.dni });
                 if (user !== null)
                     throw new Error(enums_1.ErrorMessages.USER_ALREADY_EXISTS);
+                //create new user for the profesor
                 const response = yield user_1.User.crearNuevoUsuarioProfesor({ nivel, dni: data.dni });
                 if (!response.insertedId)
                     throw new Error('Error creando nuevo profesor');
-                const response2 = yield empleado_1.default.crearProfesor({ nivel, year, userId: response.insertedId, data });
+                const newProfesor = Object.assign(Object.assign({}, data), { userId: response.insertedId.toString(), rol: 'profesor' });
+                (0, validators_1.assertIsProfesorData)(data);
+                const response2 = yield empleado_1.default.crearProfesor({ nivel, year, newProfesor });
                 if (!response2.insertedId)
                     throw new Error('Error creando nuevo profesor');
                 res.send((0, responses_1.responseOk)(null));

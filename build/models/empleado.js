@@ -31,6 +31,15 @@ const db_1 = require("../db");
 const mongodb_1 = require("mongodb");
 const hashPassword_1 = require("../utils/hashPassword");
 class Empleado {
+    static deleteProfesor({ nivel, year, userId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`empleados${nivel}${year}`)
+                .deleteOne({ userId: new mongodb_1.ObjectId(userId) });
+            return response;
+        });
+    }
     static updateProfesorPassword({ newPassword, userId, nivel }) {
         return __awaiter(this, void 0, void 0, function* () {
             const hashedPass = yield (0, hashPassword_1.hashPassword)(newPassword);
@@ -52,13 +61,13 @@ class Empleado {
             return response;
         });
     }
-    static crearProfesor({ nivel, year, data, userId }) {
+    static crearProfesor({ nivel, year, newProfesor }) {
         return __awaiter(this, void 0, void 0, function* () {
             const empleadosCollection = `empleados${nivel}${year}`;
             const response = db_1.mongoClient
                 .db()
                 .collection(empleadosCollection)
-                .insertOne(Object.assign(Object.assign({}, data), { userId, rol: 'profesor' }));
+                .insertOne(Object.assign(Object.assign({}, newProfesor), { userId: new mongodb_1.ObjectId(newProfesor.userId) }));
             return response;
         });
     }
