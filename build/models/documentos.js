@@ -37,67 +37,115 @@ class Documento {
         });
     }
     static fetchNotasPorAlumnosYCursos({ nivel, year, alumnosIdsList, salon }) {
-        var _a, e_1, _b, _c;
+        var _a, e_1, _b, _c, _d, e_2, _e, _f;
         return __awaiter(this, void 0, void 0, function* () {
             const notasCollection = db_1.mongoClient.db().collection(`notas${nivel}${year}`);
             const cursosList = {};
             salon.cursos.forEach((curso) => {
                 cursosList[curso.key] = 1;
             });
-            const cursor = notasCollection.aggregate([
-                { $match: { alumnoId: { $in: alumnosIdsList } } },
-                {
-                    $lookup: {
-                        from: `matriculados${nivel}${year}`,
-                        localField: 'alumnoId',
-                        foreignField: '_id',
-                        as: 'estudiante',
+            if (salon.tutor) {
+                const cursor = notasCollection.aggregate([
+                    { $match: { alumnoId: { $in: alumnosIdsList } } },
+                    {
+                        $lookup: {
+                            from: `matriculados${nivel}${year}`,
+                            localField: 'alumnoId',
+                            foreignField: '_id',
+                            as: 'estudiante',
+                        },
                     },
-                },
-                {
-                    $project: {
-                        _id: 0,
-                        alumnoId: 1,
-                        tardanzas: salon.tutor ? 1 : 0,
-                        inasistencias: salon.tutor ? 1 : 0,
-                        conclusionesDescriptivas: salon.tutor ? 1 : 0,
-                        cursos: 1,
-                        educando: { $arrayElemAt: ['$estudiante', 0] },
+                    {
+                        $project: {
+                            _id: 0,
+                            alumnoId: 1,
+                            tardanzas: 1,
+                            inasistencias: 1,
+                            conclusionesDescriptivas: 1,
+                            cursos: 1,
+                            educando: { $arrayElemAt: ['$estudiante', 0] },
+                        },
                     },
-                },
-                {
-                    $project: {
-                        alumnoId: 1,
-                        tardanzas: salon.tutor ? 1 : 0,
-                        inasistencias: salon.tutor ? 1 : 0,
-                        conclusionesDescriptivas: salon.tutor ? 1 : 0,
-                        cursos: Object.assign({}, cursosList),
-                        nombres: '$educando.nombres',
-                        apellidos: '$educando.apellidos',
+                    {
+                        $project: {
+                            alumnoId: 1,
+                            tardanzas: 1,
+                            inasistencias: 1,
+                            conclusionesDescriptivas: 1,
+                            cursos: Object.assign({}, cursosList),
+                            nombres: '$educando.nombres',
+                            apellidos: '$educando.apellidos',
+                        },
                     },
-                },
-            ]);
-            const records = [];
-            try {
-                for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
-                    _c = cursor_1_1.value;
-                    _d = false;
-                    const doc = _c;
-                    records.push(doc);
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
+                ]);
+                const records = [];
                 try {
-                    if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                    for (var _g = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _g = true) {
+                        _c = cursor_1_1.value;
+                        _g = false;
+                        const doc = _c;
+                        records.push(doc);
+                    }
                 }
-                finally { if (e_1) throw e_1.error; }
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
+                    try {
+                        if (!_g && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                    }
+                    finally { if (e_1) throw e_1.error; }
+                }
+                return records;
             }
-            return records;
+            else {
+                const cursor = notasCollection.aggregate([
+                    { $match: { alumnoId: { $in: alumnosIdsList } } },
+                    {
+                        $lookup: {
+                            from: `matriculados${nivel}${year}`,
+                            localField: 'alumnoId',
+                            foreignField: '_id',
+                            as: 'estudiante',
+                        },
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            alumnoId: 1,
+                            cursos: 1,
+                            educando: { $arrayElemAt: ['$estudiante', 0] },
+                        },
+                    },
+                    {
+                        $project: {
+                            alumnoId: 1,
+                            cursos: Object.assign({}, cursosList),
+                            nombres: '$educando.nombres',
+                            apellidos: '$educando.apellidos',
+                        },
+                    },
+                ]);
+                const records = [];
+                try {
+                    for (var _h = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _d = cursor_2_1.done, !_d; _h = true) {
+                        _f = cursor_2_1.value;
+                        _h = false;
+                        const doc = _f;
+                        records.push(doc);
+                    }
+                }
+                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                finally {
+                    try {
+                        if (!_h && !_d && (_e = cursor_2.return)) yield _e.call(cursor_2);
+                    }
+                    finally { if (e_2) throw e_2.error; }
+                }
+                return records;
+            }
         });
     }
     static getRecordNotasAlumno({ alumnoId, nivel, year }) {
-        var _a, e_2, _b, _c;
+        var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const notasCollection = `notas${nivel}${year}`;
             const alumnosCollection = `matriculados${nivel}${year}`;
@@ -111,19 +159,19 @@ class Documento {
             ]);
             let registros = [];
             try {
-                for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
-                    _c = cursor_2_1.value;
+                for (var _d = true, cursor_3 = __asyncValues(cursor), cursor_3_1; cursor_3_1 = yield cursor_3.next(), _a = cursor_3_1.done, !_a; _d = true) {
+                    _c = cursor_3_1.value;
                     _d = false;
                     const registro = _c;
                     registros.push(registro);
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
+                    if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return registros;
         });
@@ -170,7 +218,7 @@ class Documento {
         });
     }
     static fetchRegistroNotasBySalon({ nivel, year, alumnosIds }) {
-        var _a, e_3, _b, _c;
+        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const notasCollection = `notas${nivel}${year}`;
             const alumnosCollection = `matriculados${nivel}${year}`;
@@ -222,12 +270,12 @@ class Documento {
                     registroNotas.push(registro);
                 }
             }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = registrosCursos_1.return)) yield _b.call(registrosCursos_1);
                 }
-                finally { if (e_3) throw e_3.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             // await notasCursor.forEach((registro) => {
             //   registroNotas.push(registro)

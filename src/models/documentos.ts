@@ -28,46 +28,81 @@ export default class Documento {
     salon.cursos.forEach((curso) => {
       cursosList[curso.key] = 1
     })
+    if (salon.tutor) {
+      const cursor = notasCollection.aggregate([
+        { $match: { alumnoId: { $in: alumnosIdsList } } },
+        {
+          $lookup: {
+            from: `matriculados${nivel}${year}`,
+            localField: 'alumnoId',
+            foreignField: '_id',
+            as: 'estudiante',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            alumnoId: 1,
+            tardanzas: 1,
+            inasistencias: 1,
+            conclusionesDescriptivas: 1,
+            cursos: 1,
+            educando: { $arrayElemAt: ['$estudiante', 0] },
+          },
+        },
+        {
+          $project: {
+            alumnoId: 1,
+            tardanzas: 1,
+            inasistencias: 1,
+            conclusionesDescriptivas: 1,
+            cursos: { ...cursosList },
+            nombres: '$educando.nombres',
+            apellidos: '$educando.apellidos',
+          },
+        },
+      ])
+      const records = []
+      for await (const doc of cursor) {
+        records.push(doc)
+      }
 
-    const cursor = notasCollection.aggregate([
-      { $match: { alumnoId: { $in: alumnosIdsList } } },
-      {
-        $lookup: {
-          from: `matriculados${nivel}${year}`,
-          localField: 'alumnoId',
-          foreignField: '_id',
-          as: 'estudiante',
+      return records
+    } else {
+      const cursor = notasCollection.aggregate([
+        { $match: { alumnoId: { $in: alumnosIdsList } } },
+        {
+          $lookup: {
+            from: `matriculados${nivel}${year}`,
+            localField: 'alumnoId',
+            foreignField: '_id',
+            as: 'estudiante',
+          },
         },
-      },
-      {
-        $project: {
-          _id: 0,
-          alumnoId: 1,
-          tardanzas: salon.tutor ? 1 : 0,
-          inasistencias: salon.tutor ? 1 : 0,
-          conclusionesDescriptivas: salon.tutor ? 1 : 0,
-          cursos: 1,
-          educando: { $arrayElemAt: ['$estudiante', 0] },
+        {
+          $project: {
+            _id: 0,
+            alumnoId: 1,
+            cursos: 1,
+            educando: { $arrayElemAt: ['$estudiante', 0] },
+          },
         },
-      },
-      {
-        $project: {
-          alumnoId: 1,
-          tardanzas: salon.tutor ? 1 : 0,
-          inasistencias: salon.tutor ? 1 : 0,
-          conclusionesDescriptivas: salon.tutor ? 1 : 0,
-          cursos: { ...cursosList },
-          nombres: '$educando.nombres',
-          apellidos: '$educando.apellidos',
+        {
+          $project: {
+            alumnoId: 1,
+            cursos: { ...cursosList },
+            nombres: '$educando.nombres',
+            apellidos: '$educando.apellidos',
+          },
         },
-      },
-    ])
-    const records = []
-    for await (const doc of cursor) {
-      records.push(doc)
+      ])
+      const records = []
+      for await (const doc of cursor) {
+        records.push(doc)
+      }
+
+      return records
     }
-
-    return records
   }
 
   static async getRecordNotasAlumno({ alumnoId, nivel, year }: { nivel: Nivel; year: Year; alumnoId: string }) {
