@@ -25,13 +25,21 @@ class Documento {
             if (isTutor) {
                 for (const record of registro) {
                     const { tardanzas, inasistencias, conclusionesDescriptivas, cursos } = record;
-                    yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, cursos: Object.assign({}, cursos) } });
+                    const cursosKeys = Object.keys(cursos);
+                    const cursosNotas = cursosKeys.map((cursoKey) => {
+                        return { [`cursos.${cursoKey}`]: cursos[cursoKey] };
+                    });
+                    yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: Object.assign({ tardanzas, inasistencias, conclusionesDescriptivas }, cursosNotas) });
                 }
             }
             else {
                 for (const record of registro) {
                     const { cursos } = record;
-                    yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: { cursos: Object.assign({}, cursos) } });
+                    const cursosKeys = Object.keys(cursos);
+                    const cursosNotas = cursosKeys.map((cursoKey) => {
+                        return { [`cursos.${cursoKey}`]: cursos[cursoKey] };
+                    });
+                    yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: Object.assign({}, cursosNotas) });
                 }
             }
         });

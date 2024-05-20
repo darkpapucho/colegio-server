@@ -11,12 +11,20 @@ export default class Documento {
     if (isTutor) {
       for (const record of registro) {
         const { tardanzas, inasistencias, conclusionesDescriptivas, cursos } = record
-        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, cursos: { ...cursos } } })
+        const cursosKeys = Object.keys(cursos)
+        const cursosNotas = cursosKeys.map((cursoKey) => {
+          return { [`cursos.${cursoKey}`]: cursos[cursoKey] }
+        })
+        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, ...cursosNotas } })
       }
     } else {
       for (const record of registro) {
         const { cursos } = record
-        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { cursos: { ...cursos } } })
+        const cursosKeys = Object.keys(cursos)
+        const cursosNotas = cursosKeys.map((cursoKey) => {
+          return { [`cursos.${cursoKey}`]: cursos[cursoKey] }
+        })
+        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { ...cursosNotas } })
       }
     }
   }
