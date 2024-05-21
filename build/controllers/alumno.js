@@ -22,6 +22,7 @@ const validators_1 = require("../utils/validators");
 const enums_2 = require("../types/enums");
 const mongodb_1 = require("mongodb");
 const Calendario_1 = __importDefault(require("../models/Calendario"));
+const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 class AlumnoControllers {
     static fetchAsistenciaList(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -51,7 +52,7 @@ class AlumnoControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { asistenciaList } = req.body;
                 const list = asistenciaList.list;
-                const periodo = asistenciaList.periodo;
+                const periodo = (0, convertDateToPeriodo_1.default)(new Date());
                 const dayId = asistenciaList.dayId;
                 //check enabled status from calendario dayId
                 const response = yield Calendario_1.default.checkSalonDayStatus({ nivel, year, dayId: asistenciaList.dayId });

@@ -6,9 +6,10 @@ import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
 import { GradosInicial, VALID_GRADOS } from '../types/enums'
-import { AMatriculado, AsistenciaValue, PartialAlumno, Periodo } from '../types/alumno'
+import { AMatriculado, AsistenciaValue, PartialAlumno } from '../types/alumno'
 import { ObjectId } from 'mongodb'
 import Calendario from '../models/Calendario'
+import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 
 export class AlumnoControllers {
   static async fetchAsistenciaList(req: Request, res: Response) {
@@ -35,7 +36,7 @@ export class AlumnoControllers {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { asistenciaList } = req.body
       const list = asistenciaList.list as { alumnoId: string; asistencia: AsistenciaValue }[]
-      const periodo = asistenciaList.periodo as Periodo
+      const periodo = convertDateToPeriodo(new Date())
       const dayId = asistenciaList.dayId as string
       //check enabled status from calendario dayId
       const response = await Calendario.checkSalonDayStatus({ nivel, year, dayId: asistenciaList.dayId })

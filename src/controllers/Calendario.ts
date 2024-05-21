@@ -53,8 +53,9 @@ export default class CalendarioControllers {
       if (results.length === 0) return res.send(responseError(ErrorMessages.INVALID_REQUEST))
       const oldAsistenciaValue = results[0].records.asistencia
       if (oldAsistenciaValue === 'T') return res.send(responseError(ErrorMessages.TARDANZA_ALREADY_REPORTED))
-      //reportar la tardanza
+      //verificar q no se haya pasado asistencia
       if (oldAsistenciaValue === 'A' || oldAsistenciaValue === 'F') return res.send(responseError(ErrorMessages.ASISTENCIA_ALREADY_REPORTED))
+      //reportar la tardanza
       await Calendario.reportTardanzaAlumno({ nivel, year, alumnoId, dayId, issuer })
       return res.send(responseOk(null))
     } catch (error) {

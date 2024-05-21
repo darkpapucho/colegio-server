@@ -6,6 +6,7 @@ import { EnableDayList } from '../types/calendario'
 import { ErrorMessages } from '../error/enums'
 import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/utils'
 import { AsistenciaValue, Periodo } from '../types/alumno'
+import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 
 export default class Calendario {
   static async setAsistenciaAlumnoDay({ nivel, year, alumnoId, dayId, asistencia }: { nivel: Nivel; year: Year; alumnoId: string; dayId: string; asistencia: AsistenciaValue }) {
@@ -71,7 +72,7 @@ export default class Calendario {
     const response2 = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)
-      .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`tardanzas.injustificadas.${convertPeriodoKeyToIndex('primerPeriodo')}`]: 1 } })
+      .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`tardanzas.injustificadas.${convertPeriodoKeyToIndex(convertDateToPeriodo(new Date()))}`]: 1 } })
 
     if (!response2.acknowledged || !response2.modifiedCount) {
       await session.abortTransaction()

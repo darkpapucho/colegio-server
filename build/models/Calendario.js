@@ -15,11 +15,15 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const enums_1 = require("../error/enums");
 const utils_1 = require("../utils/generarBoletaNotas/utils/utils");
+const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 class Calendario {
     static setAsistenciaAlumnoDay({ nivel, year, alumnoId, dayId, asistencia }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -101,7 +105,7 @@ class Calendario {
             const response2 = yield db_1.mongoClient
                 .db()
                 .collection(`notas${nivel}${year}`)
-                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) }, { $inc: { [`tardanzas.injustificadas.${(0, utils_1.convertPeriodoKeyToIndex)('primerPeriodo')}`]: 1 } });
+                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) }, { $inc: { [`tardanzas.injustificadas.${(0, utils_1.convertPeriodoKeyToIndex)((0, convertDateToPeriodo_1.default)(new Date()))}`]: 1 } });
             if (!response2.acknowledged || !response2.modifiedCount) {
                 yield session.abortTransaction();
                 session.endSession();
