@@ -281,6 +281,7 @@ class Documento {
                         cursos: 1,
                     },
                 },
+                { $sort: { apellidos: 1, nombres: 1 } },
             ]);
             try {
                 for (var _d = true, registrosCursos_1 = __asyncValues(registrosCursos), registrosCursos_1_1; registrosCursos_1_1 = yield registrosCursos_1.next(), _a = registrosCursos_1_1.done, !_a; _d = true) {

@@ -226,6 +226,7 @@ export default class Documento {
             cursos: 1,
           },
         },
+        { $sort: { apellidos: 1, nombres: 1 } },
       ])
 
     for await (const registro of registrosCursos) {
