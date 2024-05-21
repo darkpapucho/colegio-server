@@ -95,6 +95,7 @@ class Documento {
                             apellidos: '$educando.apellidos',
                         },
                     },
+                    { $sort: { apellidos: 1, nombres: 1 } },
                 ]);
                 const records = [];
                 try {
@@ -141,6 +142,7 @@ class Documento {
                             apellidos: '$educando.apellidos',
                         },
                     },
+                    { $sort: { apellidos: 1, nombres: 1 } },
                 ]);
                 const records = [];
                 try {

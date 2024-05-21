@@ -81,6 +81,7 @@ export default class Documento {
             apellidos: '$educando.apellidos',
           },
         },
+        { $sort: { apellidos: 1, nombres: 1 } },
       ])
       const records = []
       for await (const doc of cursor) {
@@ -115,6 +116,7 @@ export default class Documento {
             apellidos: '$educando.apellidos',
           },
         },
+        { $sort: { apellidos: 1, nombres: 1 } },
       ])
       const records = []
       for await (const doc of cursor) {

@@ -101,7 +101,7 @@ export class Alumno {
     const cursor = await mongoClient
       .db()
       .collection(`matriculados${nivel}${year}`)
-      .distinct('_id', { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO'] } })
+      .distinct('_id', { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE'] } })
     const records = []
     for await (const doc of cursor) {
       records.push(doc)

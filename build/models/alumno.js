@@ -120,7 +120,7 @@ class Alumno {
             const cursor = yield db_1.mongoClient
                 .db()
                 .collection(`matriculados${nivel}${year}`)
-                .distinct('_id', { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO'] } });
+                .distinct('_id', { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE'] } });
             const records = [];
             try {
                 for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
