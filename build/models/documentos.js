@@ -26,20 +26,30 @@ class Documento {
                 for (const record of registro) {
                     const { tardanzas, inasistencias, conclusionesDescriptivas, cursos } = record;
                     const cursosKeys = Object.keys(cursos);
-                    const cursosNotas = cursosKeys.map((cursoKey) => {
+                    const notas = {};
+                    cursosKeys
+                        .map((cursoKey) => {
                         return { [`cursos.${cursoKey}`]: cursos[cursoKey] };
+                    })
+                        .forEach((element) => {
+                        notas[Object.keys(element)[0]] = Object.values(element)[0];
                     });
-                    yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: Object.assign({ tardanzas, inasistencias, conclusionesDescriptivas }, cursosNotas) });
+                    yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: Object.assign({ tardanzas, inasistencias, conclusionesDescriptivas }, notas) });
                 }
             }
             else {
                 for (const record of registro) {
                     const { cursos } = record;
                     const cursosKeys = Object.keys(cursos);
-                    const cursosNotas = cursosKeys.map((cursoKey) => {
+                    const notas = {};
+                    cursosKeys
+                        .map((cursoKey) => {
                         return { [`cursos.${cursoKey}`]: cursos[cursoKey] };
+                    })
+                        .forEach((element) => {
+                        notas[Object.keys(element)[0]] = Object.values(element)[0];
                     });
-                    yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: Object.assign({}, cursosNotas) });
+                    yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: Object.assign({}, notas) });
                 }
             }
         });

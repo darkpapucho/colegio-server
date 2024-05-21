@@ -30,13 +30,10 @@ class DocumentoControllers {
         return __awaiter(this, void 0, void 0, function* () {
             const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
             const salon = req.body.salon;
-            console.log({ salon, cursos: salon.cursos });
             try {
                 //se supone que esta ruta solo es usada por profresores
                 const alumnosIdsList = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado: salon.value.grado, seccion: salon.value.seccion });
-                console.log({ alumnosIdsList });
                 const recordNotas = yield documentos_1.default.fetchNotasPorAlumnosYCursos({ nivel, year, alumnosIdsList, salon });
-                console.log({ recordNotas });
                 res.send((0, responses_1.responseOk)(recordNotas));
             }
             catch (error) {

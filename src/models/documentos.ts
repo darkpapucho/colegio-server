@@ -2,7 +2,7 @@ import { ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
 
 import { Grado, Nivel, Seccion, Year } from '../types/enums'
-import { ExtendedRegistroNota, RegistroNota } from '../types/documents'
+import { CursoNotaRecord, ExtendedRegistroNota, RegistroNota } from '../types/documents'
 import { SalonProfesor } from '../types/user'
 
 export default class Documento {
@@ -12,19 +12,31 @@ export default class Documento {
       for (const record of registro) {
         const { tardanzas, inasistencias, conclusionesDescriptivas, cursos } = record
         const cursosKeys = Object.keys(cursos)
-        const cursosNotas = cursosKeys.map((cursoKey) => {
-          return { [`cursos.${cursoKey}`]: cursos[cursoKey] }
-        })
-        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, ...cursosNotas } })
+        const notas: { [key: string]: CursoNotaRecord } = {}
+        cursosKeys
+          .map((cursoKey) => {
+            return { [`cursos.${cursoKey}`]: cursos[cursoKey] }
+          })
+          .forEach((element) => {
+            notas[Object.keys(element)[0]] = Object.values(element)[0]
+          })
+
+        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, ...notas } })
       }
     } else {
       for (const record of registro) {
         const { cursos } = record
         const cursosKeys = Object.keys(cursos)
-        const cursosNotas = cursosKeys.map((cursoKey) => {
-          return { [`cursos.${cursoKey}`]: cursos[cursoKey] }
-        })
-        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { ...cursosNotas } })
+        const notas: { [key: string]: CursoNotaRecord } = {}
+        cursosKeys
+          .map((cursoKey) => {
+            return { [`cursos.${cursoKey}`]: cursos[cursoKey] }
+          })
+          .forEach((element) => {
+            notas[Object.keys(element)[0]] = Object.values(element)[0]
+          })
+
+        await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { ...notas } })
       }
     }
   }

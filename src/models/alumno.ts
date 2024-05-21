@@ -98,7 +98,10 @@ export class Alumno {
   //   })
   // }
   static async fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
-    const cursor = await mongoClient.db().collection(`matriculados${nivel}${year}`).distinct('_id', { grado, seccion })
+    const cursor = await mongoClient
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .distinct('_id', { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO'] } })
     const records = []
     for await (const doc of cursor) {
       records.push(doc)

@@ -117,7 +117,10 @@ class Alumno {
     static fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion }) {
         var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            const cursor = yield db_1.mongoClient.db().collection(`matriculados${nivel}${year}`).distinct('_id', { grado, seccion });
+            const cursor = yield db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .distinct('_id', { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO'] } });
             const records = [];
             try {
                 for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {

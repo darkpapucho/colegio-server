@@ -19,13 +19,13 @@ export default class DocumentoControllers {
   static async fetchNotasByCursos(req: Request, res: Response) {
     const { nivel, year } = extractNivelYearFromHeaders(req)
     const salon = req.body.salon as SalonProfesor
-    console.log({ salon, cursos: salon.cursos })
+
     try {
       //se supone que esta ruta solo es usada por profresores
       const alumnosIdsList = await Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado: salon.value.grado, seccion: salon.value.seccion })
-      console.log({ alumnosIdsList })
+
       const recordNotas = await Documento.fetchNotasPorAlumnosYCursos({ nivel, year, alumnosIdsList, salon })
-      console.log({ recordNotas })
+
       res.send(responseOk(recordNotas))
     } catch (error) {
       errorResponseHandler(res, error)
