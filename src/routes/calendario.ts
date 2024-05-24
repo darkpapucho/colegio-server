@@ -11,3 +11,4 @@ calendarioRouter.post('/report-tardanza-alumno', verifyCredentials, CalendarioCo
 calendarioRouter.get('/fetch-day-id', verifyCredentials, CalendarioControllers.fetchDayId)
 calendarioRouter.get('/fetch-current-periodo', verifyCredentials, CalendarioControllers.fetchCurrentPeriodo)
 calendarioRouter.post('/set-current-periodo', verifyCredentials, CalendarioControllers.setCurrentPeriodo)
+calendarioRouter.get('/convert-date-to-periodo', verifyCredentials, CalendarioControllers.fetchConvertDateToPeriodo)

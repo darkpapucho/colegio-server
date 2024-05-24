@@ -18,6 +18,7 @@ const Calendario_1 = __importDefault(require("../models/Calendario"));
 const responses_1 = require("../utils/responses");
 const enums_1 = require("../error/enums");
 const calendario_1 = require("../utils/calendario");
+const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 class CalendarioControllers {
     static setCurrentPeriodo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -29,6 +30,17 @@ class CalendarioControllers {
             }
             catch (err) {
                 (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static fetchConvertDateToPeriodo(_req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const periodo = (0, convertDateToPeriodo_1.default)(new Date());
+                return res.send((0, responses_1.responseOk)(periodo));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
             }
         });
     }

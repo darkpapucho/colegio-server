@@ -6,6 +6,7 @@ import { responseError, responseOk } from '../utils/responses'
 import { ErrorMessages } from '../error/enums'
 import { MONTHS_YEAR } from '../utils/calendario'
 import { Month } from '../types/asistencia'
+import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 export default class CalendarioControllers {
   static async setCurrentPeriodo(req: Request, res: Response) {
     try {
@@ -15,6 +16,14 @@ export default class CalendarioControllers {
       res.send(responseOk(null))
     } catch (err) {
       errorResponseHandler(res, err)
+    }
+  }
+  static async fetchConvertDateToPeriodo(_req: Request, res: Response) {
+    try {
+      const periodo = convertDateToPeriodo(new Date())
+      return res.send(responseOk(periodo))
+    } catch (err) {
+      return errorResponseHandler(res, err)
     }
   }
   static async fetchCurrentPeriodo(req: Request, res: Response) {
