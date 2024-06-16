@@ -24,7 +24,85 @@ const db_1 = require("../db");
 const enums_1 = require("../error/enums");
 const utils_1 = require("../utils/generarBoletaNotas/utils/utils");
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
+const periodosDates_1 = require("../vars/periodosDates");
 class Calendario {
+    static getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds }) {
+        var _a, e_1, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const periodoStart = (0, periodosDates_1.getPeriodoStartDate)(periodo);
+            const periodoEnd = (0, periodosDates_1.getPeriodoEndDate)(periodo);
+            const beginMonth = (0, periodosDates_1.convertNumberToMonthName)(new Date(periodoStart).getMonth());
+            const beginDay = new Date(periodoStart).getDate();
+            const lastMonth = (0, periodosDates_1.convertNumberToMonthName)(new Date(periodoEnd).getMonth());
+            const lastDay = new Date(periodoEnd).getDate();
+            const betweenMonths = [];
+            for (let i = new Date(periodoStart).getMonth() + 1; i < new Date(periodoEnd).getMonth(); i++) {
+                betweenMonths.push({ $eq: ['$$record.month', (0, periodosDates_1.convertNumberToMonthName)(i)] });
+            }
+            const cursor = db_1.mongoClient
+                .db()
+                .collection(`asistencias${nivel}${year}`)
+                .aggregate([
+                { $match: { alumnoId: { $in: [...alumnosIds] } } },
+                { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+                {
+                    $project: {
+                        _id: 0,
+                        alumno: { $arrayElemAt: ['$estudiante', 0] },
+                        alumnoId: 1,
+                        records: {
+                            $filter: {
+                                input: '$records',
+                                as: 'record',
+                                cond: {
+                                    $or: [
+                                        {
+                                            $and: [{ $eq: ['$$record.month', beginMonth] }, { $gte: ['$$record.day', beginDay] }],
+                                        },
+                                        ...betweenMonths,
+                                        {
+                                            $and: [{ $eq: ['$$record.month', lastMonth] }, { $lte: ['$$record.day', lastDay] }],
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                },
+                {
+                    $project: {
+                        nombreCompleto: '$alumno.nombreCompleto',
+                        alumnoId: 1,
+                        records: {
+                            day: 1,
+                            month: 1,
+                            asistencia: 1,
+                            dayId: 1,
+                        },
+                    },
+                },
+                { $sort: { nombreCompleto: 1 } },
+            ]);
+            const results = [];
+            try {
+                for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
+                    _c = cursor_1_1.value;
+                    _d = false;
+                    const record = _c;
+                    results.push(record);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            console.log({ results });
+            return results;
+        });
+    }
     static setAsistenciaAlumnoDay({ nivel, year, alumnoId, dayId, asistencia }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
@@ -52,7 +130,7 @@ class Calendario {
         });
     }
     static fetchADayAsistenciaRecord({ nivel, year, alumnoId, dayId }) {
-        var _a, e_1, _b, _c;
+        var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -64,19 +142,19 @@ class Calendario {
             ]);
             const results = [];
             try {
-                for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
-                    _c = cursor_1_1.value;
+                for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
+                    _c = cursor_2_1.value;
                     _d = false;
                     let doc = _c;
                     results.push(doc);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                    if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
             return results;
         });
@@ -125,24 +203,24 @@ class Calendario {
         });
     }
     static fetchCalendario({ nivel, year }) {
-        var _a, e_2, _b, _c;
+        var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient.db().collection(`calendario${nivel}${year}`).find({}).sort('month', 1);
             const documents = [];
             try {
-                for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
-                    _c = cursor_2_1.value;
+                for (var _d = true, cursor_3 = __asyncValues(cursor), cursor_3_1; cursor_3_1 = yield cursor_3.next(), _a = cursor_3_1.done, !_a; _d = true) {
+                    _c = cursor_3_1.value;
                     _d = false;
                     let doc = _c;
                     documents.push(doc);
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
+                    if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return documents;
         });

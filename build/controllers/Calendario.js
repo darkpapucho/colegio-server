@@ -19,7 +19,22 @@ const responses_1 = require("../utils/responses");
 const enums_1 = require("../error/enums");
 const calendario_1 = require("../utils/calendario");
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
+const alumno_1 = require("../models/alumno");
 class CalendarioControllers {
+    static getRecordAsistenciasPeriodo(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion, periodo } = req.body;
+                const alumnosIds = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion });
+                const asistencias = yield Calendario_1.default.getAsistenciaRecordPeriodo({ nivel, year, periodo, alumnosIds });
+                res.send((0, responses_1.responseOk)(asistencias));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static setCurrentPeriodo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -36,6 +51,7 @@ class CalendarioControllers {
     static fetchConvertDateToPeriodo(_req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                console.log('Converting date to periodo');
                 const periodo = (0, convertDateToPeriodo_1.default)(new Date());
                 return res.send((0, responses_1.responseOk)(periodo));
             }
@@ -47,6 +63,7 @@ class CalendarioControllers {
     static fetchCurrentPeriodo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                console.log('Fetching current Periodo');
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const response = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
                 if (!response) {

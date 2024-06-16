@@ -12,3 +12,4 @@ calendarioRouter.get('/fetch-day-id', verifyCredentials, CalendarioControllers.f
 calendarioRouter.get('/fetch-current-periodo', verifyCredentials, CalendarioControllers.fetchCurrentPeriodo)
 calendarioRouter.post('/set-current-periodo', verifyCredentials, CalendarioControllers.setCurrentPeriodo)
 calendarioRouter.get('/convert-date-to-periodo', verifyCredentials, CalendarioControllers.fetchConvertDateToPeriodo)
+calendarioRouter.post('/get-record-asistencias-grado-seccion-periodo', verifyCredentials, CalendarioControllers.getRecordAsistenciasPeriodo)
