@@ -25,7 +25,6 @@ class UserControllers {
             try {
                 const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { dni, userId } = req.body;
-                console.log({ nivel, dni, userId });
                 const newPassword = yield (0, hashPassword_1.hashPassword)('' + dni);
                 const response = yield user_1.User.resetProfesorPassword({ nivel, newPassword, userId });
                 if (!response.acknowledged || !response.modifiedCount) {

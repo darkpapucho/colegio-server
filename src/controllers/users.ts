@@ -14,7 +14,7 @@ export class UserControllers {
     try {
       const { nivel } = extractNivelYearFromHeaders(req)
       const { dni, userId } = req.body
-      console.log({ nivel, dni, userId })
+
       const newPassword = await hashPassword('' + dni)
       const response = await User.resetProfesorPassword({ nivel, newPassword, userId })
       if (!response.acknowledged || !response.modifiedCount) {

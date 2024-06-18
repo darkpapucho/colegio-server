@@ -52,10 +52,8 @@ class EmpleadoControllers {
             try {
                 const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { userId, newPassword, currentPassword } = req.body;
-                console.log({ userId, newPassword, currentPassword });
                 //confirmPassword
                 const userInfo = yield user_1.User.getById({ nivel, _id: new mongodb_1.ObjectId(userId) });
-                console.log({ userInfo });
                 (0, global_1.assert)(userInfo, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 const result = yield (0, bcrypt_1.compare)(currentPassword, userInfo.password);
                 if (!result)

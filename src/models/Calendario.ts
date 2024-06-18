@@ -70,7 +70,6 @@ export default class Calendario {
       results.push(record)
     }
 
-    console.log({ results })
     return results
   }
   static async setAsistenciaAlumnoDay({ nivel, year, alumnoId, dayId, asistencia }: { nivel: Nivel; year: Year; alumnoId: string; dayId: string; asistencia: AsistenciaValue }) {

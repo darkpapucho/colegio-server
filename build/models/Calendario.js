@@ -99,7 +99,6 @@ class Calendario {
                 }
                 finally { if (e_1) throw e_1.error; }
             }
-            console.log({ results });
             return results;
         });
     }

@@ -24,10 +24,10 @@ export default class EmpleadoControllers {
     try {
       const { nivel } = extractNivelYearFromHeaders(req)
       const { userId, newPassword, currentPassword } = req.body
-      console.log({ userId, newPassword, currentPassword })
+
       //confirmPassword
       const userInfo = await User.getById({ nivel, _id: new ObjectId(userId) })
-      console.log({ userInfo })
+
       assert(userInfo, ErrorMessages.INVALID_CREDENTIALS)
       const result = await compare(currentPassword, userInfo.password)
       if (!result) return res.send(responseError(ErrorMessages.INCORRECT_PASSWORD))
