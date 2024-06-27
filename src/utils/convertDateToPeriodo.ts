@@ -20,7 +20,6 @@ export default function convertDateToPeriodo(date: Date): Periodo {
   } else if (date >= new Date(cuartoPeriodoStart) && date <= new Date(cuartoPeriodoEnd)) {
     return 'cuartoPeriodo'
   } else {
-    console.log('default')
     return 'primerPeriodo'
   }
 }

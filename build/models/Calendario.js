@@ -74,7 +74,6 @@ class Calendario {
                 .db()
                 .collection(`asistencias${nivel}${year}`)
                 .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId), 'records.dayId': new mongodb_1.ObjectId(dayId) }, { $set: { 'records.$.justificado': true } });
-            console.log({ result });
             if (!result.acknowledged || !result.modifiedCount) {
                 yield session.abortTransaction();
                 yield session.endSession();
@@ -84,7 +83,6 @@ class Calendario {
                 .db()
                 .collection(`notas${nivel}${year}`)
                 .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) }, { $inc: { [`inasistencias.injustificadas.${(0, utils_1.convertPeriodoKeyToIndex)(periodo)}`]: -1, [`inasistencias.justificadas.${(0, utils_1.convertPeriodoKeyToIndex)(periodo)}`]: 1 } });
-            console.log({ result2 });
             if (!result2.acknowledged || !result2.modifiedCount) {
                 yield session.abortTransaction();
                 yield session.endSession();

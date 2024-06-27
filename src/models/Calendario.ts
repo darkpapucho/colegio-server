@@ -55,7 +55,7 @@ export default class Calendario {
       .db()
       .collection(`asistencias${nivel}${year}`)
       .updateOne({ alumnoId: new ObjectId(alumnoId), 'records.dayId': new ObjectId(dayId) }, { $set: { 'records.$.justificado': true } })
-    console.log({ result })
+
     if (!result.acknowledged || !result.modifiedCount) {
       await session.abortTransaction()
       await session.endSession()
@@ -68,7 +68,7 @@ export default class Calendario {
         { alumnoId: new ObjectId(alumnoId) },
         { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: -1, [`inasistencias.justificadas.${convertPeriodoKeyToIndex(periodo)}`]: 1 } },
       )
-    console.log({ result2 })
+
     if (!result2.acknowledged || !result2.modifiedCount) {
       await session.abortTransaction()
       await session.endSession()

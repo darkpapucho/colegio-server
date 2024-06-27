@@ -28,12 +28,9 @@ class CalendarioControllers {
                 const { alumnoId, dayId, date } = req.body;
                 //check que no se haya justificado anteriormente la falta
                 const result = yield Calendario_1.default.getAsistenciaDayStatus({ nivel, year, alumnoId, dayId });
-                console.log({ justificado: result.record.justificado });
-                console.log({ date });
-                const periodo = (0, convertDateToPeriodo_1.default)(new Date(date));
-                console.log({ periodo });
                 if (result.record.justificado)
                     return res.send((0, responses_1.responseError)('esta falta ya fue justificada con anterioridad'));
+                const periodo = (0, convertDateToPeriodo_1.default)(new Date(date));
                 yield Calendario_1.default.justificarFalta({ nivel, year, periodo, alumnoId, dayId });
                 return res.send((0, responses_1.responseOk)(null));
             }
@@ -72,7 +69,6 @@ class CalendarioControllers {
     static fetchConvertDateToPeriodo(_req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log('Converting date to periodo');
                 const periodo = (0, convertDateToPeriodo_1.default)(new Date());
                 return res.send((0, responses_1.responseOk)(periodo));
             }
@@ -84,7 +80,6 @@ class CalendarioControllers {
     static fetchCurrentPeriodo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log('Fetching current Periodo');
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const response = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
                 if (!response) {

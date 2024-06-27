@@ -15,7 +15,6 @@ function convertDateToPeriodo(date) {
         return 'cuartoPeriodo';
     }
     else {
-        console.log('default');
         return 'primerPeriodo';
     }
 }
