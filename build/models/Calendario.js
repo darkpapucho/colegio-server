@@ -26,8 +26,76 @@ const utils_1 = require("../utils/generarBoletaNotas/utils/utils");
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 const periodosDates_1 = require("../vars/periodosDates");
 class Calendario {
-    static getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds }) {
+    static getAsistenciaDayStatus({ alumnoId, dayId, nivel, year }) {
         var _a, e_1, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = db_1.mongoClient
+                .db()
+                .collection(`asistencias${nivel}${year}`)
+                .aggregate([
+                { $match: { alumnoId: new mongodb_1.ObjectId(alumnoId) } },
+                {
+                    $project: {
+                        record: {
+                            $filter: {
+                                input: '$records',
+                                as: 'records',
+                                cond: { $eq: ['$$records.dayId', new mongodb_1.ObjectId(dayId)] },
+                            },
+                        },
+                    },
+                },
+                { $project: { _id: 0, record: { $arrayElemAt: ['$record', 0] } } },
+            ]);
+            const results = [];
+            try {
+                for (var _d = true, result_1 = __asyncValues(result), result_1_1; result_1_1 = yield result_1.next(), _a = result_1_1.done, !_a; _d = true) {
+                    _c = result_1_1.value;
+                    _d = false;
+                    const record = _c;
+                    results.push(record);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = result_1.return)) yield _b.call(result_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            return results[0];
+        });
+    }
+    static justificarFalta({ nivel, year, dayId, alumnoId, periodo, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const session = db_1.mongoClient.startSession();
+            session.startTransaction();
+            const result = yield db_1.mongoClient
+                .db()
+                .collection(`asistencias${nivel}${year}`)
+                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId), 'records.dayId': new mongodb_1.ObjectId(dayId) }, { $set: { 'records.$.justificado': true } });
+            console.log({ result });
+            if (!result.acknowledged || !result.modifiedCount) {
+                yield session.abortTransaction();
+                yield session.endSession();
+                throw new Error(enums_1.ErrorMessages.DATA_BASE_ERROR);
+            }
+            const result2 = yield db_1.mongoClient
+                .db()
+                .collection(`notas${nivel}${year}`)
+                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) }, { $inc: { [`inasistencias.injustificadas.${(0, utils_1.convertPeriodoKeyToIndex)(periodo)}`]: -1, [`inasistencias.justificadas.${(0, utils_1.convertPeriodoKeyToIndex)(periodo)}`]: 1 } });
+            console.log({ result2 });
+            if (!result2.acknowledged || !result2.modifiedCount) {
+                yield session.abortTransaction();
+                yield session.endSession();
+                throw new Error(enums_1.ErrorMessages.DATA_BASE_ERROR);
+            }
+            yield session.commitTransaction();
+            yield session.endSession();
+        });
+    }
+    static getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds }) {
+        var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const periodoStart = (0, periodosDates_1.getPeriodoStartDate)(periodo);
             const periodoEnd = (0, periodosDates_1.getPeriodoEndDate)(periodo);
@@ -78,6 +146,7 @@ class Calendario {
                             month: 1,
                             asistencia: 1,
                             dayId: 1,
+                            justificado: 1,
                         },
                     },
                 },
@@ -92,12 +161,12 @@ class Calendario {
                     results.push(record);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
             return results;
         });
@@ -129,7 +198,7 @@ class Calendario {
         });
     }
     static fetchADayAsistenciaRecord({ nivel, year, alumnoId, dayId }) {
-        var _a, e_2, _b, _c;
+        var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -148,12 +217,12 @@ class Calendario {
                     results.push(doc);
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return results;
         });
@@ -202,7 +271,7 @@ class Calendario {
         });
     }
     static fetchCalendario({ nivel, year }) {
-        var _a, e_3, _b, _c;
+        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient.db().collection(`calendario${nivel}${year}`).find({}).sort('month', 1);
             const documents = [];
@@ -214,12 +283,12 @@ class Calendario {
                     documents.push(doc);
                 }
             }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
                 }
-                finally { if (e_3) throw e_3.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             return documents;
         });

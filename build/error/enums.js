@@ -17,4 +17,5 @@ var ErrorMessages;
     ErrorMessages["ASISTENCIA_ALREADY_REPORTED"] = "La asistencia de este alumno ya fue reportada por el tutor.";
     ErrorMessages["PERIODO_NOT_SET"] = "Aun no se ha establecido un periodo.";
     ErrorMessages["INCORRECT_PASSWORD"] = "la contrase\u00F1a actual es incorrecta";
+    ErrorMessages["DATA_BASE_ERROR"] = "Data base error";
 })(ErrorMessages || (exports.ErrorMessages = ErrorMessages = {}));

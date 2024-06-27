@@ -9,6 +9,23 @@ import { Month } from '../types/asistencia'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 import { Alumno } from '../models/alumno'
 export default class CalendarioControllers {
+  static async justificarFalta(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { alumnoId, dayId, date } = req.body
+      //check que no se haya justificado anteriormente la falta
+      const result = await Calendario.getAsistenciaDayStatus({ nivel, year, alumnoId, dayId })
+      console.log({ justificado: result.record.justificado })
+      console.log({ date })
+      const periodo = convertDateToPeriodo(new Date(date))
+      console.log({ periodo })
+      if (result.record.justificado) return res.send(responseError('esta falta ya fue justificada con anterioridad'))
+      await Calendario.justificarFalta({ nivel, year, periodo, alumnoId, dayId })
+      return res.send(responseOk(null))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
   static async getRecordAsistenciasPeriodo(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

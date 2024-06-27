@@ -10,6 +10,74 @@ import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from '../vars/periodosDates'
 
 export default class Calendario {
+  static async getAsistenciaDayStatus({ alumnoId, dayId, nivel, year }: { nivel: Nivel; year: Year; alumnoId: string; dayId: string }) {
+    const result = mongoClient
+      .db()
+      .collection(`asistencias${nivel}${year}`)
+      .aggregate<{ _id: ObjectId; record: { justificado: boolean } }>([
+        { $match: { alumnoId: new ObjectId(alumnoId) } },
+        {
+          $project: {
+            record: {
+              $filter: {
+                input: '$records',
+                as: 'records',
+                cond: { $eq: ['$$records.dayId', new ObjectId(dayId)] },
+              },
+            },
+          },
+        },
+        { $project: { _id: 0, record: { $arrayElemAt: ['$record', 0] } } },
+      ])
+    const results = []
+    for await (const record of result) {
+      results.push(record)
+    }
+    return results[0]
+  }
+  static async justificarFalta({
+    nivel,
+    year,
+    dayId,
+    alumnoId,
+
+    periodo,
+  }: {
+    periodo: Periodo
+    nivel: Nivel
+    year: Year
+    dayId: string
+    alumnoId: string
+  }) {
+    const session = mongoClient.startSession()
+    session.startTransaction()
+    const result = await mongoClient
+      .db()
+      .collection(`asistencias${nivel}${year}`)
+      .updateOne({ alumnoId: new ObjectId(alumnoId), 'records.dayId': new ObjectId(dayId) }, { $set: { 'records.$.justificado': true } })
+    console.log({ result })
+    if (!result.acknowledged || !result.modifiedCount) {
+      await session.abortTransaction()
+      await session.endSession()
+      throw new Error(ErrorMessages.DATA_BASE_ERROR)
+    }
+    const result2 = await mongoClient
+      .db()
+      .collection(`notas${nivel}${year}`)
+      .updateOne(
+        { alumnoId: new ObjectId(alumnoId) },
+        { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: -1, [`inasistencias.justificadas.${convertPeriodoKeyToIndex(periodo)}`]: 1 } },
+      )
+    console.log({ result2 })
+    if (!result2.acknowledged || !result2.modifiedCount) {
+      await session.abortTransaction()
+      await session.endSession()
+      throw new Error(ErrorMessages.DATA_BASE_ERROR)
+    }
+    await session.commitTransaction()
+    await session.endSession()
+  }
+
   static async getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds }: { alumnosIds: ObjectId[]; periodo: Periodo; nivel: Nivel; year: Year }) {
     const periodoStart = getPeriodoStartDate(periodo)
     const periodoEnd = getPeriodoEndDate(periodo)
@@ -24,7 +92,9 @@ export default class Calendario {
     const cursor = mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
-      .aggregate<{ nombreCompleto: string; alumnoId: ObjectId; records: { day: number; month: Month; asistencia: AsistenciaValue; dayId: ObjectId }[] }[]>([
+      .aggregate<
+        { nombreCompleto: string; alumnoId: ObjectId; records: { day: number; month: Month; asistencia: AsistenciaValue; dayId: ObjectId; justificado: true | undefined }[] }[]
+      >([
         { $match: { alumnoId: { $in: [...alumnosIds] } } },
         { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
         {
@@ -60,6 +130,7 @@ export default class Calendario {
               month: 1,
               asistencia: 1,
               dayId: 1,
+              justificado: 1,
             },
           },
         },

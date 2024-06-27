@@ -17,3 +17,4 @@ exports.calendarioRouter.get('/fetch-current-periodo', verifyCredentials_1.verif
 exports.calendarioRouter.post('/set-current-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.setCurrentPeriodo);
 exports.calendarioRouter.get('/convert-date-to-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchConvertDateToPeriodo);
 exports.calendarioRouter.post('/get-record-asistencias-grado-seccion-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.getRecordAsistenciasPeriodo);
+exports.calendarioRouter.post('/justificar-falta', verifyCredentials_1.verifyCredentials, Calendario_1.default.justificarFalta);

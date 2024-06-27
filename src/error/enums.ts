@@ -13,4 +13,5 @@ export enum ErrorMessages {
   ASISTENCIA_ALREADY_REPORTED = 'La asistencia de este alumno ya fue reportada por el tutor.',
   PERIODO_NOT_SET = 'Aun no se ha establecido un periodo.',
   INCORRECT_PASSWORD = 'la contraseña actual es incorrecta',
+  DATA_BASE_ERROR = 'Data base error',
 }

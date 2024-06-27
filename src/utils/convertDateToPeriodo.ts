@@ -11,15 +11,16 @@ import {
 } from '../vars/periodosDates'
 
 export default function convertDateToPeriodo(date: Date): Periodo {
-  let periodo: Periodo = 'primerPeriodo'
-  if (date >= new Date(primerPeriodoStart) && date <= new Date(primerPeriodoEnd)) {
-    periodo = 'primerPeriodo'
-  } else if (date >= new Date(segundoPeriodoStart) && date <= new Date(segundoPeriodoEnd)) {
-    periodo = 'segundoPeriodo'
+  if (date.getTime() >= new Date(primerPeriodoStart).getTime() && date.getTime() <= new Date(primerPeriodoEnd).getTime()) {
+    return 'primerPeriodo'
+  } else if (date.getTime() >= new Date(segundoPeriodoStart).getTime() && date.getTime() <= new Date(segundoPeriodoEnd).getTime()) {
+    return 'segundoPeriodo'
   } else if (date >= new Date(tercerPeriodoStart) && date <= new Date(tercerPeriodoEnd)) {
-    periodo = 'tercerPeriodo'
+    return 'tercerPeriodo'
   } else if (date >= new Date(cuartoPeriodoStart) && date <= new Date(cuartoPeriodoEnd)) {
-    periodo = 'cuartoPeriodo'
+    return 'cuartoPeriodo'
+  } else {
+    console.log('default')
+    return 'primerPeriodo'
   }
-  return periodo
 }

@@ -21,6 +21,27 @@ const calendario_1 = require("../utils/calendario");
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 const alumno_1 = require("../models/alumno");
 class CalendarioControllers {
+    static justificarFalta(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId, dayId, date } = req.body;
+                //check que no se haya justificado anteriormente la falta
+                const result = yield Calendario_1.default.getAsistenciaDayStatus({ nivel, year, alumnoId, dayId });
+                console.log({ justificado: result.record.justificado });
+                console.log({ date });
+                const periodo = (0, convertDateToPeriodo_1.default)(new Date(date));
+                console.log({ periodo });
+                if (result.record.justificado)
+                    return res.send((0, responses_1.responseError)('esta falta ya fue justificada con anterioridad'));
+                yield Calendario_1.default.justificarFalta({ nivel, year, periodo, alumnoId, dayId });
+                return res.send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static getRecordAsistenciasPeriodo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
