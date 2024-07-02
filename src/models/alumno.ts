@@ -212,13 +212,15 @@ export class Alumno {
     })
   }
 
-  static async nuevaMatricula({ alumno, collectionName }: { alumno: NuevoAlumno; collectionName: string }): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      const response = await mongoClient
-        .db()
-        .collection<AMatriculadoNoId>(collectionName)
-        .insertOne({ ...alumno, nombreCompleto: alumno.apellidos + ', ' + alumno.nombres, estadoMatricula: 'PENDIENTE' })
-      resolve(response.acknowledged)
-    })
+  static async nuevaMatricula({ alumno, nivel, year }: { alumno: NuevoAlumno; nivel: Nivel; year: Year }) {
+    const response = await mongoClient
+      .db()
+      .collection<AMatriculadoNoId>(`matriculados${nivel}${year}`)
+      .insertOne({ ...alumno, nombreCompleto: alumno.apellidos + ', ' + alumno.nombres, estadoMatricula: 'DEFINITIVA' })
+    return response
+  }
+  static async fetchAlumnoByDni({ nivel, year, dni }: { nivel: Nivel; year: Year; dni: string }) {
+    const alumno = await mongoClient.db().collection(`matriculados${nivel}${year}`).findOne({ dni })
+    return alumno
   }
 }

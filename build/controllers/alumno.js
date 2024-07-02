@@ -221,15 +221,35 @@ class AlumnoControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumno } = req.body;
                 (0, validators_1.assertIsNuevoAlumno)(alumno);
-                const matriculadosCollection = `matriculados${nivel}${year}`;
-                const result = yield alumno_1.Alumno.nuevaMatricula({ alumno, collectionName: matriculadosCollection });
-                if (!result) {
-                    throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
+                alumno.apellidos = alumno.apellidos.toUpperCase();
+                alumno.nombres = alumno.nombres.toUpperCase();
+                //verificar q no exista un alumno ya matriculado con el mismo dni
+                const foundAlumno = yield alumno_1.Alumno.fetchAlumnoByDni({ nivel, year, dni: alumno.dni + '' });
+                if (foundAlumno) {
+                    return res.send((0, responses_1.responseError)('Ya existe un alumno matriculado con este DNI'));
                 }
-                res.status(202).send((0, responses_1.responseOk)(null)); // 202=acepted
+                //TODO: CREATE SESSION MONGO
+                //matricular nuevo alumno
+                const result = yield alumno_1.Alumno.nuevaMatricula({ alumno, nivel, year });
+                if (!result.acknowledged) {
+                    return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED));
+                }
+                const lastDayFromCalendar = yield Calendario_1.default.fetchLasyDayOfCalendarioEscolar({ nivel, year });
+                const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`);
+                //insertar asistencia records de acuerdo a la fecha de la mtricula
+                const calendarioDaysForMatricula = yield Calendario_1.default.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate });
+                //insertar nuevo record en asistencias{nivel}{year}
+                const alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
+                    return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' };
+                });
+                const result2 = yield Calendario_1.default.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: result.insertedId, records: alumnoAsistenciaRecords });
+                if (!result2.acknowledged) {
+                    return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED));
+                }
+                return res.status(202).send((0, responses_1.responseOk)(null)); // 202=acepted
             }
             catch (error) {
-                (0, errors_1.errorResponseHandler)(res, error);
+                return (0, errors_1.errorResponseHandler)(res, error);
             }
         });
     }

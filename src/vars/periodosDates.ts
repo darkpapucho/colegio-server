@@ -1,5 +1,6 @@
 import { ErrorMessages } from '../error/enums'
 import { Periodo } from '../types/alumno'
+import { Month } from '../types/asistencia'
 import { MONTHS_YEAR } from '../utils/calendario'
 
 export const primerPeriodoStart = '03-04-2024' //MM-DD-YYYY
@@ -40,7 +41,7 @@ export function getPeriodoEndDate(periodo: Periodo) {
   }
 }
 
-export function convertNumberToMonthName(monthNumber: number) {
+export function convertNumberToMonthName(monthNumber: number): Month {
   if (monthNumber < 0 || monthNumber > 11) throw new Error(ErrorMessages.INVALID_REQUEST)
   return MONTHS_YEAR[monthNumber]
 }

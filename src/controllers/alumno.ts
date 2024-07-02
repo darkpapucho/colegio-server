@@ -6,7 +6,7 @@ import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
 import { GradosInicial, VALID_GRADOS } from '../types/enums'
-import { AMatriculado, AsistenciaValue, PartialAlumno } from '../types/alumno'
+import { AMatriculado, AsistenciaRecord, AsistenciaValue, PartialAlumno } from '../types/alumno'
 import { ObjectId } from 'mongodb'
 import Calendario from '../models/Calendario'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
@@ -189,14 +189,34 @@ export class AlumnoControllers {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { alumno } = req.body
       assertIsNuevoAlumno(alumno)
-      const matriculadosCollection = `matriculados${nivel}${year}`
-      const result = await Alumno.nuevaMatricula({ alumno, collectionName: matriculadosCollection })
-      if (!result) {
-        throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
+      alumno.apellidos = alumno.apellidos.toUpperCase()
+      alumno.nombres = alumno.nombres.toUpperCase()
+      //verificar q no exista un alumno ya matriculado con el mismo dni
+      const foundAlumno = await Alumno.fetchAlumnoByDni({ nivel, year, dni: alumno.dni + '' })
+      if (foundAlumno) {
+        return res.send(responseError('Ya existe un alumno matriculado con este DNI'))
       }
-      res.status(202).send(responseOk(null)) // 202=acepted
+      //TODO: CREATE SESSION MONGO
+      //matricular nuevo alumno
+      const result = await Alumno.nuevaMatricula({ alumno, nivel, year })
+      if (!result.acknowledged) {
+        return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
+      }
+      const lastDayFromCalendar = await Calendario.fetchLasyDayOfCalendarioEscolar({ nivel, year })
+      const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
+      //insertar asistencia records de acuerdo a la fecha de la mtricula
+      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
+      //insertar nuevo record en asistencias{nivel}{year}
+      const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
+        return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
+      })
+      const result2 = await Calendario.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: result.insertedId, records: alumnoAsistenciaRecords })
+      if (!result2.acknowledged) {
+        return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
+      }
+      return res.status(202).send(responseOk(null)) // 202=acepted
     } catch (error) {
-      errorResponseHandler(res, error)
+      return errorResponseHandler(res, error)
     }
   }
 }

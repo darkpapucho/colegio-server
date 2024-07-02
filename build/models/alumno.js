@@ -270,15 +270,19 @@ class Alumno {
             }));
         });
     }
-    static nuevaMatricula({ alumno, collectionName }) {
+    static nuevaMatricula({ alumno, nivel, year }) {
         return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                const response = yield db_1.mongoClient
-                    .db()
-                    .collection(collectionName)
-                    .insertOne(Object.assign(Object.assign({}, alumno), { nombreCompleto: alumno.apellidos + ', ' + alumno.nombres, estadoMatricula: 'PENDIENTE' }));
-                resolve(response.acknowledged);
-            }));
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .insertOne(Object.assign(Object.assign({}, alumno), { nombreCompleto: alumno.apellidos + ', ' + alumno.nombres, estadoMatricula: 'DEFINITIVA' }));
+            return response;
+        });
+    }
+    static fetchAlumnoByDni({ nivel, year, dni }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const alumno = yield db_1.mongoClient.db().collection(`matriculados${nivel}${year}`).findOne({ dni });
+            return alumno;
         });
     }
 }

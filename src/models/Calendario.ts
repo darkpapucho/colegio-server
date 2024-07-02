@@ -5,11 +5,57 @@ import { CalendarioDay, Month } from '../types/asistencia'
 import { EnableDayList } from '../types/calendario'
 import { ErrorMessages } from '../error/enums'
 import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/utils'
-import { AsistenciaValue, Periodo } from '../types/alumno'
+import { AsistenciaRecord, AsistenciaValue, Periodo } from '../types/alumno'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from '../vars/periodosDates'
+import { getMonthsBetween, MONTHS_YEAR } from '../utils/calendario'
 
 export default class Calendario {
+  static async insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId }: { nivel: Nivel; year: Year; records: AsistenciaRecord[]; alumnoId: ObjectId }) {
+    const result = await mongoClient.db().collection(`asistencias${nivel}${year}`).insertOne({ alumnoId, records })
+    return result
+  }
+  static async fetchLasyDayOfCalendarioEscolar({ nivel, year }: { nivel: Nivel; year: Year }) {
+    const results = mongoClient.db().collection<{ _id: ObjectId; month: Month; day: number }>(`calendario${nivel}${year}`).find({})
+    const monthsRecorded: number[] = []
+    const records = []
+    for await (const result of results) {
+      records.push(result)
+      const monthIndex = MONTHS_YEAR.findIndex((element) => element === result.month)
+      if (!monthsRecorded.includes(monthIndex)) {
+        monthsRecorded.push(monthIndex)
+      }
+    }
+    const maxMonth: Month = convertNumberToMonthName(monthsRecorded.sort((prev, curr) => (prev < curr ? 1 : -1))[0])
+    const recordsFromMaxMonth = records.filter((elem) => elem.month === maxMonth).sort((prev, curr) => (prev.day < curr.day ? 1 : -1))
+
+    return recordsFromMaxMonth[0]
+  }
+  static async getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate }: { lastDate: Date; nivel: Nivel; year: Year; fechaMatricula: Date }) {
+    const beginMonth = convertNumberToMonthName(fechaMatricula.getMonth())
+    const beginDay = fechaMatricula.getDate()
+    const lastMonth = convertNumberToMonthName(lastDate.getMonth())
+    const lastDay = fechaMatricula.getDate()
+    const betweenMonths = []
+    for (let i = fechaMatricula.getMonth() + 1; i < lastDate.getMonth(); i++) {
+      betweenMonths.push({ month: convertNumberToMonthName(i) })
+    }
+    const results = mongoClient
+      .db()
+      .collection(`calendario${nivel}${year}`)
+      .aggregate<{ month: Month; day: number; _id: ObjectId }>([
+        {
+          $match: {
+            $or: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, ...betweenMonths, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+          },
+        },
+      ])
+    const calendarioDays: { _id: ObjectId; month: Month; day: number }[] = []
+    for await (const result of results) {
+      calendarioDays.push(result)
+    }
+    return calendarioDays
+  }
   static async getAsistenciaDayStatus({ alumnoId, dayId, nivel, year }: { nivel: Nivel; year: Year; alumnoId: string; dayId: string }) {
     const result = mongoClient
       .db()
@@ -85,10 +131,11 @@ export default class Calendario {
     const beginDay = new Date(periodoStart).getDate()
     const lastMonth = convertNumberToMonthName(new Date(periodoEnd).getMonth())
     const lastDay = new Date(periodoEnd).getDate()
-    const betweenMonths = []
-    for (let i = new Date(periodoStart).getMonth() + 1; i < new Date(periodoEnd).getMonth(); i++) {
-      betweenMonths.push({ $eq: ['$$record.month', convertNumberToMonthName(i)] })
-    }
+    const betweenMonths = getMonthsBetween(new Date(periodoStart), new Date(periodoEnd), '$$record.month')
+
+    // for (let i = new Date(periodoStart).getMonth() + 1; i < new Date(periodoEnd).getMonth(); i++) {
+    //   betweenMonths.push({ $eq: ['$$record.month', convertNumberToMonthName(i)] })
+    // }
     const cursor = mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)

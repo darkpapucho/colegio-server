@@ -25,9 +25,86 @@ const enums_1 = require("../error/enums");
 const utils_1 = require("../utils/generarBoletaNotas/utils/utils");
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 const periodosDates_1 = require("../vars/periodosDates");
+const calendario_1 = require("../utils/calendario");
 class Calendario {
-    static getAsistenciaDayStatus({ alumnoId, dayId, nivel, year }) {
+    static insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield db_1.mongoClient.db().collection(`asistencias${nivel}${year}`).insertOne({ alumnoId, records });
+            return result;
+        });
+    }
+    static fetchLasyDayOfCalendarioEscolar({ nivel, year }) {
         var _a, e_1, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const results = db_1.mongoClient.db().collection(`calendario${nivel}${year}`).find({});
+            const monthsRecorded = [];
+            const records = [];
+            try {
+                for (var _d = true, results_1 = __asyncValues(results), results_1_1; results_1_1 = yield results_1.next(), _a = results_1_1.done, !_a; _d = true) {
+                    _c = results_1_1.value;
+                    _d = false;
+                    const result = _c;
+                    records.push(result);
+                    const monthIndex = calendario_1.MONTHS_YEAR.findIndex((element) => element === result.month);
+                    if (!monthsRecorded.includes(monthIndex)) {
+                        monthsRecorded.push(monthIndex);
+                    }
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = results_1.return)) yield _b.call(results_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            const maxMonth = (0, periodosDates_1.convertNumberToMonthName)(monthsRecorded.sort((prev, curr) => (prev < curr ? 1 : -1))[0]);
+            const recordsFromMaxMonth = records.filter((elem) => elem.month === maxMonth).sort((prev, curr) => (prev.day < curr.day ? 1 : -1));
+            return recordsFromMaxMonth[0];
+        });
+    }
+    static getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate }) {
+        var _a, e_2, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const beginMonth = (0, periodosDates_1.convertNumberToMonthName)(fechaMatricula.getMonth());
+            const beginDay = fechaMatricula.getDate();
+            const lastMonth = (0, periodosDates_1.convertNumberToMonthName)(lastDate.getMonth());
+            const lastDay = fechaMatricula.getDate();
+            const betweenMonths = [];
+            for (let i = fechaMatricula.getMonth() + 1; i < lastDate.getMonth(); i++) {
+                betweenMonths.push({ month: (0, periodosDates_1.convertNumberToMonthName)(i) });
+            }
+            const results = db_1.mongoClient
+                .db()
+                .collection(`calendario${nivel}${year}`)
+                .aggregate([
+                {
+                    $match: {
+                        $or: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, ...betweenMonths, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+                    },
+                },
+            ]);
+            const calendarioDays = [];
+            try {
+                for (var _d = true, results_2 = __asyncValues(results), results_2_1; results_2_1 = yield results_2.next(), _a = results_2_1.done, !_a; _d = true) {
+                    _c = results_2_1.value;
+                    _d = false;
+                    const result = _c;
+                    calendarioDays.push(result);
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = results_2.return)) yield _b.call(results_2);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+            return calendarioDays;
+        });
+    }
+    static getAsistenciaDayStatus({ alumnoId, dayId, nivel, year }) {
+        var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const result = db_1.mongoClient
                 .db()
@@ -56,12 +133,12 @@ class Calendario {
                     results.push(record);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = result_1.return)) yield _b.call(result_1);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return results[0];
         });
@@ -93,7 +170,7 @@ class Calendario {
         });
     }
     static getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds }) {
-        var _a, e_2, _b, _c;
+        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const periodoStart = (0, periodosDates_1.getPeriodoStartDate)(periodo);
             const periodoEnd = (0, periodosDates_1.getPeriodoEndDate)(periodo);
@@ -101,10 +178,10 @@ class Calendario {
             const beginDay = new Date(periodoStart).getDate();
             const lastMonth = (0, periodosDates_1.convertNumberToMonthName)(new Date(periodoEnd).getMonth());
             const lastDay = new Date(periodoEnd).getDate();
-            const betweenMonths = [];
-            for (let i = new Date(periodoStart).getMonth() + 1; i < new Date(periodoEnd).getMonth(); i++) {
-                betweenMonths.push({ $eq: ['$$record.month', (0, periodosDates_1.convertNumberToMonthName)(i)] });
-            }
+            const betweenMonths = (0, calendario_1.getMonthsBetween)(new Date(periodoStart), new Date(periodoEnd), '$$record.month');
+            // for (let i = new Date(periodoStart).getMonth() + 1; i < new Date(periodoEnd).getMonth(); i++) {
+            //   betweenMonths.push({ $eq: ['$$record.month', convertNumberToMonthName(i)] })
+            // }
             const cursor = db_1.mongoClient
                 .db()
                 .collection(`asistencias${nivel}${year}`)
@@ -159,12 +236,12 @@ class Calendario {
                     results.push(record);
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             return results;
         });
@@ -196,7 +273,7 @@ class Calendario {
         });
     }
     static fetchADayAsistenciaRecord({ nivel, year, alumnoId, dayId }) {
-        var _a, e_3, _b, _c;
+        var _a, e_5, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -215,12 +292,12 @@ class Calendario {
                     results.push(doc);
                 }
             }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            catch (e_5_1) { e_5 = { error: e_5_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
                 }
-                finally { if (e_3) throw e_3.error; }
+                finally { if (e_5) throw e_5.error; }
             }
             return results;
         });
@@ -269,7 +346,7 @@ class Calendario {
         });
     }
     static fetchCalendario({ nivel, year }) {
-        var _a, e_4, _b, _c;
+        var _a, e_6, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient.db().collection(`calendario${nivel}${year}`).find({}).sort('month', 1);
             const documents = [];
@@ -281,12 +358,12 @@ class Calendario {
                     documents.push(doc);
                 }
             }
-            catch (e_4_1) { e_4 = { error: e_4_1 }; }
+            catch (e_6_1) { e_6 = { error: e_6_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
                 }
-                finally { if (e_4) throw e_4.error; }
+                finally { if (e_6) throw e_6.error; }
             }
             return documents;
         });

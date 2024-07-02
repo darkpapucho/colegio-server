@@ -1,4 +1,6 @@
+import { ObjectId } from 'mongodb'
 import { Sexo, Grado, Seccion, Secciones } from './enums'
+import { Month } from './asistencia'
 
 type EstadoMatricula = 'DEFINITIVA' | 'EN PROCESO' | 'PENDIENTE' | 'TRASLADADO'
 
@@ -44,3 +46,11 @@ export type AsistenciaList = {
 }
 
 export type Periodo = 'primerPeriodo' | 'segundoPeriodo' | 'tercerPeriodo' | 'cuartoPeriodo'
+
+export type AsistenciaRecord = {
+  dayId: ObjectId
+  day: number
+  month: Month
+  modified: string | Date
+  asistencia: AsistenciaValue
+}
