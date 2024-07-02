@@ -26,13 +26,53 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Alumno = void 0;
 const db_1 = require("../db");
 const mongodb_1 = require("mongodb");
 const enums_1 = require("../error/enums");
 const utils_1 = require("../utils/generarBoletaNotas/utils/utils");
+const Calendario_1 = __importDefault(require("./Calendario"));
 class Alumno {
+    static ProcesoNuevoMatricula({ nivel, year, alumno }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const session = db_1.mongoClient.startSession();
+            session.startTransaction();
+            try {
+                const matriculaResult = yield this.nuevaMatricula({ alumno, nivel, year, session });
+                if (!matriculaResult.acknowledged) {
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    return false;
+                }
+                const lastDayFromCalendar = yield Calendario_1.default.fetchLasyDayOfCalendarioEscolar({ nivel, year });
+                const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`);
+                //insertar asistencia records de acuerdo a la fecha de la mtricula
+                const calendarioDaysForMatricula = yield Calendario_1.default.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate });
+                //insertar nuevo record en asistencias{nivel}{year}
+                const alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
+                    return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' };
+                });
+                const result2 = yield Calendario_1.default.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: matriculaResult.insertedId, records: alumnoAsistenciaRecords });
+                if (!result2.acknowledged) {
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    return false;
+                }
+                yield session.commitTransaction();
+                yield session.endSession();
+                return true;
+            }
+            catch (error) {
+                yield session.abortTransaction();
+                yield session.endSession();
+                return false;
+            }
+        });
+    }
     static fetchAsistenciaList({ grado, seccion, nivel, year, month, dayId }) {
         return __awaiter(this, void 0, void 0, function* () {
             const asistenciasCollection = `asistencias${nivel}${year}`;
@@ -270,12 +310,12 @@ class Alumno {
             }));
         });
     }
-    static nuevaMatricula({ alumno, nivel, year }) {
+    static nuevaMatricula({ alumno, nivel, year, session }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
                 .db()
                 .collection(`matriculados${nivel}${year}`)
-                .insertOne(Object.assign(Object.assign({}, alumno), { nombreCompleto: alumno.apellidos + ', ' + alumno.nombres, estadoMatricula: 'DEFINITIVA' }));
+                .insertOne(Object.assign(Object.assign({}, alumno), { nombreCompleto: alumno.apellidos + ', ' + alumno.nombres, estadoMatricula: 'DEFINITIVA' }), { session: session ? session : undefined });
             return response;
         });
     }

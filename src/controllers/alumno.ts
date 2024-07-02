@@ -6,7 +6,7 @@ import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
 import { GradosInicial, VALID_GRADOS } from '../types/enums'
-import { AMatriculado, AsistenciaRecord, AsistenciaValue, PartialAlumno } from '../types/alumno'
+import { AMatriculado, AsistenciaValue, PartialAlumno } from '../types/alumno'
 import { ObjectId } from 'mongodb'
 import Calendario from '../models/Calendario'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
@@ -198,21 +198,25 @@ export class AlumnoControllers {
       }
       //TODO: CREATE SESSION MONGO
       //matricular nuevo alumno
-      const result = await Alumno.nuevaMatricula({ alumno, nivel, year })
-      if (!result.acknowledged) {
-        return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
-      }
-      const lastDayFromCalendar = await Calendario.fetchLasyDayOfCalendarioEscolar({ nivel, year })
-      const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
-      //insertar asistencia records de acuerdo a la fecha de la mtricula
-      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
-      //insertar nuevo record en asistencias{nivel}{year}
-      const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
-        return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
-      })
-      const result2 = await Calendario.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: result.insertedId, records: alumnoAsistenciaRecords })
-      if (!result2.acknowledged) {
-        return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
+      // const result = await Alumno.nuevaMatricula({ alumno, nivel, year })
+      // if (!result.acknowledged) {
+      //   return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
+      // }
+      // const lastDayFromCalendar = await Calendario.fetchLasyDayOfCalendarioEscolar({ nivel, year })
+      // const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
+      // //insertar asistencia records de acuerdo a la fecha de la mtricula
+      // const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
+      // //insertar nuevo record en asistencias{nivel}{year}
+      // const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
+      //   return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
+      // })
+      // const result2 = await Calendario.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: result.insertedId, records: alumnoAsistenciaRecords })
+      // if (!result2.acknowledged) {
+      //   return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
+      // }
+      const result = await Alumno.ProcesoNuevoMatricula({ nivel, year, alumno })
+      if (!result) {
+        return res.send(responseError('Error durante el proceso de matrícula, intentelo nuevamente'))
       }
       return res.status(202).send(responseOk(null)) // 202=acepted
     } catch (error) {

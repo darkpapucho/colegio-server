@@ -46,7 +46,8 @@ class CalendarioControllers {
                 const { grado, seccion, periodo } = req.body;
                 const alumnosIds = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion });
                 const asistencias = yield Calendario_1.default.getAsistenciaRecordPeriodo({ nivel, year, periodo, alumnosIds });
-                res.send((0, responses_1.responseOk)(asistencias));
+                const availableDays = yield Calendario_1.default.getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo });
+                res.send((0, responses_1.responseOk)({ asistencias, availableDays }));
             }
             catch (err) {
                 (0, errors_1.errorResponseHandler)(res, err);

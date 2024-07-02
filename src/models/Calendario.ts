@@ -1,4 +1,4 @@
-import { ObjectId, WithId } from 'mongodb'
+import { ClientSession, ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
 import { Nivel, Year } from '../types/enums'
 import { CalendarioDay, Month } from '../types/asistencia'
@@ -11,10 +11,53 @@ import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from
 import { getMonthsBetween, MONTHS_YEAR } from '../utils/calendario'
 
 export default class Calendario {
-  static async insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId }: { nivel: Nivel; year: Year; records: AsistenciaRecord[]; alumnoId: ObjectId }) {
-    const result = await mongoClient.db().collection(`asistencias${nivel}${year}`).insertOne({ alumnoId, records })
+  static async getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo }: { nivel: Nivel; year: Year; periodo: Periodo }) {
+    const periodoStart = getPeriodoStartDate(periodo)
+    const periodoEnd = getPeriodoEndDate(periodo)
+    const beginMonth = convertNumberToMonthName(new Date(periodoStart).getMonth())
+    const beginDay = new Date(periodoStart).getDate()
+    const lastMonth = convertNumberToMonthName(new Date(periodoEnd).getMonth())
+    const lastDay = new Date(periodoEnd).getDate()
+    const betweenMonths = []
+    for (let i = new Date(periodoStart).getMonth() + 1; i < new Date(periodoEnd).getMonth(); i++) {
+      betweenMonths.push({ month: convertNumberToMonthName(i) })
+    }
+    const cursor = mongoClient
+      .db()
+      .collection(`calendario${nivel}${year}`)
+      .aggregate<{ day: number; month: Month }>([
+        {
+          $match: {
+            $or: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, ...betweenMonths, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+          },
+        },
+      ])
+    const availableDays = []
+    for await (const doc of cursor) {
+      availableDays.push(doc)
+    }
+    return availableDays
+  }
+  static async insertNewMatriculaRecordAsistenciaEscolar({
+    nivel,
+    year,
+    records,
+    alumnoId,
+    session,
+  }: {
+    session?: ClientSession
+    nivel: Nivel
+    year: Year
+    records: AsistenciaRecord[]
+    alumnoId: ObjectId
+  }) {
+    const result = await mongoClient
+      .db()
+      .collection(`asistencias${nivel}${year}`)
+      .insertOne({ alumnoId, records }, { session: session ? session : undefined })
     return result
   }
+
   static async fetchLasyDayOfCalendarioEscolar({ nivel, year }: { nivel: Nivel; year: Year }) {
     const results = mongoClient.db().collection<{ _id: ObjectId; month: Month; day: number }>(`calendario${nivel}${year}`).find({})
     const monthsRecorded: number[] = []
@@ -31,6 +74,7 @@ export default class Calendario {
 
     return recordsFromMaxMonth[0]
   }
+
   static async getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate }: { lastDate: Date; nivel: Nivel; year: Year; fechaMatricula: Date }) {
     const beginMonth = convertNumberToMonthName(fechaMatricula.getMonth())
     const beginDay = fechaMatricula.getDate()
@@ -56,6 +100,7 @@ export default class Calendario {
     }
     return calendarioDays
   }
+
   static async getAsistenciaDayStatus({ alumnoId, dayId, nivel, year }: { nivel: Nivel; year: Year; alumnoId: string; dayId: string }) {
     const result = mongoClient
       .db()
@@ -81,20 +126,8 @@ export default class Calendario {
     }
     return results[0]
   }
-  static async justificarFalta({
-    nivel,
-    year,
-    dayId,
-    alumnoId,
 
-    periodo,
-  }: {
-    periodo: Periodo
-    nivel: Nivel
-    year: Year
-    dayId: string
-    alumnoId: string
-  }) {
+  static async justificarFalta({ nivel, year, dayId, alumnoId, periodo }: { periodo: Periodo; nivel: Nivel; year: Year; dayId: string; alumnoId: string }) {
     const session = mongoClient.startSession()
     session.startTransaction()
     const result = await mongoClient
@@ -187,9 +220,9 @@ export default class Calendario {
     for await (const record of cursor) {
       results.push(record)
     }
-
     return results
   }
+
   static async setAsistenciaAlumnoDay({ nivel, year, alumnoId, dayId, asistencia }: { nivel: Nivel; year: Year; alumnoId: string; dayId: string; asistencia: AsistenciaValue }) {
     const response = await mongoClient
       .db()

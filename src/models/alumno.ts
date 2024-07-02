@@ -1,12 +1,47 @@
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { mongoClient } from '../db'
-import { AMatriculado, AMatriculadoNoId, AsistenciaValue, NuevoAlumno, PartialAlumno, Periodo } from '../types/alumno'
-import { ObjectId, WithId } from 'mongodb'
+import { AMatriculado, AMatriculadoNoId, AsistenciaRecord, AsistenciaValue, NuevoAlumno, PartialAlumno, Periodo } from '../types/alumno'
+import { ClientSession, ObjectId, WithId } from 'mongodb'
 import { ErrorMessages } from '../error/enums'
 import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/utils'
 import { Month } from '../types/asistencia'
+import Calendario from './Calendario'
 
 export class Alumno {
+  static async ProcesoNuevoMatricula({ nivel, year, alumno }: { nivel: Nivel; year: Year; alumno: NuevoAlumno }) {
+    const session = mongoClient.startSession()
+    session.startTransaction()
+
+    try {
+      const matriculaResult = await this.nuevaMatricula({ alumno, nivel, year, session })
+      if (!matriculaResult.acknowledged) {
+        await session.abortTransaction()
+        await session.endSession()
+        return false
+      }
+      const lastDayFromCalendar = await Calendario.fetchLasyDayOfCalendarioEscolar({ nivel, year })
+      const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
+      //insertar asistencia records de acuerdo a la fecha de la mtricula
+      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
+      //insertar nuevo record en asistencias{nivel}{year}
+      const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
+        return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
+      })
+      const result2 = await Calendario.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: matriculaResult.insertedId, records: alumnoAsistenciaRecords })
+      if (!result2.acknowledged) {
+        await session.abortTransaction()
+        await session.endSession()
+        return false
+      }
+      await session.commitTransaction()
+      await session.endSession()
+      return true
+    } catch (error) {
+      await session.abortTransaction()
+      await session.endSession()
+      return false
+    }
+  }
   static async fetchAsistenciaList({ grado, seccion, nivel, year, month, dayId }: { dayId: string; month: Month; grado: Grado; seccion: Seccion; nivel: Nivel; year: Year }) {
     const asistenciasCollection = `asistencias${nivel}${year}`
     const matriculadosCollection = `matriculados${nivel}${year}`
@@ -212,13 +247,14 @@ export class Alumno {
     })
   }
 
-  static async nuevaMatricula({ alumno, nivel, year }: { alumno: NuevoAlumno; nivel: Nivel; year: Year }) {
+  static async nuevaMatricula({ alumno, nivel, year, session }: { session?: ClientSession; alumno: NuevoAlumno; nivel: Nivel; year: Year }) {
     const response = await mongoClient
       .db()
       .collection<AMatriculadoNoId>(`matriculados${nivel}${year}`)
-      .insertOne({ ...alumno, nombreCompleto: alumno.apellidos + ', ' + alumno.nombres, estadoMatricula: 'DEFINITIVA' })
+      .insertOne({ ...alumno, nombreCompleto: alumno.apellidos + ', ' + alumno.nombres, estadoMatricula: 'DEFINITIVA' }, { session: session ? session : undefined })
     return response
   }
+
   static async fetchAlumnoByDni({ nivel, year, dni }: { nivel: Nivel; year: Year; dni: string }) {
     const alumno = await mongoClient.db().collection(`matriculados${nivel}${year}`).findOne({ dni })
     return alumno

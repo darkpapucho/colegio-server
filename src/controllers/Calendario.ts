@@ -23,14 +23,15 @@ export default class CalendarioControllers {
       return errorResponseHandler(res, err)
     }
   }
+
   static async getRecordAsistenciasPeriodo(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { grado, seccion, periodo } = req.body
       const alumnosIds = await Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion })
       const asistencias = await Calendario.getAsistenciaRecordPeriodo({ nivel, year, periodo, alumnosIds })
-
-      res.send(responseOk(asistencias))
+      const availableDays = await Calendario.getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo })
+      res.send(responseOk({ asistencias, availableDays }))
     } catch (err) {
       errorResponseHandler(res, err)
     }
