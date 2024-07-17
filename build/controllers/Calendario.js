@@ -115,14 +115,14 @@ class CalendarioControllers {
                 //el status enabled no es imprecindible aqui
                 //revisar que no se haya reportado una tardanza con aterioridad
                 const results = yield Calendario_1.default.fetchADayAsistenciaRecord({ nivel, year, alumnoId, dayId });
+                //si no se encontró ningun record, entonces error
                 if (results.length === 0)
                     return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.INVALID_REQUEST));
                 const oldAsistenciaValue = results[0].records.asistencia;
                 if (oldAsistenciaValue === 'T')
                     return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.TARDANZA_ALREADY_REPORTED));
-                //verificar q no se haya pasado asistencia
-                if (oldAsistenciaValue === 'A' || oldAsistenciaValue === 'F')
-                    return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.ASISTENCIA_ALREADY_REPORTED));
+                //verificar q no se haya pasado asistencia ya
+                //if (oldAsistenciaValue === 'A' || oldAsistenciaValue === 'F') return res.send(responseError(ErrorMessages.ASISTENCIA_ALREADY_REPORTED))
                 //reportar la tardanza
                 yield Calendario_1.default.reportTardanzaAlumno({ nivel, year, alumnoId, dayId, issuer });
                 return res.send((0, responses_1.responseOk)(null));

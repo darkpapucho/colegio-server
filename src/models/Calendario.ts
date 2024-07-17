@@ -11,6 +11,7 @@ import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from
 import { getMonthsBetween, MONTHS_YEAR } from '../utils/calendario'
 
 export default class Calendario {
+  
   static async getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo }: { nivel: Nivel; year: Year; periodo: Periodo }) {
     const periodoStart = getPeriodoStartDate(periodo)
     const periodoEnd = getPeriodoEndDate(periodo)
