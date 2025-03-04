@@ -302,18 +302,13 @@ class Calendario {
     }
     static setCurrentPeriodo({ nivel, year, periodo }) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield db_1.mongoClient
-                .db()
-                .collection('currentPeriodo')
-                .updateOne({ nivel, year: Number(year) }, { $set: { periodo } }, { upsert: true });
+            const response = yield db_1.mongoClient.db().collection('currentPeriodo').updateOne({ nivel, year }, { $set: { periodo } }, { upsert: true });
+            return response;
         });
     }
     static fetchCurrentPeriodo({ nivel, year }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield db_1.mongoClient
-                .db()
-                .collection('currentPeriodo')
-                .findOne({ nivel, year: Number(year) });
+            const response = yield db_1.mongoClient.db().collection('currentPeriodo').findOne({ nivel, year: year });
             return response;
         });
     }

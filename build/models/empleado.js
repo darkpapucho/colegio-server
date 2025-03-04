@@ -61,13 +61,13 @@ class Empleado {
             return response;
         });
     }
-    static crearProfesor({ nivel, year, newProfesor }) {
+    static crearProfesor({ nivel, year, newProfesor, session }) {
         return __awaiter(this, void 0, void 0, function* () {
             const empleadosCollection = `empleados${nivel}${year}`;
             const response = db_1.mongoClient
                 .db()
                 .collection(empleadosCollection)
-                .insertOne(Object.assign(Object.assign({}, newProfesor), { userId: new mongodb_1.ObjectId(newProfesor.userId) }));
+                .insertOne(Object.assign(Object.assign({}, newProfesor), { userId: new mongodb_1.ObjectId(newProfesor.userId) }), { session });
             return response;
         });
     }

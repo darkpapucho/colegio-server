@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserControllers = void 0;
 const responses_1 = require("../utils/responses");
 const errors_1 = require("../error/errors");
-const loginProcess_1 = require("../utils/loginProcess");
 const jwt_1 = require("../utils/jwt");
 const user_1 = require("../models/user");
 const global_1 = require("../utils/global");
@@ -63,7 +62,11 @@ class UserControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 //extract data from the request
-                const { usersCollectionName, empleadosCollectionName, username, password } = (0, loginProcess_1.getLoginRequestData)(req);
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { username, password } = req.body;
+                (0, global_1.assert)(username && password && nivel && year, enums_1.ErrorMessages.INVALID_REQUEST);
+                const usersCollectionName = `users${nivel}`;
+                const empleadosCollectionName = `empleados${nivel}${year}`;
                 //fetch user from database
                 const userCredentials = yield user_1.User.getByUsername({ collectionName: usersCollectionName, username });
                 (0, global_1.assert)(userCredentials != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);

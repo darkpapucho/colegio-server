@@ -1,6 +1,6 @@
 import { Nivel, Year } from '../types/enums'
 import { mongoClient } from '../db'
-import { ObjectId } from 'mongodb'
+import { ClientSession, ObjectId } from 'mongodb'
 import { ProfesorData } from '../types/user'
 import { Profesor } from '../types/empleado'
 import { hashPassword } from '../utils/hashPassword'
@@ -29,12 +29,12 @@ export default class Empleado {
       .updateOne({ _id: new ObjectId(_id) }, { $set: { ...rest } })
     return response
   }
-  static async crearProfesor({ nivel, year, newProfesor }: { nivel: Nivel; year: Year; newProfesor: ProfesorData }) {
+  static async crearProfesor({ nivel, year, newProfesor, session }: { session?: ClientSession; nivel: Nivel; year: Year; newProfesor: ProfesorData }) {
     const empleadosCollection = `empleados${nivel}${year}`
     const response = mongoClient
       .db()
       .collection(empleadosCollection)
-      .insertOne({ ...newProfesor, userId: new ObjectId(newProfesor.userId) })
+      .insertOne({ ...newProfesor, userId: new ObjectId(newProfesor.userId) }, { session })
     return response
   }
   static async fetchProfesores({ nivel, year }: { nivel: Nivel; year: Year }) {

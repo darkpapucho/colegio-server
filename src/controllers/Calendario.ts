@@ -40,7 +40,9 @@ export default class CalendarioControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const periodo = req.body.periodo
+
       await Calendario.setCurrentPeriodo({ nivel, year, periodo })
+
       res.send(responseOk(null))
     } catch (err) {
       errorResponseHandler(res, err)

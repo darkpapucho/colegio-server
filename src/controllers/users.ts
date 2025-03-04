@@ -1,7 +1,6 @@
 import { Response, Request } from 'express'
 import { responseError, responseOk } from '../utils/responses'
 import { errorResponseHandler } from '../error/errors'
-import { getLoginRequestData } from '../utils/loginProcess'
 import { signToken } from '../utils/jwt'
 import { User } from '../models/user'
 import { assert, extractNivelYearFromHeaders } from '../utils/global'
@@ -52,7 +51,13 @@ export class UserControllers {
   static async login(req: Request, res: Response) {
     try {
       //extract data from the request
-      const { usersCollectionName, empleadosCollectionName, username, password } = getLoginRequestData(req)
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { username, password } = req.body
+
+      assert(username && password && nivel && year, ErrorMessages.INVALID_REQUEST)
+      const usersCollectionName = `users${nivel}`
+      const empleadosCollectionName = `empleados${nivel}${year}`
+
       //fetch user from database
       const userCredentials = await User.getByUsername({ collectionName: usersCollectionName, username })
       assert(userCredentials != null, ErrorMessages.INVALID_CREDENTIALS)

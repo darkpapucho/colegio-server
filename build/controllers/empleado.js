@@ -32,6 +32,7 @@ const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 const validators_1 = require("../utils/validators");
 const mongodb_1 = require("mongodb");
+const db_1 = require("../db");
 class EmpleadoControllers {
     static deleteProfesor(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -99,20 +100,30 @@ class EmpleadoControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const _a = req.body, { issuer } = _a, data = __rest(_a, ["issuer"]); //assert data:ProfesorData
+                const _a = req.body, { issuer } = _a, profesorData = __rest(_a, ["issuer"]); //assert data:ProfesorData
                 //CHECK THAT NO USER EXIST WITH USERNAME = PROFESOR.DNI
-                const user = yield user_1.User.getByUsername({ collectionName: `users${nivel}`, username: '' + data.dni });
+                const user = yield user_1.User.getByUsername({ collectionName: `users${nivel}`, username: '' + profesorData.dni });
                 if (user !== null)
                     throw new Error(enums_1.ErrorMessages.USER_ALREADY_EXISTS);
                 //create new user for the profesor
-                const response = yield user_1.User.crearNuevoUsuarioProfesor({ nivel, dni: data.dni });
-                if (!response.insertedId)
+                const session = db_1.mongoClient.startSession();
+                session.startTransaction();
+                const response = yield user_1.User.crearNuevoUsuarioProfesor({ nivel, dni: '' + profesorData.dni, session });
+                if (!response.insertedId) {
+                    yield session.abortTransaction();
+                    session.endSession();
                     throw new Error('Error creando nuevo profesor');
-                const newProfesor = Object.assign(Object.assign({}, data), { userId: response.insertedId.toString(), rol: 'profesor' });
-                (0, validators_1.assertIsProfesorData)(data);
-                const response2 = yield empleado_1.default.crearProfesor({ nivel, year, newProfesor });
-                if (!response2.insertedId)
+                }
+                const newProfesor = Object.assign(Object.assign({}, profesorData), { userId: response.insertedId.toString(), rol: 'profesor' });
+                (0, validators_1.assertIsProfesorData)(profesorData);
+                const response2 = yield empleado_1.default.crearProfesor({ nivel, year, newProfesor, session });
+                if (!response2.insertedId) {
+                    yield session.abortTransaction();
+                    session.endSession();
                     throw new Error('Error creando nuevo profesor');
+                }
+                yield session.commitTransaction();
+                session.endSession();
                 res.send((0, responses_1.responseOk)(null));
             }
             catch (err) {

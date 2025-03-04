@@ -1,4 +1,4 @@
-import { ObjectId, WithId } from 'mongodb'
+import { ClientSession, ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
 import { UserCredentials, UserInfo } from '../types/user'
 import { Nivel } from '../types/enums'
@@ -23,11 +23,11 @@ export class User {
     return response
   }
 
-  static async crearNuevoUsuarioProfesor({ nivel, dni }: { nivel: Nivel; dni: number }) {
+  static async crearNuevoUsuarioProfesor({ nivel, dni, session }: { session?: ClientSession; nivel: Nivel; dni: string }) {
     const usersCollection = `users${nivel}`
 
-    const password = await hashPassword('' + dni)
-    const response = await db.collection(usersCollection).insertOne({ username: '' + dni, password })
+    const password = await hashPassword(dni)
+    const response = await db.collection(usersCollection).insertOne({ username: dni, password }, { session })
     return response
   }
 

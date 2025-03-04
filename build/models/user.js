@@ -33,11 +33,11 @@ class User {
             return response;
         });
     }
-    static crearNuevoUsuarioProfesor({ nivel, dni }) {
+    static crearNuevoUsuarioProfesor({ nivel, dni, session }) {
         return __awaiter(this, void 0, void 0, function* () {
             const usersCollection = `users${nivel}`;
-            const password = yield (0, hashPassword_1.hashPassword)('' + dni);
-            const response = yield db.collection(usersCollection).insertOne({ username: '' + dni, password });
+            const password = yield (0, hashPassword_1.hashPassword)(dni);
+            const response = yield db.collection(usersCollection).insertOne({ username: dni, password }, { session });
             return response;
         });
     }

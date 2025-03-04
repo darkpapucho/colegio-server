@@ -11,7 +11,6 @@ import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from
 import { getMonthsBetween, MONTHS_YEAR } from '../utils/calendario'
 
 export default class Calendario {
-  
   static async getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo }: { nivel: Nivel; year: Year; periodo: Periodo }) {
     const periodoStart = getPeriodoStartDate(periodo)
     const periodoEnd = getPeriodoEndDate(periodo)
@@ -232,16 +231,11 @@ export default class Calendario {
     return response
   }
   static async setCurrentPeriodo({ nivel, year, periodo }: { nivel: Nivel; periodo: Periodo; year: Year }) {
-    await mongoClient
-      .db()
-      .collection('currentPeriodo')
-      .updateOne({ nivel, year: Number(year) }, { $set: { periodo } }, { upsert: true })
+    const response = await mongoClient.db().collection('currentPeriodo').updateOne({ nivel, year }, { $set: { periodo } }, { upsert: true })
+    return response
   }
   static async fetchCurrentPeriodo({ nivel, year }: { nivel: Nivel; year: Year }) {
-    const response = await mongoClient
-      .db()
-      .collection<WithId<{ nivel: Nivel; year: number; periodo: Periodo }>>('currentPeriodo')
-      .findOne({ nivel, year: Number(year) })
+    const response = await mongoClient.db().collection<WithId<{ nivel: Nivel; year: Year; periodo: Periodo }>>('currentPeriodo').findOne({ nivel, year: year })
     return response
   }
   static async fetchADayAsistenciaRecord({ nivel, year, alumnoId, dayId }: { nivel: Nivel; year: Year; alumnoId: string; dayId: string }) {

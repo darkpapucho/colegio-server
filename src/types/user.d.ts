@@ -56,13 +56,6 @@ export type ProfesorData = {
   userId: string
   salones: SalonProfesor[]
 }
-export type Profesor = {
-  nombres: string
-  apellidos: string
-  dni: number
-  telefono?: number
-  rol: 'profesor'
-  userId: string
+export type Profesor = ProfesorData & {
   _id: string
-  salones: SalonProfesor[]
 }
