@@ -153,7 +153,7 @@ class AlumnoControllers {
                 (0, global_1.assertGrado)(grado);
                 (0, global_1.assertSeccion)(seccion);
                 const alumnos = yield alumno_1.Alumno.getRatificarList({ grado, seccion, collectionName });
-                res.status(200).send((0, responses_1.responseOk)(alumnos));
+                res.status(200).send((0, responses_1.responseOk)(alumnos.sort((prev, curr) => (prev.apellidos > curr.apellidos ? 1 : -1))));
             }
             catch (err) {
                 (0, errors_1.errorResponseHandler)(res, err);

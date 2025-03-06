@@ -126,7 +126,8 @@ export class AlumnoControllers {
       assertGrado(grado)
       assertSeccion(seccion)
       const alumnos = await Alumno.getRatificarList({ grado, seccion, collectionName })
-      res.status(200).send(responseOk(alumnos))
+
+      res.status(200).send(responseOk(alumnos.sort((prev, curr) => (prev.apellidos > curr.apellidos ? 1 : -1))))
     } catch (err) {
       errorResponseHandler(res, err)
     }

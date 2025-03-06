@@ -68,7 +68,7 @@ const AMatriculadoSchema = zod_1.z.object({
     fechaMatricula: zod_1.z.string({ required_error: 'falta la fecha de matrícula' }).datetime({ message: 'fecha de matrícula inválida' }),
     fechaRetiro: zod_1.z.string().datetime({ message: 'fecha de retiro inválida' }).optional(),
     sexo: zod_1.z.enum(enums_1.VALID_SEXOS, { invalid_type_error: 'sexo del alumno no válido' }),
-    dni: zod_1.z.string().min(8, 'el dni debe tener 8 digitos').max(8, 'el dni debe tener 8 dígitos').optional(),
+    dni: zod_1.z.string().refine((value) => value === '' || (value === null || value === void 0 ? void 0 : value.length) === 8, { message: 'el dni debe ser de 8 dígitos' }),
     codigoEstudiante: zod_1.z
         .string({ required_error: 'falta el codigo de estudiante del alumno' })
         .min(14, 'el codigo de estudiante debe tener 14 dígitos')
