@@ -27,10 +27,14 @@ export default class CalendarioControllers {
   static async getRecordAsistenciasPeriodo(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { grado, seccion, periodo } = req.body
-      const alumnosIds = await Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion })
+      const { grado, seccion, periodo, estadosMatricula } = req.body
+      console.log({ nivel, year, grado, seccion, periodo, estadosMatricula })
+      const alumnosIds = await Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula: estadosMatricula })
+      console.log({ alumnosIds })
       const asistencias = await Calendario.getAsistenciaRecordPeriodo({ nivel, year, periodo, alumnosIds })
+      console.log({ asistencias })
       const availableDays = await Calendario.getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo })
+      console.log({ availableDays })
       res.send(responseOk({ asistencias, availableDays }))
     } catch (err) {
       errorResponseHandler(res, err)
@@ -72,9 +76,9 @@ export default class CalendarioControllers {
   static async fetchDayId(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const day = new Date().getDate()
+      const { day } = req.body
       const month = MONTHS_YEAR[new Date().getMonth()] as Month
-
+      console.log({ nivel, year, day, month })
       const response = await Calendario.fetchDayId({ day, month, nivel, year })
 
       res.status(200).send(responseOk(response))

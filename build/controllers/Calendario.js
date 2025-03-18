@@ -43,10 +43,14 @@ class CalendarioControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { grado, seccion, periodo } = req.body;
-                const alumnosIds = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion });
+                const { grado, seccion, periodo, estadosMatricula } = req.body;
+                console.log({ nivel, year, grado, seccion, periodo, estadosMatricula });
+                const alumnosIds = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula: estadosMatricula });
+                console.log({ alumnosIds });
                 const asistencias = yield Calendario_1.default.getAsistenciaRecordPeriodo({ nivel, year, periodo, alumnosIds });
+                console.log({ asistencias });
                 const availableDays = yield Calendario_1.default.getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo });
+                console.log({ availableDays });
                 res.send((0, responses_1.responseOk)({ asistencias, availableDays }));
             }
             catch (err) {
@@ -97,8 +101,9 @@ class CalendarioControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const day = new Date().getDate();
+                const { day } = req.body;
                 const month = calendario_1.MONTHS_YEAR[new Date().getMonth()];
+                console.log({ nivel, year, day, month });
                 const response = yield Calendario_1.default.fetchDayId({ day, month, nivel, year });
                 res.status(200).send((0, responses_1.responseOk)(response));
             }

@@ -5,7 +5,9 @@ const ALLOWED_ORIGIN = process.env.NODE_ENV === 'production' ? process.env.ALLOW
 const ALLOWED_ORIGINS = ALLOWED_ORIGIN!.split('-')
 export const cors = (req: Request, res: Response, next: NextFunction) => {
   const origin = req.get('origin') //extract origin from the headers
-
+  const route = req.url
+  console.log({ route })
+  console.log('hello world')
   if (origin && ALLOWED_ORIGINS.some((element) => element === origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin)
     res.setHeader('Access-Control-Allow-Methods', ['PUT', 'POST', 'DELETE', 'GET', 'PATCH', 'OPTIONS'])

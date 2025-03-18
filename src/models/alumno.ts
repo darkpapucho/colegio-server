@@ -14,15 +14,19 @@ export class Alumno {
 
     try {
       const matriculaResult = await this.nuevaMatricula({ alumno, nivel, year, session })
+      console.log({ matriculaResult })
       if (!matriculaResult.acknowledged) {
         await session.abortTransaction()
         await session.endSession()
         return false
       }
-      const lastDayFromCalendar = await Calendario.fetchLasyDayOfCalendarioEscolar({ nivel, year })
+      const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year })
+      console.log({ lastDayFromCalendar })
       const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
+      console.log({ lastDate })
       //insertar asistencia records de acuerdo a la fecha de la mtricula
       const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
+      console.log({ calendarioDaysForMatricula })
       //insertar nuevo record en asistencias{nivel}{year}
       const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
         return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
@@ -70,38 +74,14 @@ export class Alumno {
     })
   }
 
-  static async increaseInasistenciaInjustificadaAlumno({
-    nivel,
-    year,
-    alumnoId,
-    periodo,
-    quantity,
-  }: {
-    quantity: number
-    nivel: Nivel
-    year: Year
-    alumnoId: string
-    periodo: Periodo
-  }) {
+  static async increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }: { quantity: number; nivel: Nivel; year: Year; alumnoId: string; periodo: Periodo }) {
     const response = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)
       .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: quantity } })
     return response
   }
-  static async increaseTardanzaInjustificadaAlumno({
-    nivel,
-    year,
-    alumnoId,
-    periodo,
-    quantity,
-  }: {
-    quantity: number
-    nivel: Nivel
-    year: Year
-    alumnoId: string
-    periodo: Periodo
-  }) {
+  static async increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }: { quantity: number; nivel: Nivel; year: Year; alumnoId: string; periodo: Periodo }) {
     const response = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)
@@ -132,15 +112,16 @@ export class Alumno {
   //     }
   //   })
   // }
-  static async fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+  static async fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula }: { estadoMatricula?: EstadoMatricula; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
     const cursor = await mongoClient
       .db()
       .collection(`matriculados${nivel}${year}`)
-      .distinct('_id', { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE'] } })
+      .distinct('_id', { grado, seccion, estadoMatricula: { $in: estadoMatricula ? [...estadoMatricula] : ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE'] } })
     const records = []
     for await (const doc of cursor) {
       records.push(doc)
     }
+
     return records
   }
   static async editarAlumno({ alumno, collectionName }: { alumno: PartialAlumno; collectionName: string }) {
@@ -153,15 +134,7 @@ export class Alumno {
     return response.acknowledged
   }
   //busca alumnos con estado de matricula no "TRASLADADO"
-  static async buscarAlumno({
-    nombreCompleto,
-    collectionName,
-    estadosMatricula,
-  }: {
-    nombreCompleto: string
-    collectionName: string
-    estadosMatricula: EstadoMatricula[]
-  }): Promise<WithId<AMatriculadoNoId>[]> {
+  static async buscarAlumno({ nombreCompleto, collectionName, estadosMatricula }: { nombreCompleto: string; collectionName: string; estadosMatricula: EstadoMatricula[] }): Promise<WithId<AMatriculadoNoId>[]> {
     let alumnos: WithId<AMatriculadoNoId>[] = []
     const cursor = mongoClient
       .db()
@@ -190,15 +163,7 @@ export class Alumno {
     return alumnos
   }
 
-  static async ratificarMatricula({
-    alumnos,
-    currentYearCollectionName,
-    lastYearCollectionName,
-  }: {
-    alumnos: AMatriculado[]
-    currentYearCollectionName: string
-    lastYearCollectionName: string
-  }): Promise<void> {
+  static async ratificarMatricula({ alumnos, currentYearCollectionName, lastYearCollectionName }: { alumnos: AMatriculado[]; currentYearCollectionName: string; lastYearCollectionName: string }): Promise<void> {
     const alumnosNoId: AMatriculadoNoId[] = alumnos.map((alumno) => {
       const { _id, ...rest } = alumno
       return { ...rest }

@@ -12,7 +12,7 @@ exports.calendarioRouter.post('/enable-calendar-days', verifyCredentials_1.verif
 exports.calendarioRouter.get('/fetch-calendario', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchCalendario);
 exports.calendarioRouter.post('/delete-day', verifyCredentials_1.verifyCredentials, Calendario_1.default.deleteDayFromCalendar);
 exports.calendarioRouter.post('/report-tardanza-alumno', verifyCredentials_1.verifyCredentials, Calendario_1.default.reportTardanzaAlumno);
-exports.calendarioRouter.get('/fetch-day-id', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchDayId);
+exports.calendarioRouter.post('/fetch-day-id', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchDayId);
 exports.calendarioRouter.get('/fetch-current-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchCurrentPeriodo);
 exports.calendarioRouter.post('/set-current-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.setCurrentPeriodo);
 exports.calendarioRouter.get('/convert-date-to-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchConvertDateToPeriodo);

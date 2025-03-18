@@ -189,11 +189,14 @@ export class AlumnoControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { alumno } = req.body
+      console.log({ nivel, year, alumno })
       assertIsNuevoAlumno(alumno)
+      console.log('assert passed')
       alumno.apellidos = alumno.apellidos.toUpperCase()
       alumno.nombres = alumno.nombres.toUpperCase()
       //verificar q no exista un alumno ya matriculado con el mismo dni
       const foundAlumno = await Alumno.fetchAlumnoByDni({ nivel, year, dni: alumno.dni + '' })
+      console.log({ foundAlumno })
       if (foundAlumno) {
         return res.send(responseError('Ya existe un alumno matriculado con este DNI'))
       }

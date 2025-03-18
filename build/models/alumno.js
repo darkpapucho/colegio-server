@@ -43,15 +43,19 @@ class Alumno {
             session.startTransaction();
             try {
                 const matriculaResult = yield this.nuevaMatricula({ alumno, nivel, year, session });
+                console.log({ matriculaResult });
                 if (!matriculaResult.acknowledged) {
                     yield session.abortTransaction();
                     yield session.endSession();
                     return false;
                 }
-                const lastDayFromCalendar = yield Calendario_1.default.fetchLasyDayOfCalendarioEscolar({ nivel, year });
+                const lastDayFromCalendar = yield Calendario_1.default.fetchLastDayOfCalendarioEscolar({ nivel, year });
+                console.log({ lastDayFromCalendar });
                 const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`);
+                console.log({ lastDate });
                 //insertar asistencia records de acuerdo a la fecha de la mtricula
                 const calendarioDaysForMatricula = yield Calendario_1.default.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate });
+                console.log({ calendarioDaysForMatricula });
                 //insertar nuevo record en asistencias{nivel}{year}
                 const alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
                     return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' };
@@ -112,7 +116,7 @@ class Alumno {
             }));
         });
     }
-    static increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity, }) {
+    static increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
                 .db()
@@ -121,7 +125,7 @@ class Alumno {
             return response;
         });
     }
-    static increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity, }) {
+    static increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
                 .db()
@@ -154,13 +158,13 @@ class Alumno {
     //     }
     //   })
     // }
-    static fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion }) {
+    static fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula }) {
         var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = yield db_1.mongoClient
                 .db()
                 .collection(`matriculados${nivel}${year}`)
-                .distinct('_id', { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE'] } });
+                .distinct('_id', { grado, seccion, estadoMatricula: { $in: estadoMatricula ? [...estadoMatricula] : ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE'] } });
             const records = [];
             try {
                 for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
@@ -191,7 +195,7 @@ class Alumno {
         });
     }
     //busca alumnos con estado de matricula no "TRASLADADO"
-    static buscarAlumno({ nombreCompleto, collectionName, estadosMatricula, }) {
+    static buscarAlumno({ nombreCompleto, collectionName, estadosMatricula }) {
         var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             let alumnos = [];
@@ -249,7 +253,7 @@ class Alumno {
             return alumnos;
         });
     }
-    static ratificarMatricula({ alumnos, currentYearCollectionName, lastYearCollectionName, }) {
+    static ratificarMatricula({ alumnos, currentYearCollectionName, lastYearCollectionName }) {
         return __awaiter(this, void 0, void 0, function* () {
             const alumnosNoId = alumnos.map((alumno) => {
                 const { _id } = alumno, rest = __rest(alumno, ["_id"]);

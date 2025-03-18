@@ -69,7 +69,7 @@ class Calendario {
             return availableDays;
         });
     }
-    static insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId, session, }) {
+    static insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId, session }) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = yield db_1.mongoClient
                 .db()
@@ -78,7 +78,7 @@ class Calendario {
             return result;
         });
     }
-    static fetchLasyDayOfCalendarioEscolar({ nivel, year }) {
+    static fetchLastDayOfCalendarioEscolar({ nivel, year }) {
         var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const results = db_1.mongoClient.db().collection(`calendario${nivel}${year}`).find({});

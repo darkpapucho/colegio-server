@@ -220,11 +220,14 @@ class AlumnoControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumno } = req.body;
+                console.log({ nivel, year, alumno });
                 (0, validators_1.assertIsNuevoAlumno)(alumno);
+                console.log('assert passed');
                 alumno.apellidos = alumno.apellidos.toUpperCase();
                 alumno.nombres = alumno.nombres.toUpperCase();
                 //verificar q no exista un alumno ya matriculado con el mismo dni
                 const foundAlumno = yield alumno_1.Alumno.fetchAlumnoByDni({ nivel, year, dni: alumno.dni + '' });
+                console.log({ foundAlumno });
                 if (foundAlumno) {
                     return res.send((0, responses_1.responseError)('Ya existe un alumno matriculado con este DNI'));
                 }

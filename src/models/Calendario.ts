@@ -38,19 +38,8 @@ export default class Calendario {
     }
     return availableDays
   }
-  static async insertNewMatriculaRecordAsistenciaEscolar({
-    nivel,
-    year,
-    records,
-    alumnoId,
-    session,
-  }: {
-    session?: ClientSession
-    nivel: Nivel
-    year: Year
-    records: AsistenciaRecord[]
-    alumnoId: ObjectId
-  }) {
+
+  static async insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId, session }: { session?: ClientSession; nivel: Nivel; year: Year; records: AsistenciaRecord[]; alumnoId: ObjectId }) {
     const result = await mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
@@ -58,7 +47,7 @@ export default class Calendario {
     return result
   }
 
-  static async fetchLasyDayOfCalendarioEscolar({ nivel, year }: { nivel: Nivel; year: Year }) {
+  static async fetchLastDayOfCalendarioEscolar({ nivel, year }: { nivel: Nivel; year: Year }) {
     const results = mongoClient.db().collection<{ _id: ObjectId; month: Month; day: number }>(`calendario${nivel}${year}`).find({})
     const monthsRecorded: number[] = []
     const records = []
@@ -143,10 +132,7 @@ export default class Calendario {
     const result2 = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)
-      .updateOne(
-        { alumnoId: new ObjectId(alumnoId) },
-        { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: -1, [`inasistencias.justificadas.${convertPeriodoKeyToIndex(periodo)}`]: 1 } },
-      )
+      .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: -1, [`inasistencias.justificadas.${convertPeriodoKeyToIndex(periodo)}`]: 1 } })
 
     if (!result2.acknowledged || !result2.modifiedCount) {
       await session.abortTransaction()
@@ -172,9 +158,7 @@ export default class Calendario {
     const cursor = mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
-      .aggregate<
-        { nombreCompleto: string; alumnoId: ObjectId; records: { day: number; month: Month; asistencia: AsistenciaValue; dayId: ObjectId; justificado: true | undefined }[] }[]
-      >([
+      .aggregate<{ nombreCompleto: string; alumnoId: ObjectId; records: { day: number; month: Month; asistencia: AsistenciaValue; dayId: ObjectId; justificado: true | undefined }[] }[]>([
         { $match: { alumnoId: { $in: [...alumnosIds] } } },
         { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
         {
@@ -267,10 +251,7 @@ export default class Calendario {
     const response1 = await mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
-      .updateOne(
-        { alumnoId: new ObjectId(alumnoId), 'records.dayId': new ObjectId(dayId) },
-        { $set: { 'records.$.asistencia': 'T', 'records.$.issuer': new ObjectId(issuer), 'records.$.modified': new Date() } },
-      )
+      .updateOne({ alumnoId: new ObjectId(alumnoId), 'records.dayId': new ObjectId(dayId) }, { $set: { 'records.$.asistencia': 'T', 'records.$.issuer': new ObjectId(issuer), 'records.$.modified': new Date() } })
 
     if (!response1.acknowledged || !response1.modifiedCount) {
       await session.abortTransaction()

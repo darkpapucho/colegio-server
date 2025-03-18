@@ -3,14 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.convertNumberToMonthName = exports.getPeriodoEndDate = exports.getPeriodoStartDate = exports.cuartoPeriodoEnd = exports.cuartoPeriodoStart = exports.tercerPeriodoEnd = exports.tercerPeriodoStart = exports.segundoPeriodoEnd = exports.segundoPeriodoStart = exports.primerPeriodoEnd = exports.primerPeriodoStart = void 0;
 const enums_1 = require("../error/enums");
 const calendario_1 = require("../utils/calendario");
-exports.primerPeriodoStart = '03-04-2024'; //MM-DD-YYYY
-exports.primerPeriodoEnd = '05-10-2024';
-exports.segundoPeriodoStart = '05-13-2024';
-exports.segundoPeriodoEnd = '07-19-2024';
-exports.tercerPeriodoStart = '08-05-2024';
-exports.tercerPeriodoEnd = '10-11-2024';
-exports.cuartoPeriodoStart = '10-14-2024';
-exports.cuartoPeriodoEnd = '12-20-2024';
+exports.primerPeriodoStart = '03-03-2024'; //MM-DD-YYYY
+exports.primerPeriodoEnd = '05-09-2024';
+exports.segundoPeriodoStart = '05-12-2024';
+exports.segundoPeriodoEnd = '07-18-2024';
+exports.tercerPeriodoStart = '08-04-2024';
+exports.tercerPeriodoEnd = '10-10-2024';
+exports.cuartoPeriodoStart = '10-13-2024';
+exports.cuartoPeriodoEnd = '12-19-2024';
 function getPeriodoStartDate(periodo) {
     switch (periodo) {
         case 'primerPeriodo':
