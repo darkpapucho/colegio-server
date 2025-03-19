@@ -20,6 +20,7 @@ export class AlumnoControllers {
       assertSeccion(seccion)
       //check enabled status
       const response = await Calendario.checkSalonDayStatusByMonthDay({ nivel, year, month, day })
+
       if (!response) throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
       if (response.status === 'disabled') {
         return res.send(responseError('La asistencia no se encuentra disponible en este momento'))

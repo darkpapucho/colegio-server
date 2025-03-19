@@ -21,6 +21,32 @@ const calendario_1 = require("../utils/calendario");
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 const alumno_1 = require("../models/alumno");
 class CalendarioControllers {
+    static fetchTardanzaListByDayId(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { dayId } = req.body;
+                const tardanzalist = yield Calendario_1.default.fetchTardanzaListByDayId({ nivel, year, dayId });
+                res.send((0, responses_1.responseOk)(tardanzalist));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static fetchAsistenciaListByGradoSeccionDayId(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion, month, dayId, estadosMatricula } = req.body;
+                const asistenciaList = yield Calendario_1.default.fetchAsistenciaListByGradoSeccionDayId({ nivel, year, grado, seccion, dayId, estadosMatricula });
+                res.send((0, responses_1.responseOk)({ asistenciaList, dayId, month }));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static justificarFalta(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -44,13 +70,9 @@ class CalendarioControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { grado, seccion, periodo, estadosMatricula } = req.body;
-                console.log({ nivel, year, grado, seccion, periodo, estadosMatricula });
                 const alumnosIds = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula: estadosMatricula });
-                console.log({ alumnosIds });
                 const asistencias = yield Calendario_1.default.getAsistenciaRecordPeriodo({ nivel, year, periodo, alumnosIds });
-                console.log({ asistencias });
                 const availableDays = yield Calendario_1.default.getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo });
-                console.log({ availableDays });
                 res.send((0, responses_1.responseOk)({ asistencias, availableDays }));
             }
             catch (err) {
@@ -103,7 +125,6 @@ class CalendarioControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { day } = req.body;
                 const month = calendario_1.MONTHS_YEAR[new Date().getMonth()];
-                console.log({ nivel, year, day, month });
                 const response = yield Calendario_1.default.fetchDayId({ day, month, nivel, year });
                 res.status(200).send((0, responses_1.responseOk)(response));
             }

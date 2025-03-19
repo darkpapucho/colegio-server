@@ -7,24 +7,11 @@ const ALLOWED_ORIGIN = process.env.NODE_ENV === 'production' ? process.env.ALLOW
 const ALLOWED_ORIGINS = ALLOWED_ORIGIN.split('-');
 const cors = (req, res, next) => {
     const origin = req.get('origin'); //extract origin from the headers
-    const route = req.url;
-    console.log({ route });
-    console.log('hello world');
+    //const route = req.url
     if (origin && ALLOWED_ORIGINS.some((element) => element === origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Methods', ['PUT', 'POST', 'DELETE', 'GET', 'PATCH', 'OPTIONS']);
-        res.setHeader('Access-Control-Allow-Headers', [
-            'Year',
-            'Nivel',
-            'Token',
-            'Content-Type',
-            'Content-Length',
-            'Accept',
-            'Authentication',
-            'File-Size',
-            'Accept-Encoding',
-            'Accept-Language',
-        ]);
+        res.setHeader('Access-Control-Allow-Headers', ['Year', 'Nivel', 'Token', 'Content-Type', 'Content-Length', 'Accept', 'Authentication', 'File-Size', 'Accept-Encoding', 'Accept-Language']);
         res.setHeader('Access-Control-Expose-Headers', ['Token']);
         res.setHeader('Access-Control-Allow-credentials', 'include');
         if (req.method === 'OPTIONS') {

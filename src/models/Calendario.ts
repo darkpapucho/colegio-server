@@ -1,6 +1,6 @@
 import { ClientSession, ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
-import { Nivel, Year } from '../types/enums'
+import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { CalendarioDay, Month } from '../types/asistencia'
 import { EnableDayList } from '../types/calendario'
 import { ErrorMessages } from '../error/enums'
@@ -11,6 +11,30 @@ import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from
 import { getMonthsBetween, MONTHS_YEAR } from '../utils/calendario'
 
 export default class Calendario {
+  static async fetchTardanzaListByDayId({ nivel, year, dayId }: { nivel: Nivel; year: Year; dayId: string }) {
+    const cursor = mongoClient
+      .db()
+      .collection(`asistencias${nivel}${year}`)
+      .aggregate([
+        { $match: {} },
+        {
+          $project: {
+            alumnoId: 1,
+            records: { $filter: { input: '$records', as: 'records', cond: { $and: [{ $eq: ['$$records.dayId', new ObjectId(dayId)] }, { $eq: ['$$records.asistencia', 'T'] }] } } },
+          },
+        },
+        { $match: { $expr: { $gt: [{ $size: '$records' }, 0] } } },
+        { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+        { $project: { estudiante: { $arrayElemAt: ['$estudiante', 0] }, records: 1 } },
+        { $project: { _id: '$estudiante._id', nombreCompleto: '$estudiante.nombreCompleto', grado: '$estudiante.grado', seccion: '$estudiante.seccion', records: 1 } },
+      ])
+    const list = []
+    for await (const doc of cursor) {
+      list.push(doc)
+    }
+    return list
+  }
+
   static async getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo }: { nivel: Nivel; year: Year; periodo: Periodo }) {
     const periodoStart = getPeriodoStartDate(periodo)
     const periodoEnd = getPeriodoEndDate(periodo)
@@ -310,5 +334,51 @@ export default class Calendario {
     modifiedList.forEach(async (record) => {
       await collection.updateOne({ month: record.month, day: record.day }, { $set: { ...record } }, { upsert: true })
     })
+  }
+
+  static async fetchAsistenciaListByGradoSeccionDayId({
+    nivel,
+    year,
+    grado,
+    seccion,
+    dayId,
+    estadosMatricula,
+  }: {
+    nivel: Nivel
+    year: Year
+    grado: Grado
+    seccion: Seccion
+    dayId: string
+    estadosMatricula: EstadoMatricula[]
+  }) {
+    const cursor = mongoClient
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .aggregate([
+        { $match: { grado, seccion, estadoMatricula: { $in: [...estadosMatricula] } } },
+        { $lookup: { from: `asistencias${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'estudiante' } },
+        { $project: { _id: 0, nombreCompleto: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
+        { $project: { nombreCompleto: 1, alumnoId: '$estudiante.alumnoId', asistencia: '$estudiante.records' } },
+        {
+          $project: {
+            nombreCompleto: 1,
+            alumnoId: 1,
+            asistencia: {
+              $filter: {
+                input: '$asistencia',
+                as: 'asistencia',
+                cond: { $eq: ['$$asistencia.dayId', new ObjectId(dayId)] },
+              },
+            },
+          },
+        },
+        { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$asistencia', 0] } } },
+        { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: '$asistencia.asistencia' } },
+      ])
+    const result = []
+    for await (const doc of cursor) {
+      result.push(doc)
+    }
+    return result
   }
 }

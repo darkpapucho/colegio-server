@@ -27,8 +27,46 @@ const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPe
 const periodosDates_1 = require("../vars/periodosDates");
 const calendario_1 = require("../utils/calendario");
 class Calendario {
-    static getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo }) {
+    static fetchTardanzaListByDayId({ nivel, year, dayId }) {
         var _a, e_1, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const cursor = db_1.mongoClient
+                .db()
+                .collection(`asistencias${nivel}${year}`)
+                .aggregate([
+                { $match: {} },
+                {
+                    $project: {
+                        alumnoId: 1,
+                        records: { $filter: { input: '$records', as: 'records', cond: { $and: [{ $eq: ['$$records.dayId', new mongodb_1.ObjectId(dayId)] }, { $eq: ['$$records.asistencia', 'T'] }] } } },
+                    },
+                },
+                { $match: { $expr: { $gt: [{ $size: '$records' }, 0] } } },
+                { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+                { $project: { estudiante: { $arrayElemAt: ['$estudiante', 0] }, records: 1 } },
+                { $project: { _id: '$estudiante._id', nombreCompleto: '$estudiante.nombreCompleto', grado: '$estudiante.grado', seccion: '$estudiante.seccion', records: 1 } },
+            ]);
+            const list = [];
+            try {
+                for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
+                    _c = cursor_1_1.value;
+                    _d = false;
+                    const doc = _c;
+                    list.push(doc);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            return list;
+        });
+    }
+    static getAvailableDaysFromCalendarioByPeriodo({ nivel, year, periodo }) {
+        var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const periodoStart = (0, periodosDates_1.getPeriodoStartDate)(periodo);
             const periodoEnd = (0, periodosDates_1.getPeriodoEndDate)(periodo);
@@ -52,19 +90,19 @@ class Calendario {
             ]);
             const availableDays = [];
             try {
-                for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
-                    _c = cursor_1_1.value;
+                for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
+                    _c = cursor_2_1.value;
                     _d = false;
                     const doc = _c;
                     availableDays.push(doc);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                    if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
             return availableDays;
         });
@@ -79,7 +117,7 @@ class Calendario {
         });
     }
     static fetchLastDayOfCalendarioEscolar({ nivel, year }) {
-        var _a, e_2, _b, _c;
+        var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const results = db_1.mongoClient.db().collection(`calendario${nivel}${year}`).find({});
             const monthsRecorded = [];
@@ -96,12 +134,12 @@ class Calendario {
                     }
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = results_1.return)) yield _b.call(results_1);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             const maxMonth = (0, periodosDates_1.convertNumberToMonthName)(monthsRecorded.sort((prev, curr) => (prev < curr ? 1 : -1))[0]);
             const recordsFromMaxMonth = records.filter((elem) => elem.month === maxMonth).sort((prev, curr) => (prev.day < curr.day ? 1 : -1));
@@ -109,7 +147,7 @@ class Calendario {
         });
     }
     static getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate }) {
-        var _a, e_3, _b, _c;
+        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const beginMonth = (0, periodosDates_1.convertNumberToMonthName)(fechaMatricula.getMonth());
             const beginDay = fechaMatricula.getDate();
@@ -138,18 +176,18 @@ class Calendario {
                     calendarioDays.push(result);
                 }
             }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = results_2.return)) yield _b.call(results_2);
                 }
-                finally { if (e_3) throw e_3.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             return calendarioDays;
         });
     }
     static getAsistenciaDayStatus({ alumnoId, dayId, nivel, year }) {
-        var _a, e_4, _b, _c;
+        var _a, e_5, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const result = db_1.mongoClient
                 .db()
@@ -178,12 +216,12 @@ class Calendario {
                     results.push(record);
                 }
             }
-            catch (e_4_1) { e_4 = { error: e_4_1 }; }
+            catch (e_5_1) { e_5 = { error: e_5_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = result_1.return)) yield _b.call(result_1);
                 }
-                finally { if (e_4) throw e_4.error; }
+                finally { if (e_5) throw e_5.error; }
             }
             return results[0];
         });
@@ -215,7 +253,7 @@ class Calendario {
         });
     }
     static getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds }) {
-        var _a, e_5, _b, _c;
+        var _a, e_6, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const periodoStart = (0, periodosDates_1.getPeriodoStartDate)(periodo);
             const periodoEnd = (0, periodosDates_1.getPeriodoEndDate)(periodo);
@@ -274,19 +312,19 @@ class Calendario {
             ]);
             const results = [];
             try {
-                for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
-                    _c = cursor_2_1.value;
+                for (var _d = true, cursor_3 = __asyncValues(cursor), cursor_3_1; cursor_3_1 = yield cursor_3.next(), _a = cursor_3_1.done, !_a; _d = true) {
+                    _c = cursor_3_1.value;
                     _d = false;
                     const record = _c;
                     results.push(record);
                 }
             }
-            catch (e_5_1) { e_5 = { error: e_5_1 }; }
+            catch (e_6_1) { e_6 = { error: e_6_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
+                    if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
                 }
-                finally { if (e_5) throw e_5.error; }
+                finally { if (e_6) throw e_6.error; }
             }
             return results;
         });
@@ -313,7 +351,7 @@ class Calendario {
         });
     }
     static fetchADayAsistenciaRecord({ nivel, year, alumnoId, dayId }) {
-        var _a, e_6, _b, _c;
+        var _a, e_7, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -325,19 +363,19 @@ class Calendario {
             ]);
             const results = [];
             try {
-                for (var _d = true, cursor_3 = __asyncValues(cursor), cursor_3_1; cursor_3_1 = yield cursor_3.next(), _a = cursor_3_1.done, !_a; _d = true) {
-                    _c = cursor_3_1.value;
+                for (var _d = true, cursor_4 = __asyncValues(cursor), cursor_4_1; cursor_4_1 = yield cursor_4.next(), _a = cursor_4_1.done, !_a; _d = true) {
+                    _c = cursor_4_1.value;
                     _d = false;
                     let doc = _c;
                     results.push(doc);
                 }
             }
-            catch (e_6_1) { e_6 = { error: e_6_1 }; }
+            catch (e_7_1) { e_7 = { error: e_7_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
+                    if (!_d && !_a && (_b = cursor_4.return)) yield _b.call(cursor_4);
                 }
-                finally { if (e_6) throw e_6.error; }
+                finally { if (e_7) throw e_7.error; }
             }
             return results;
         });
@@ -386,24 +424,24 @@ class Calendario {
         });
     }
     static fetchCalendario({ nivel, year }) {
-        var _a, e_7, _b, _c;
+        var _a, e_8, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient.db().collection(`calendario${nivel}${year}`).find({}).sort('month', 1);
             const documents = [];
             try {
-                for (var _d = true, cursor_4 = __asyncValues(cursor), cursor_4_1; cursor_4_1 = yield cursor_4.next(), _a = cursor_4_1.done, !_a; _d = true) {
-                    _c = cursor_4_1.value;
+                for (var _d = true, cursor_5 = __asyncValues(cursor), cursor_5_1; cursor_5_1 = yield cursor_5.next(), _a = cursor_5_1.done, !_a; _d = true) {
+                    _c = cursor_5_1.value;
                     _d = false;
                     let doc = _c;
                     documents.push(doc);
                 }
             }
-            catch (e_7_1) { e_7 = { error: e_7_1 }; }
+            catch (e_8_1) { e_8 = { error: e_8_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = cursor_4.return)) yield _b.call(cursor_4);
+                    if (!_d && !_a && (_b = cursor_5.return)) yield _b.call(cursor_5);
                 }
-                finally { if (e_7) throw e_7.error; }
+                finally { if (e_8) throw e_8.error; }
             }
             return documents;
         });
@@ -430,6 +468,52 @@ class Calendario {
             modifiedList.forEach((record) => __awaiter(this, void 0, void 0, function* () {
                 yield collection.updateOne({ month: record.month, day: record.day }, { $set: Object.assign({}, record) }, { upsert: true });
             }));
+        });
+    }
+    static fetchAsistenciaListByGradoSeccionDayId({ nivel, year, grado, seccion, dayId, estadosMatricula, }) {
+        var _a, e_9, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const cursor = db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .aggregate([
+                { $match: { grado, seccion, estadoMatricula: { $in: [...estadosMatricula] } } },
+                { $lookup: { from: `asistencias${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'estudiante' } },
+                { $project: { _id: 0, nombreCompleto: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
+                { $project: { nombreCompleto: 1, alumnoId: '$estudiante.alumnoId', asistencia: '$estudiante.records' } },
+                {
+                    $project: {
+                        nombreCompleto: 1,
+                        alumnoId: 1,
+                        asistencia: {
+                            $filter: {
+                                input: '$asistencia',
+                                as: 'asistencia',
+                                cond: { $eq: ['$$asistencia.dayId', new mongodb_1.ObjectId(dayId)] },
+                            },
+                        },
+                    },
+                },
+                { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$asistencia', 0] } } },
+                { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: '$asistencia.asistencia' } },
+            ]);
+            const result = [];
+            try {
+                for (var _d = true, cursor_6 = __asyncValues(cursor), cursor_6_1; cursor_6_1 = yield cursor_6.next(), _a = cursor_6_1.done, !_a; _d = true) {
+                    _c = cursor_6_1.value;
+                    _d = false;
+                    const doc = _c;
+                    result.push(doc);
+                }
+            }
+            catch (e_9_1) { e_9 = { error: e_9_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = cursor_6.return)) yield _b.call(cursor_6);
+                }
+                finally { if (e_9) throw e_9.error; }
+            }
+            return result;
         });
     }
 }

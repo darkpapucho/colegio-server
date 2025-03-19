@@ -14,19 +14,19 @@ export class Alumno {
 
     try {
       const matriculaResult = await this.nuevaMatricula({ alumno, nivel, year, session })
-      console.log({ matriculaResult })
+
       if (!matriculaResult.acknowledged) {
         await session.abortTransaction()
         await session.endSession()
         return false
       }
       const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year })
-      console.log({ lastDayFromCalendar })
+
       const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
-      console.log({ lastDate })
+
       //insertar asistencia records de acuerdo a la fecha de la mtricula
       const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
-      console.log({ calendarioDaysForMatricula })
+
       //insertar nuevo record en asistencias{nivel}{year}
       const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
         return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
