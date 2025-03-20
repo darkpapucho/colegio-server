@@ -11,7 +11,7 @@ import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from
 import { getMonthsBetween, MONTHS_YEAR } from '../utils/calendario'
 
 export default class Calendario {
-  static async fetchTardanzaListByDayId({ nivel, year, dayId }: { nivel: Nivel; year: Year; dayId: string }) {
+  static async fetchAsistenciaListByDayIdAndValue({ nivel, year, dayId, asistenciaValue }: { asistenciaValue: AsistenciaValue; nivel: Nivel; year: Year; dayId: string }) {
     const cursor = mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
@@ -20,7 +20,7 @@ export default class Calendario {
         {
           $project: {
             alumnoId: 1,
-            records: { $filter: { input: '$records', as: 'records', cond: { $and: [{ $eq: ['$$records.dayId', new ObjectId(dayId)] }, { $eq: ['$$records.asistencia', 'T'] }] } } },
+            records: { $filter: { input: '$records', as: 'records', cond: { $and: [{ $eq: ['$$records.dayId', new ObjectId(dayId)] }, { $eq: ['$$records.asistencia', asistenciaValue] }] } } },
           },
         },
         { $match: { $expr: { $gt: [{ $size: '$records' }, 0] } } },
@@ -250,12 +250,12 @@ export default class Calendario {
     const cursor = mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
-      .aggregate<{ _id: ObjectId; alumnoId: ObjectId; records: { dayId: ObjectId; asistencia: AsistenciaValue; day: number; month: Month; issuer: ObjectId } }>([
+      .aggregate<{ _id: ObjectId; alumnoId: ObjectId; records: { dayId: ObjectId; asistencia: AsistenciaValue; day: number; month: Month; issuer: ObjectId; justificado?: boolean } }>([
         { $match: { alumnoId: new ObjectId(alumnoId) } },
         { $unwind: { path: '$records' } },
         { $match: { 'records.dayId': new ObjectId(dayId) } },
       ])
-    const results: { _id: ObjectId; alumnoId: ObjectId; records: { dayId: ObjectId; asistencia: AsistenciaValue; day: number; month: Month; issuer: ObjectId } }[] = []
+    const results: { _id: ObjectId; alumnoId: ObjectId; records: { dayId: ObjectId; asistencia: AsistenciaValue; day: number; month: Month; issuer: ObjectId; justificado?: boolean } }[] = []
     for await (let doc of cursor) {
       results.push(doc)
     }
@@ -374,6 +374,7 @@ export default class Calendario {
         },
         { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$asistencia', 0] } } },
         { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: '$asistencia.asistencia' } },
+        { $sort: { nombreCompleto: 1 } },
       ])
     const result = []
     for await (const doc of cursor) {

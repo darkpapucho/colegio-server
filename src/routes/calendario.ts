@@ -13,6 +13,7 @@ calendarioRouter.post('/get-record-asistencias-grado-seccion-periodo', verifyCre
 calendarioRouter.post('/justificar-falta', verifyCredentials, CalendarioControllers.justificarFalta)
 calendarioRouter.post('/fetch-asistencia-list-by-grado-seccion-day-id', verifyCredentials, CalendarioControllers.fetchAsistenciaListByGradoSeccionDayId)
 calendarioRouter.post('/fetch-today-tardanza-list', verifyCredentials, CalendarioControllers.fetchTardanzaListByDayId)
+calendarioRouter.post('/update-asistencia-list-by-grado-seccion-day-id', verifyCredentials, CalendarioControllers.updateAsistenciaListByGradoSeccionDayId)
 calendarioRouter.get('/fetch-calendario', verifyCredentials, CalendarioControllers.fetchCalendario)
 calendarioRouter.get('/fetch-current-periodo', verifyCredentials, CalendarioControllers.fetchCurrentPeriodo)
 calendarioRouter.get('/convert-date-to-periodo', verifyCredentials, CalendarioControllers.fetchConvertDateToPeriodo)

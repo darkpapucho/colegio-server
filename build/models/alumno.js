@@ -112,6 +112,15 @@ class Alumno {
             }));
         });
     }
+    static increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`notas${nivel}${year}`)
+                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) }, { $inc: { [`inasistencias.justificadas.${(0, utils_1.convertPeriodoKeyToIndex)(periodo)}`]: quantity } });
+            return response;
+        });
+    }
     static increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient

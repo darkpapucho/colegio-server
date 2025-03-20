@@ -31,7 +31,7 @@ export class AlumnoControllers {
       return errorResponseHandler(res, err)
     }
   }
-
+  //end point for teachers
   static async updateAsistenciaList(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -190,7 +190,7 @@ export class AlumnoControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { alumno } = req.body
-      console.log({ nivel, year, alumno })
+
       assertIsNuevoAlumno(alumno)
       console.log('assert passed')
       alumno.apellidos = alumno.apellidos.toUpperCase()

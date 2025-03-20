@@ -46,6 +46,7 @@ class AlumnoControllers {
             }
         });
     }
+    //end point for teachers
     static updateAsistenciaList(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -220,7 +221,6 @@ class AlumnoControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumno } = req.body;
-                console.log({ nivel, year, alumno });
                 (0, validators_1.assertIsNuevoAlumno)(alumno);
                 console.log('assert passed');
                 alumno.apellidos = alumno.apellidos.toUpperCase();

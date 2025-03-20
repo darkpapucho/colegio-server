@@ -74,6 +74,13 @@ export class Alumno {
     })
   }
 
+  static async increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }: { quantity: number; nivel: Nivel; year: Year; periodo: Periodo; alumnoId: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`notas${nivel}${year}`)
+      .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`inasistencias.justificadas.${convertPeriodoKeyToIndex(periodo)}`]: quantity } })
+    return response
+  }
   static async increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }: { quantity: number; nivel: Nivel; year: Year; alumnoId: string; periodo: Periodo }) {
     const response = await mongoClient
       .db()

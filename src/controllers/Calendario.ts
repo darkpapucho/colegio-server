@@ -8,13 +8,77 @@ import { MONTHS_YEAR } from '../utils/calendario'
 import { Month } from '../types/asistencia'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 import { Alumno } from '../models/alumno'
+import { AsistenciaValue } from '../types/alumno'
 
 export default class CalendarioControllers {
+  //end point for admin
+  static async updateAsistenciaListByGradoSeccionDayId(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { asistenciaList } = req.body
+      const list = asistenciaList.list as { alumnoId: string; asistencia: AsistenciaValue }[]
+      const periodo = convertDateToPeriodo(new Date())
+      const dayId = asistenciaList.dayId as string
+      //check enabled status from calendario dayId
+
+      //for each element in the list
+      list.forEach(async (record) => {
+        //procesamos F, A, T y ""
+        //CHECK the current asistencia status
+        const asistenciaResults = await Calendario.fetchADayAsistenciaRecord({ nivel, year, alumnoId: record.alumnoId, dayId })
+        if (!asistenciaResults.length) throw new Error(ErrorMessages.INVALID_REQUEST)
+        const oldAsistenciaValue = asistenciaResults[0].records.asistencia
+        const justificado = asistenciaResults[0].records.justificado ? true : false
+        if (record.asistencia === 'F') {
+          //cheeck q no se haga por segunda vez
+          if (oldAsistenciaValue === '' || oldAsistenciaValue === 'A') {
+            //incrementamos la falta injustificada
+            await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 })
+            //pasamos la nueva asistencia
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+          } else if (oldAsistenciaValue == 'T') {
+            await Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 })
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, alumnoId: record.alumnoId, dayId, asistencia: record.asistencia })
+          }
+        } else if (record.asistencia === 'A' || '') {
+          if (oldAsistenciaValue === 'F') {
+            //DECREMENTAMOS las inasistencias injustificadas
+            if (justificado) {
+              await Alumno.increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            } else {
+              await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            }
+          } else if (oldAsistenciaValue == 'T') {
+            await Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+          }
+          await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+        } else if (record.asistencia == 'T') {
+          if (oldAsistenciaValue == 'A' || oldAsistenciaValue == '') {
+          } else if (oldAsistenciaValue == 'F') {
+            if (justificado) {
+              await Alumno.increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            } else {
+              await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, periodo, alumnoId: record.alumnoId, quantity: -1 })
+            }
+          }
+          await Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 })
+          await Calendario.setAsistenciaAlumnoDay({ nivel, year, alumnoId: record.alumnoId, dayId, asistencia: record.asistencia })
+        }
+      })
+      //old Code:await Alumno.updateAsistenciaList({ nivel, year, asistenciaList })
+
+      return res.status(200).send(responseOk(null))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
+
   static async fetchTardanzaListByDayId(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { dayId } = req.body
-      const tardanzalist = await Calendario.fetchTardanzaListByDayId({ nivel, year, dayId })
+      const tardanzalist = await Calendario.fetchAsistenciaListByDayIdAndValue({ nivel, year, dayId, asistenciaValue: 'T' })
 
       res.send(responseOk(tardanzalist))
     } catch (err) {

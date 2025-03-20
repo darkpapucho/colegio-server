@@ -21,12 +21,83 @@ const calendario_1 = require("../utils/calendario");
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 const alumno_1 = require("../models/alumno");
 class CalendarioControllers {
+    //end point for admin
+    static updateAsistenciaListByGradoSeccionDayId(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { asistenciaList } = req.body;
+                const list = asistenciaList.list;
+                const periodo = (0, convertDateToPeriodo_1.default)(new Date());
+                const dayId = asistenciaList.dayId;
+                //check enabled status from calendario dayId
+                //for each element in the list
+                list.forEach((record) => __awaiter(this, void 0, void 0, function* () {
+                    //procesamos F, A, T y ""
+                    //CHECK the current asistencia status
+                    const asistenciaResults = yield Calendario_1.default.fetchADayAsistenciaRecord({ nivel, year, alumnoId: record.alumnoId, dayId });
+                    if (!asistenciaResults.length)
+                        throw new Error(enums_1.ErrorMessages.INVALID_REQUEST);
+                    const oldAsistenciaValue = asistenciaResults[0].records.asistencia;
+                    const justificado = asistenciaResults[0].records.justificado ? true : false;
+                    if (record.asistencia === 'F') {
+                        //cheeck q no se haga por segunda vez
+                        if (oldAsistenciaValue === '' || oldAsistenciaValue === 'A') {
+                            //incrementamos la falta injustificada
+                            yield alumno_1.Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 });
+                            //pasamos la nueva asistencia
+                            yield Calendario_1.default.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia });
+                        }
+                        else if (oldAsistenciaValue == 'T') {
+                            yield alumno_1.Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 });
+                            yield alumno_1.Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 });
+                            yield Calendario_1.default.setAsistenciaAlumnoDay({ nivel, year, alumnoId: record.alumnoId, dayId, asistencia: record.asistencia });
+                        }
+                    }
+                    else if (record.asistencia === 'A' || '') {
+                        if (oldAsistenciaValue === 'F') {
+                            //DECREMENTAMOS las inasistencias injustificadas
+                            if (justificado) {
+                                yield alumno_1.Alumno.increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 });
+                            }
+                            else {
+                                yield alumno_1.Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 });
+                            }
+                        }
+                        else if (oldAsistenciaValue == 'T') {
+                            yield alumno_1.Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 });
+                        }
+                        yield Calendario_1.default.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia });
+                    }
+                    else if (record.asistencia == 'T') {
+                        if (oldAsistenciaValue == 'A' || oldAsistenciaValue == '') {
+                        }
+                        else if (oldAsistenciaValue == 'F') {
+                            if (justificado) {
+                                yield alumno_1.Alumno.increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 });
+                            }
+                            else {
+                                yield alumno_1.Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, periodo, alumnoId: record.alumnoId, quantity: -1 });
+                            }
+                        }
+                        yield alumno_1.Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 });
+                        yield Calendario_1.default.setAsistenciaAlumnoDay({ nivel, year, alumnoId: record.alumnoId, dayId, asistencia: record.asistencia });
+                    }
+                }));
+                //old Code:await Alumno.updateAsistenciaList({ nivel, year, asistenciaList })
+                return res.status(200).send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static fetchTardanzaListByDayId(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { dayId } = req.body;
-                const tardanzalist = yield Calendario_1.default.fetchTardanzaListByDayId({ nivel, year, dayId });
+                const tardanzalist = yield Calendario_1.default.fetchAsistenciaListByDayIdAndValue({ nivel, year, dayId, asistenciaValue: 'T' });
                 res.send((0, responses_1.responseOk)(tardanzalist));
             }
             catch (err) {

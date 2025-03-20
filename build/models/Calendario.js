@@ -27,7 +27,7 @@ const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPe
 const periodosDates_1 = require("../vars/periodosDates");
 const calendario_1 = require("../utils/calendario");
 class Calendario {
-    static fetchTardanzaListByDayId({ nivel, year, dayId }) {
+    static fetchAsistenciaListByDayIdAndValue({ nivel, year, dayId, asistenciaValue }) {
         var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
@@ -38,7 +38,7 @@ class Calendario {
                 {
                     $project: {
                         alumnoId: 1,
-                        records: { $filter: { input: '$records', as: 'records', cond: { $and: [{ $eq: ['$$records.dayId', new mongodb_1.ObjectId(dayId)] }, { $eq: ['$$records.asistencia', 'T'] }] } } },
+                        records: { $filter: { input: '$records', as: 'records', cond: { $and: [{ $eq: ['$$records.dayId', new mongodb_1.ObjectId(dayId)] }, { $eq: ['$$records.asistencia', asistenciaValue] }] } } },
                     },
                 },
                 { $match: { $expr: { $gt: [{ $size: '$records' }, 0] } } },
@@ -496,6 +496,7 @@ class Calendario {
                 },
                 { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$asistencia', 0] } } },
                 { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: '$asistencia.asistencia' } },
+                { $sort: { nombreCompleto: 1 } },
             ]);
             const result = [];
             try {
