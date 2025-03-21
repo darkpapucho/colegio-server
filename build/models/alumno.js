@@ -36,6 +36,7 @@ const mongodb_1 = require("mongodb");
 const enums_1 = require("../error/enums");
 const utils_1 = require("../utils/generarBoletaNotas/utils/utils");
 const Calendario_1 = __importDefault(require("./Calendario"));
+const periodosDates_1 = require("../vars/periodosDates");
 class Alumno {
     static ProcesoNuevoMatricula({ nivel, year, alumno }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -49,9 +50,15 @@ class Alumno {
                     return false;
                 }
                 const lastDayFromCalendar = yield Calendario_1.default.fetchLastDayOfCalendarioEscolar({ nivel, year });
-                const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`);
+                if (!lastDayFromCalendar) {
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    return false;
+                }
+                const lastDate = new Date(`${year}-${(0, periodosDates_1.parseMonthNameToMonthNumber1to12)(lastDayFromCalendar.month)}-${lastDayFromCalendar.day}`);
                 //insertar asistencia records de acuerdo a la fecha de la mtricula
-                const calendarioDaysForMatricula = yield Calendario_1.default.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate });
+                const fechaMatricula = new Date(alumno.fechaMatricula);
+                const calendarioDaysForMatricula = yield Calendario_1.default.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate });
                 //insertar nuevo record en asistencias{nivel}{year}
                 const alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
                     return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' };
@@ -331,6 +338,18 @@ class Alumno {
     static fetchAlumnoByDni({ nivel, year, dni }) {
         return __awaiter(this, void 0, void 0, function* () {
             const alumno = yield db_1.mongoClient.db().collection(`matriculados${nivel}${year}`).findOne({ dni });
+            return alumno;
+        });
+    }
+    static fetchAlumnoByGradoSeccionApellidos({ nivel, year, apellidos, grado, seccion }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const alumno = yield db_1.mongoClient.db().collection(`matriculados${nivel}${year}`).findOne({ apellidos, grado, seccion });
+            return alumno;
+        });
+    }
+    static fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const alumno = yield db_1.mongoClient.db().collection(`matriculados${nivel}${year}`).findOne({ codigoEstudiante });
             return alumno;
         });
     }

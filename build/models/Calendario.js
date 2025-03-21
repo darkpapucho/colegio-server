@@ -141,7 +141,7 @@ class Calendario {
                 }
                 finally { if (e_3) throw e_3.error; }
             }
-            const maxMonth = (0, periodosDates_1.convertNumberToMonthName)(monthsRecorded.sort((prev, curr) => (prev < curr ? 1 : -1))[0]);
+            const maxMonth = (0, periodosDates_1.convertNumberToMonthName)(monthsRecorded.sort((prev, curr) => (curr > prev ? 1 : -1))[0]);
             const recordsFromMaxMonth = records.filter((elem) => elem.month === maxMonth).sort((prev, curr) => (prev.day < curr.day ? 1 : -1));
             return recordsFromMaxMonth[0];
         });
@@ -152,25 +152,40 @@ class Calendario {
             const beginMonth = (0, periodosDates_1.convertNumberToMonthName)(fechaMatricula.getMonth());
             const beginDay = fechaMatricula.getDate();
             const lastMonth = (0, periodosDates_1.convertNumberToMonthName)(lastDate.getMonth());
-            const lastDay = fechaMatricula.getDate();
+            const lastDay = lastDate.getDate();
             const betweenMonths = [];
             for (let i = fechaMatricula.getMonth() + 1; i < lastDate.getMonth(); i++) {
                 betweenMonths.push({ month: (0, periodosDates_1.convertNumberToMonthName)(i) });
             }
-            const results = db_1.mongoClient
-                .db()
-                .collection(`calendario${nivel}${year}`)
-                .aggregate([
-                {
-                    $match: {
-                        $or: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, ...betweenMonths, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+            let results = null;
+            if (lastMonth == beginMonth) {
+                results = db_1.mongoClient
+                    .db()
+                    .collection(`calendario${nivel}${year}`)
+                    .aggregate([
+                    {
+                        $match: {
+                            $and: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+                        },
                     },
-                },
-            ]);
+                ]);
+            }
+            else {
+                results = db_1.mongoClient
+                    .db()
+                    .collection(`calendario${nivel}${year}`)
+                    .aggregate([
+                    {
+                        $match: {
+                            $or: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, ...betweenMonths, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+                        },
+                    },
+                ]);
+            }
             const calendarioDays = [];
             try {
-                for (var _d = true, results_2 = __asyncValues(results), results_2_1; results_2_1 = yield results_2.next(), _a = results_2_1.done, !_a; _d = true) {
-                    _c = results_2_1.value;
+                for (var _d = true, _e = __asyncValues(results), _f; _f = yield _e.next(), _a = _f.done, !_a; _d = true) {
+                    _c = _f.value;
                     _d = false;
                     const result = _c;
                     calendarioDays.push(result);
@@ -179,7 +194,7 @@ class Calendario {
             catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = results_2.return)) yield _b.call(results_2);
+                    if (!_d && !_a && (_b = _e.return)) yield _b.call(_e);
                 }
                 finally { if (e_4) throw e_4.error; }
             }

@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertNumberToMonthName = exports.getPeriodoEndDate = exports.getPeriodoStartDate = exports.cuartoPeriodoEnd = exports.cuartoPeriodoStart = exports.tercerPeriodoEnd = exports.tercerPeriodoStart = exports.segundoPeriodoEnd = exports.segundoPeriodoStart = exports.primerPeriodoEnd = exports.primerPeriodoStart = void 0;
+exports.parseMonthNameToMonthNumber1to12 = exports.convertNumberToMonthName = exports.getPeriodoEndDate = exports.getPeriodoStartDate = exports.cuartoPeriodoEnd = exports.cuartoPeriodoStart = exports.tercerPeriodoEnd = exports.tercerPeriodoStart = exports.segundoPeriodoEnd = exports.segundoPeriodoStart = exports.primerPeriodoEnd = exports.primerPeriodoStart = void 0;
 const enums_1 = require("../error/enums");
+const asistencia_1 = require("../types/asistencia");
 const calendario_1 = require("../utils/calendario");
 exports.primerPeriodoStart = '03-03-2024'; //MM-DD-YYYY
 exports.primerPeriodoEnd = '05-09-2024';
@@ -47,3 +48,7 @@ function convertNumberToMonthName(monthNumber) {
     return calendario_1.MONTHS_YEAR[monthNumber];
 }
 exports.convertNumberToMonthName = convertNumberToMonthName;
+function parseMonthNameToMonthNumber1to12(monthName) {
+    return asistencia_1.VALID_MONTHS.findIndex((month) => month === monthName) + 1;
+}
+exports.parseMonthNameToMonthNumber1to12 = parseMonthNameToMonthNumber1to12;

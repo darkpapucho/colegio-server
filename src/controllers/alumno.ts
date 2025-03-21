@@ -6,8 +6,8 @@ import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
 import { GradosInicial, VALID_GRADOS } from '../types/enums'
-import { AMatriculado, AsistenciaValue, PartialAlumno } from '../types/alumno'
-import { ObjectId } from 'mongodb'
+import { AMatriculado, AMatriculadoNoId, AsistenciaValue, PartialAlumno } from '../types/alumno'
+import { ObjectId, WithId } from 'mongodb'
 import Calendario from '../models/Calendario'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 
@@ -192,14 +192,25 @@ export class AlumnoControllers {
       const { alumno } = req.body
 
       assertIsNuevoAlumno(alumno)
-      console.log('assert passed')
+
       alumno.apellidos = alumno.apellidos.toUpperCase()
       alumno.nombres = alumno.nombres.toUpperCase()
       //verificar q no exista un alumno ya matriculado con el mismo dni
-      const foundAlumno = await Alumno.fetchAlumnoByDni({ nivel, year, dni: alumno.dni + '' })
-      console.log({ foundAlumno })
+      let foundAlumno: WithId<AMatriculadoNoId> | null = null
+      const reason: string[] = []
+      if (alumno.dni) {
+        foundAlumno = await Alumno.fetchAlumnoByDni({ nivel, year, dni: alumno.dni + '' })
+        reason.push('este dni')
+      } else if (alumno.codigoEstudiante) {
+        foundAlumno = await Alumno.fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante: alumno.codigoEstudiante })
+        reason.push('este código de estudiante')
+      } else {
+        foundAlumno = await Alumno.fetchAlumnoByGradoSeccionApellidos({ nivel, year, grado: alumno.grado, seccion: alumno.seccion, apellidos: alumno.apellidos })
+        reason.push('estos apellidos')
+      }
+
       if (foundAlumno) {
-        return res.send(responseError('Ya existe un alumno matriculado con este DNI'))
+        return res.send(responseError(`Ya existe un alumno matriculado con ${reason[0]}`))
       }
       //TODO: CREATE SESSION MONGO
       //matricular nuevo alumno

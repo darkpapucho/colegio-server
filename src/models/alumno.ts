@@ -6,12 +6,12 @@ import { ErrorMessages } from '../error/enums'
 import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/utils'
 import { Month } from '../types/asistencia'
 import Calendario from './Calendario'
+import { parseMonthNameToMonthNumber1to12 } from '../vars/periodosDates'
 
 export class Alumno {
   static async ProcesoNuevoMatricula({ nivel, year, alumno }: { nivel: Nivel; year: Year; alumno: NuevoAlumno }) {
     const session = mongoClient.startSession()
     session.startTransaction()
-
     try {
       const matriculaResult = await this.nuevaMatricula({ alumno, nivel, year, session })
 
@@ -22,10 +22,17 @@ export class Alumno {
       }
       const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year })
 
-      const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
+      if (!lastDayFromCalendar) {
+        await session.abortTransaction()
+        await session.endSession()
+        return false
+      }
+      const lastDate = new Date(`${year}-${parseMonthNameToMonthNumber1to12(lastDayFromCalendar.month)}-${lastDayFromCalendar.day}`)
 
       //insertar asistencia records de acuerdo a la fecha de la mtricula
-      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
+      const fechaMatricula = new Date(alumno.fechaMatricula)
+
+      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate })
 
       //insertar nuevo record en asistencias{nivel}{year}
       const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
@@ -228,7 +235,15 @@ export class Alumno {
   }
 
   static async fetchAlumnoByDni({ nivel, year, dni }: { nivel: Nivel; year: Year; dni: string }) {
-    const alumno = await mongoClient.db().collection(`matriculados${nivel}${year}`).findOne({ dni })
+    const alumno = await mongoClient.db().collection<AMatriculadoNoId>(`matriculados${nivel}${year}`).findOne({ dni })
+    return alumno
+  }
+  static async fetchAlumnoByGradoSeccionApellidos({ nivel, year, apellidos, grado, seccion }: { nivel: Nivel; year: Year; apellidos: string; grado: Grado; seccion: Seccion }) {
+    const alumno = await mongoClient.db().collection<AMatriculadoNoId>(`matriculados${nivel}${year}`).findOne({ apellidos, grado, seccion })
+    return alumno
+  }
+  static async fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante }: { nivel: Nivel; year: Year; codigoEstudiante: string }) {
+    const alumno = await mongoClient.db().collection<AMatriculadoNoId>(`matriculados${nivel}${year}`).findOne({ codigoEstudiante })
     return alumno
   }
 }

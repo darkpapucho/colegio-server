@@ -17,8 +17,22 @@ const nuevoAlumnoSchema = z.object({
   seccion: z.enum(VALID_SECCIONES),
   fechaMatricula: z.string(),
   sexo: z.enum(VALID_SEXOS),
-  dni: z.string().refine((value) => value === '' || value?.length === 8, { message: 'el dni debe ser de 8 dígitos' }),
-  codigoEstudiante: z.string({ required_error: 'falta el codigo de estudiante del alumno' }).min(14, 'el codigo de estudiante debe tener 14 dígitos').max(14, 'el codigo de estudiante debe tener 14 dígitos'),
+  dni: z
+    .string()
+    .optional()
+    .refine((value) => value == undefined || value === '' || value?.length === 8, { message: 'el dni debe ser de 8 dígitos' }),
+  codigoEstudiante: z
+    .string({ required_error: 'falta el codigo de estudiante del alumno' })
+    .optional()
+    .refine((value) => {
+      let isValid = false
+      if (value == undefined || value == '') {
+        isValid = true
+      } else if (value && value != '') {
+        isValid = value.length == 14
+      }
+      return isValid
+    }),
 })
 const profesorDataSchema = z.object({
   // userId: z.string(),

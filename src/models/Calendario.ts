@@ -1,4 +1,4 @@
-import { ClientSession, ObjectId, WithId } from 'mongodb'
+import { AggregationCursor, ClientSession, ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { CalendarioDay, Month } from '../types/asistencia'
@@ -82,7 +82,7 @@ export default class Calendario {
         monthsRecorded.push(monthIndex)
       }
     }
-    const maxMonth: Month = convertNumberToMonthName(monthsRecorded.sort((prev, curr) => (prev < curr ? 1 : -1))[0])
+    const maxMonth: Month = convertNumberToMonthName(monthsRecorded.sort((prev, curr) => (curr > prev ? 1 : -1))[0])
     const recordsFromMaxMonth = records.filter((elem) => elem.month === maxMonth).sort((prev, curr) => (prev.day < curr.day ? 1 : -1))
 
     return recordsFromMaxMonth[0]
@@ -92,23 +92,44 @@ export default class Calendario {
     const beginMonth = convertNumberToMonthName(fechaMatricula.getMonth())
     const beginDay = fechaMatricula.getDate()
     const lastMonth = convertNumberToMonthName(lastDate.getMonth())
-    const lastDay = fechaMatricula.getDate()
+    const lastDay = lastDate.getDate()
+
     const betweenMonths = []
     for (let i = fechaMatricula.getMonth() + 1; i < lastDate.getMonth(); i++) {
       betweenMonths.push({ month: convertNumberToMonthName(i) })
     }
-    const results = mongoClient
-      .db()
-      .collection(`calendario${nivel}${year}`)
-      .aggregate<{ month: Month; day: number; _id: ObjectId }>([
-        {
-          $match: {
-            $or: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, ...betweenMonths, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+
+    let results: AggregationCursor<{
+      month: Month
+      day: number
+      _id: ObjectId
+    }> | null = null
+    if (lastMonth == beginMonth) {
+      results = mongoClient
+        .db()
+        .collection(`calendario${nivel}${year}`)
+        .aggregate<{ month: Month; day: number; _id: ObjectId }>([
+          {
+            $match: {
+              $and: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+            },
           },
-        },
-      ])
+        ])
+    } else {
+      results = mongoClient
+        .db()
+        .collection(`calendario${nivel}${year}`)
+        .aggregate<{ month: Month; day: number; _id: ObjectId }>([
+          {
+            $match: {
+              $or: [{ $and: [{ month: beginMonth }, { day: { $gte: beginDay } }] }, ...betweenMonths, { $and: [{ month: lastMonth }, { day: { $lte: lastDay } }] }],
+            },
+          },
+        ])
+    }
+
     const calendarioDays: { _id: ObjectId; month: Month; day: number }[] = []
-    for await (const result of results) {
+    for await (const result of results!) {
       calendarioDays.push(result)
     }
     return calendarioDays

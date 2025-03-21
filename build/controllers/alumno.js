@@ -222,14 +222,25 @@ class AlumnoControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumno } = req.body;
                 (0, validators_1.assertIsNuevoAlumno)(alumno);
-                console.log('assert passed');
                 alumno.apellidos = alumno.apellidos.toUpperCase();
                 alumno.nombres = alumno.nombres.toUpperCase();
                 //verificar q no exista un alumno ya matriculado con el mismo dni
-                const foundAlumno = yield alumno_1.Alumno.fetchAlumnoByDni({ nivel, year, dni: alumno.dni + '' });
-                console.log({ foundAlumno });
+                let foundAlumno = null;
+                const reason = [];
+                if (alumno.dni) {
+                    foundAlumno = yield alumno_1.Alumno.fetchAlumnoByDni({ nivel, year, dni: alumno.dni + '' });
+                    reason.push('este dni');
+                }
+                else if (alumno.codigoEstudiante) {
+                    foundAlumno = yield alumno_1.Alumno.fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante: alumno.codigoEstudiante });
+                    reason.push('este código de estudiante');
+                }
+                else {
+                    foundAlumno = yield alumno_1.Alumno.fetchAlumnoByGradoSeccionApellidos({ nivel, year, grado: alumno.grado, seccion: alumno.seccion, apellidos: alumno.apellidos });
+                    reason.push('estos apellidos');
+                }
                 if (foundAlumno) {
-                    return res.send((0, responses_1.responseError)('Ya existe un alumno matriculado con este DNI'));
+                    return res.send((0, responses_1.responseError)(`Ya existe un alumno matriculado con ${reason[0]}`));
                 }
                 //TODO: CREATE SESSION MONGO
                 //matricular nuevo alumno
