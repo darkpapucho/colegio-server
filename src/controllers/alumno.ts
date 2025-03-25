@@ -53,7 +53,7 @@ export class AlumnoControllers {
         const asistenciaResults = await Calendario.fetchADayAsistenciaRecord({ nivel, year, alumnoId: record.alumnoId, dayId })
         if (!asistenciaResults.length) throw new Error(ErrorMessages.INVALID_REQUEST)
         const oldAsistenciaValue = asistenciaResults[0].records.asistencia
-
+        const justificado = asistenciaResults[0].records.justificado ? true : false
         if (record.asistencia === 'F') {
           //cheeck q no se haga por segunda vez
           if (oldAsistenciaValue === '' || oldAsistenciaValue === 'A') {
@@ -61,19 +61,49 @@ export class AlumnoControllers {
             await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 })
             //pasamos la nueva asistencia
             await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+            //si el valor anterior ya era F o T no se hace nada (cambiado el 24 de marzo del 2025)
+          } else if (oldAsistenciaValue === 'T') {
+            //disminuimos en 1 la cantidad de tardanzas
+            await Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            //incrementamos la falta injustificada
+            await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 })
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, alumnoId: record.alumnoId, asistencia: record.asistencia, dayId })
           }
-          //si el valor anterior ya era F o T no se hace nada
         } else if (record.asistencia === 'A') {
           if (oldAsistenciaValue === 'F') {
             //DECREMENTAMOS las inasistencias injustificadas
-            await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            if (justificado) {
+              await Alumno.increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            } else {
+              await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            }
             //pasamos la nueva asistencia
             await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
           } else if (oldAsistenciaValue === '') {
             //pasamos la nueva asistencia
             await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+            //en caso de T o A no es necesario hacer nada(cambiado el 24 de marzo 2025)
+          } else if (oldAsistenciaValue === 'T') {
+            await Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            //pasamos la nueva asistencia
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
           }
-          //en caso de T o A no es necesario hacer nada
+        } else if (record.asistencia === 'T') {
+          if (oldAsistenciaValue === 'F') {
+            //DECREMENTAMOS las inasistencias injustificadas
+            if (justificado) {
+              await Alumno.increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            } else {
+              await Alumno.increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: -1 })
+            }
+            //pasamos la nueva asistencia
+            await Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 })
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+          } else if (oldAsistenciaValue === '' || oldAsistenciaValue == 'A') {
+            //pasamos la nueva asistencia
+            await Alumno.increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId: record.alumnoId, periodo, quantity: 1 })
+            await Calendario.setAsistenciaAlumnoDay({ nivel, year, dayId, alumnoId: record.alumnoId, asistencia: record.asistencia })
+          }
         }
       })
       //old Code:await Alumno.updateAsistenciaList({ nivel, year, asistenciaList })
