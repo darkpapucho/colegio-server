@@ -149,7 +149,7 @@ class DocumentoControllers {
             (0, global_1.assertSeccion)(seccion);
             // const cursos = generadorCursos(nivel, grado)
             try {
-                const alumnos = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, collectionName: `matriculados${nivel}${year}` });
+                const alumnos = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, nivel, year });
                 const alumnosIds = alumnos.map((alumno) => new mongodb_1.ObjectId(alumno._id));
                 const registroNotas = yield documentos_1.default.fetchRegistroNotasBySalon({ nivel, year, alumnosIds });
                 res.send((0, responses_1.responseOk)(registroNotas));

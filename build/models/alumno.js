@@ -58,7 +58,7 @@ class Alumno {
                 const lastDate = new Date(`${year}-${(0, periodosDates_1.parseMonthNameToMonthNumber1to12)(lastDayFromCalendar.month)}-${lastDayFromCalendar.day}`);
                 //insertar asistencia records de acuerdo a la fecha de la mtricula
                 const fechaMatricula = new Date(alumno.fechaMatricula);
-                const calendarioDaysForMatricula = yield Calendario_1.default.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate });
+                const calendarioDaysForMatricula = yield Calendario_1.default.getCalendarioDaysRange({ nivel, year, startDate: fechaMatricula, endDate: lastDate });
                 //insertar nuevo record en asistencias{nivel}{year}
                 const alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
                     return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' };
@@ -301,12 +301,15 @@ class Alumno {
             }
         });
     }
-    static getByGradoSeccion({ grado, seccion, collectionName }) {
+    static getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                 var _a, e_5, _b, _c;
                 let alumnos = [];
-                const cursor = db_1.mongoClient.db().collection(collectionName).find({ grado, seccion });
+                const cursor = db_1.mongoClient
+                    .db()
+                    .collection(`matriculados${nivel}${year}`)
+                    .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } });
                 try {
                     for (var _d = true, cursor_5 = __asyncValues(cursor), cursor_5_1; cursor_5_1 = yield cursor_5.next(), _a = cursor_5_1.done, !_a; _d = true) {
                         _c = cursor_5_1.value;

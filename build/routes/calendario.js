@@ -21,3 +21,4 @@ exports.calendarioRouter.post('/update-asistencia-list-by-grado-seccion-day-id',
 exports.calendarioRouter.get('/fetch-calendario', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchCalendario);
 exports.calendarioRouter.get('/fetch-current-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchCurrentPeriodo);
 exports.calendarioRouter.get('/convert-date-to-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.fetchConvertDateToPeriodo);
+exports.calendarioRouter.post('/get-pdf-attendance-list-by-grado-seccion-periodo', verifyCredentials_1.verifyCredentials, Calendario_1.default.generatePDFAttendanceListByGradoSeccionPeriodo);

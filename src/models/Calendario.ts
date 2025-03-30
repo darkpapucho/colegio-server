@@ -2,7 +2,7 @@ import { AggregationCursor, ClientSession, ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { CalendarioDay, Month } from '../types/asistencia'
-import { EnableDayList } from '../types/calendario'
+import { AttendanceRecord, EnableDayList } from '../types/calendario'
 import { ErrorMessages } from '../error/enums'
 import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/utils'
 import { AsistenciaRecord, AsistenciaValue, Periodo } from '../types/alumno'
@@ -88,14 +88,14 @@ export default class Calendario {
     return recordsFromMaxMonth[0]
   }
 
-  static async getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate }: { lastDate: Date; nivel: Nivel; year: Year; fechaMatricula: Date }) {
-    const beginMonth = convertNumberToMonthName(fechaMatricula.getMonth())
-    const beginDay = fechaMatricula.getDate()
-    const lastMonth = convertNumberToMonthName(lastDate.getMonth())
-    const lastDay = lastDate.getDate()
+  static async getCalendarioDaysRange({ nivel, year, startDate, endDate }: { endDate: Date; nivel: Nivel; year: Year; startDate: Date }) {
+    const beginMonth = convertNumberToMonthName(startDate.getMonth())
+    const beginDay = startDate.getDate()
+    const lastMonth = convertNumberToMonthName(endDate.getMonth())
+    const lastDay = endDate.getDate()
 
     const betweenMonths = []
-    for (let i = fechaMatricula.getMonth() + 1; i < lastDate.getMonth(); i++) {
+    for (let i = startDate.getMonth() + 1; i < endDate.getMonth(); i++) {
       betweenMonths.push({ month: convertNumberToMonthName(i) })
     }
 
@@ -203,7 +203,7 @@ export default class Calendario {
     const cursor = mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
-      .aggregate<{ nombreCompleto: string; alumnoId: ObjectId; records: { day: number; month: Month; asistencia: AsistenciaValue; dayId: ObjectId; justificado: true | undefined }[] }[]>([
+      .aggregate<AttendanceRecord>([
         { $match: { alumnoId: { $in: [...alumnosIds] } } },
         { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
         {
@@ -393,7 +393,9 @@ export default class Calendario {
             },
           },
         },
+
         { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$asistencia', 0] } } },
+        { $match: { asistencia: { $exists: true } } },
         { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: '$asistencia.asistencia' } },
         { $sort: { nombreCompleto: 1 } },
       ])

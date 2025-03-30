@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertPeriodoKeyToIndex = exports.tablaNotasPromedios = exports.escalaCalificaciones = exports.resumenAsistencias = exports.conclusionesDescriptivasTabla = exports.firmas = exports.calcularPromedioCompetencia = exports.calcularPromedioGeneralCurso = exports.convertToLetras = void 0;
+exports.convertPeriodoKeyToName = exports.convertPeriodoKeyToIndex = exports.tablaNotasPromedios = exports.escalaCalificaciones = exports.resumenAsistencias = exports.conclusionesDescriptivasTabla = exports.firmas = exports.calcularPromedioCompetencia = exports.calcularPromedioGeneralCurso = exports.convertToLetras = void 0;
 const constants_1 = require("../../../vars/constants");
 const vars_1 = require("./vars");
 function convertToLetras(number) {
@@ -318,3 +318,18 @@ function convertPeriodoKeyToIndex(periodo) {
     }
 }
 exports.convertPeriodoKeyToIndex = convertPeriodoKeyToIndex;
+function convertPeriodoKeyToName(periodo) {
+    switch (periodo) {
+        case 'cuartoPeriodo':
+            return 'cuarto periodo';
+        case 'primerPeriodo':
+            return 'primer periodo';
+        case 'segundoPeriodo':
+            return 'segundo periodo';
+        case 'tercerPeriodo':
+            return 'tercer periodo';
+        default:
+            return 'PERIODO INVÁLIDO';
+    }
+}
+exports.convertPeriodoKeyToName = convertPeriodoKeyToName;

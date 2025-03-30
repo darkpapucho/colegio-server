@@ -17,3 +17,4 @@ calendarioRouter.post('/update-asistencia-list-by-grado-seccion-day-id', verifyC
 calendarioRouter.get('/fetch-calendario', verifyCredentials, CalendarioControllers.fetchCalendario)
 calendarioRouter.get('/fetch-current-periodo', verifyCredentials, CalendarioControllers.fetchCurrentPeriodo)
 calendarioRouter.get('/convert-date-to-periodo', verifyCredentials, CalendarioControllers.fetchConvertDateToPeriodo)
+calendarioRouter.post('/get-pdf-attendance-list-by-grado-seccion-periodo', verifyCredentials, CalendarioControllers.generatePDFAttendanceListByGradoSeccionPeriodo)

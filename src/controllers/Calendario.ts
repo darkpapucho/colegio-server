@@ -8,10 +8,39 @@ import { MONTHS_YEAR } from '../utils/calendario'
 import { Month } from '../types/asistencia'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 import { Alumno } from '../models/alumno'
-import { AsistenciaValue } from '../types/alumno'
+import { AsistenciaValue, Periodo } from '../types/alumno'
+import { EstadoMatricula, Grado, Seccion } from '../types/enums'
+import { ObjectId } from 'mongodb'
+import PDFDocument from 'pdfkit'
+import { generatePDFAsistenciaList } from '../utils/generatePDFAsistenciaList'
+import { getPeriodoEndDate, getPeriodoStartDate } from '../vars/periodosDates'
 
 export default class CalendarioControllers {
   //end point for admin
+  static async generatePDFAttendanceListByGradoSeccionPeriodo(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { grado, seccion, periodo, estadosMatricula, withData }: { grado: Grado; seccion: Seccion; periodo: Periodo; estadosMatricula: EstadoMatricula[]; withData: boolean } = req.body
+      const alumnosList = await Alumno.getByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula })
+      const alumnosIds = alumnosList.map((record) => new ObjectId(record._id))
+      const attendanceList = await Calendario.getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds })
+      const calendarioDays = await Calendario.getCalendarioDaysRange({ nivel, year, startDate: new Date(getPeriodoStartDate(periodo)), endDate: new Date(getPeriodoEndDate(periodo)) })
+
+      const pdfDocument = new PDFDocument({
+        layout: 'landscape',
+        size: 'A4',
+        font: 'Courier',
+        margins: { top: 20, left: 20, right: 20, bottom: 20 },
+        autoFirstPage: false,
+      })
+
+      pdfDocument.pipe(res)
+      generatePDFAsistenciaList({ nivel, year, grado, seccion, withData, asistenciaList: attendanceList, pdfDocument, periodo, calendarioDays })
+      pdfDocument.end()
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async updateAsistenciaListByGradoSeccionDayId(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

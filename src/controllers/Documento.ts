@@ -134,7 +134,7 @@ export default class DocumentoControllers {
 
     // const cursos = generadorCursos(nivel, grado)
     try {
-      const alumnos = await Alumno.getByGradoSeccion({ grado, seccion, collectionName: `matriculados${nivel}${year}` })
+      const alumnos = await Alumno.getByGradoSeccion({ grado, seccion, nivel, year })
 
       const alumnosIds = alumnos.map((alumno) => new ObjectId(alumno._id))
 

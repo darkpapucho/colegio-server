@@ -20,8 +20,37 @@ const enums_1 = require("../error/enums");
 const calendario_1 = require("../utils/calendario");
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 const alumno_1 = require("../models/alumno");
+const mongodb_1 = require("mongodb");
+const pdfkit_1 = __importDefault(require("pdfkit"));
+const generatePDFAsistenciaList_1 = require("../utils/generatePDFAsistenciaList");
+const periodosDates_1 = require("../vars/periodosDates");
 class CalendarioControllers {
     //end point for admin
+    static generatePDFAttendanceListByGradoSeccionPeriodo(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion, periodo, estadosMatricula, withData } = req.body;
+                const alumnosList = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula });
+                const alumnosIds = alumnosList.map((record) => new mongodb_1.ObjectId(record._id));
+                const attendanceList = yield Calendario_1.default.getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds });
+                const calendarioDays = yield Calendario_1.default.getCalendarioDaysRange({ nivel, year, startDate: new Date((0, periodosDates_1.getPeriodoStartDate)(periodo)), endDate: new Date((0, periodosDates_1.getPeriodoEndDate)(periodo)) });
+                const pdfDocument = new pdfkit_1.default({
+                    layout: 'landscape',
+                    size: 'A4',
+                    font: 'Courier',
+                    margins: { top: 20, left: 20, right: 20, bottom: 20 },
+                    autoFirstPage: false,
+                });
+                pdfDocument.pipe(res);
+                (0, generatePDFAsistenciaList_1.generatePDFAsistenciaList)({ nivel, year, grado, seccion, withData, asistenciaList: attendanceList, pdfDocument, periodo, calendarioDays });
+                pdfDocument.end();
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static updateAsistenciaListByGradoSeccionDayId(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

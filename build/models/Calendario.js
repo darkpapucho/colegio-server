@@ -146,15 +146,15 @@ class Calendario {
             return recordsFromMaxMonth[0];
         });
     }
-    static getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate }) {
+    static getCalendarioDaysRange({ nivel, year, startDate, endDate }) {
         var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            const beginMonth = (0, periodosDates_1.convertNumberToMonthName)(fechaMatricula.getMonth());
-            const beginDay = fechaMatricula.getDate();
-            const lastMonth = (0, periodosDates_1.convertNumberToMonthName)(lastDate.getMonth());
-            const lastDay = lastDate.getDate();
+            const beginMonth = (0, periodosDates_1.convertNumberToMonthName)(startDate.getMonth());
+            const beginDay = startDate.getDate();
+            const lastMonth = (0, periodosDates_1.convertNumberToMonthName)(endDate.getMonth());
+            const lastDay = endDate.getDate();
             const betweenMonths = [];
-            for (let i = fechaMatricula.getMonth() + 1; i < lastDate.getMonth(); i++) {
+            for (let i = startDate.getMonth() + 1; i < endDate.getMonth(); i++) {
                 betweenMonths.push({ month: (0, periodosDates_1.convertNumberToMonthName)(i) });
             }
             let results = null;
@@ -510,6 +510,7 @@ class Calendario {
                     },
                 },
                 { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: { $arrayElemAt: ['$asistencia', 0] } } },
+                { $match: { asistencia: { $exists: true } } },
                 { $project: { nombreCompleto: 1, alumnoId: 1, asistencia: '$asistencia.asistencia' } },
                 { $sort: { nombreCompleto: 1 } },
             ]);

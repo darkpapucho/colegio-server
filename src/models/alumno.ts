@@ -32,7 +32,7 @@ export class Alumno {
       //insertar asistencia records de acuerdo a la fecha de la mtricula
       const fechaMatricula = new Date(alumno.fechaMatricula)
 
-      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula, lastDate })
+      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysRange({ nivel, year, startDate: fechaMatricula, endDate: lastDate })
 
       //insertar nuevo record en asistencias{nivel}{year}
       const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
@@ -215,13 +215,18 @@ export class Alumno {
     }
   }
 
-  static async getByGradoSeccion({ grado, seccion, collectionName }: { grado: Grado; seccion: Seccion; collectionName: string }): Promise<WithId<AMatriculado>[]> {
+  static async getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }: { estadosMatricula?: EstadoMatricula[]; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }): Promise<WithId<AMatriculado>[]> {
     return new Promise(async (resolve) => {
       let alumnos: WithId<AMatriculado>[] = []
-      const cursor = mongoClient.db().collection<AMatriculado>(collectionName).find({ grado, seccion })
+
+      const cursor = mongoClient
+        .db()
+        .collection<AMatriculado>(`matriculados${nivel}${year}`)
+        .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } })
       for await (const doc of cursor) {
         alumnos.push(doc)
       }
+
       resolve(alumnos)
     })
   }

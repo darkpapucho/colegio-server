@@ -244,8 +244,7 @@ class AlumnoControllers {
                 const { grado, seccion } = req.query;
                 (0, global_1.assertGrado)(grado);
                 (0, global_1.assertSeccion)(seccion);
-                const matriculadosCollection = `matriculados${nivel}${year}`;
-                const matriculados = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, collectionName: matriculadosCollection });
+                const matriculados = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, nivel, year });
                 res.status(200).send((0, responses_1.responseOk)(matriculados));
             }
             catch (err) {

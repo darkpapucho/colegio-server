@@ -1,3 +1,4 @@
+import { Periodo } from '../../../types/alumno'
 import { CursoNotaRecord, TardanzaInasistencia } from '../../../types/documents'
 import { Grado, Nivel, Nota } from '../../../types/enums'
 import { ESPACIOS_ENTRE_CURSOS_INICIAL, ESPACIOS_ENTRE_CURSOS_PRIMARIA } from '../../../vars/constants'
@@ -332,5 +333,20 @@ export function convertPeriodoKeyToIndex(periodo: keyof Omit<CursoNotaRecord, 'n
       return 3
     default:
       return 0
+  }
+}
+
+export function convertPeriodoKeyToName(periodo: Periodo) {
+  switch (periodo) {
+    case 'cuartoPeriodo':
+      return 'cuarto periodo'
+    case 'primerPeriodo':
+      return 'primer periodo'
+    case 'segundoPeriodo':
+      return 'segundo periodo'
+    case 'tercerPeriodo':
+      return 'tercer periodo'
+    default:
+      return 'PERIODO INVÁLIDO'
   }
 }

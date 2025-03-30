@@ -208,8 +208,8 @@ export class AlumnoControllers {
       const { grado, seccion } = req.query
       assertGrado(grado)
       assertSeccion(seccion)
-      const matriculadosCollection = `matriculados${nivel}${year}`
-      const matriculados = await Alumno.getByGradoSeccion({ grado, seccion, collectionName: matriculadosCollection })
+
+      const matriculados = await Alumno.getByGradoSeccion({ grado, seccion, nivel, year })
       res.status(200).send(responseOk(matriculados))
     } catch (err) {
       errorResponseHandler(res, err)
