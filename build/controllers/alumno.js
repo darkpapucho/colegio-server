@@ -211,6 +211,10 @@ class AlumnoControllers {
                 if (grado === 'SEXTO') {
                     throw new Error(enums_1.ErrorMessages.RATIFICACION_MATRICULA_INVALID_GRADO);
                 }
+                let targetNivel = nivel;
+                if (nivel === 'inicial' && grado === 'Grupo 5 años') {
+                    targetNivel = 'primaria';
+                }
                 const { alumnos, fechaMatricula } = req.body;
                 //assert alumnos data
                 const alumnosParsed = alumnos.map((alumno) => {
@@ -222,16 +226,16 @@ class AlumnoControllers {
                 //filter out alumnos that are already matriculados:
                 const filteredAlumnos = alumnosParsed.filter((record) => __awaiter(this, void 0, void 0, function* () {
                     if (record.dni) {
-                        const response = yield alumno_1.Alumno.fetchAlumnoByDni({ nivel, year, dni: record.dni });
+                        const response = yield alumno_1.Alumno.fetchAlumnoByDni({ nivel: targetNivel, year, dni: record.dni });
                         return response === null;
                     }
                     else {
-                        const response = yield alumno_1.Alumno.fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante: record.codigoEstudiante });
+                        const response = yield alumno_1.Alumno.fetchAlumnoByCodigoEstudiante({ nivel: targetNivel, year, codigoEstudiante: record.codigoEstudiante });
                         return response === null;
                     }
                 }));
                 //proceso ratificacion matricula
-                yield alumno_1.Alumno.ratificarMatricula({ alumnos: filteredAlumnos, currentYear, lastYear: year, nivel, fechaMatricula: new Date(fechaMatricula) });
+                yield alumno_1.Alumno.ratificarMatricula({ alumnos: filteredAlumnos, currentYear, lastYear: year, sourceNivel: nivel, targetNivel, fechaMatricula: new Date(fechaMatricula) });
                 res.status(201).send((0, responses_1.responseOk)(null));
             }
             catch (error) {

@@ -5,7 +5,7 @@ import { responseError, responseOk } from '../utils/responses'
 import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
-import { VALID_GRADOS, Year } from '../types/enums'
+import { Nivel, VALID_GRADOS, Year } from '../types/enums'
 import { AMatriculado, AMatriculadoNoId, AsistenciaValue, PartialAlumno } from '../types/alumno'
 import { ObjectId, WithId } from 'mongodb'
 import Calendario from '../models/Calendario'
@@ -176,7 +176,10 @@ export class AlumnoControllers {
       if (grado === 'SEXTO') {
         throw new Error(ErrorMessages.RATIFICACION_MATRICULA_INVALID_GRADO)
       }
-
+      let targetNivel: Nivel = nivel
+      if (nivel === 'inicial' && grado === 'Grupo 5 años') {
+        targetNivel = 'primaria'
+      }
       const { alumnos, fechaMatricula } = req.body
       //assert alumnos data
       const alumnosParsed: AMatriculado[] = alumnos.map((alumno: AMatriculado) => {
@@ -188,15 +191,15 @@ export class AlumnoControllers {
       //filter out alumnos that are already matriculados:
       const filteredAlumnos = alumnosParsed.filter(async (record) => {
         if (record.dni) {
-          const response = await Alumno.fetchAlumnoByDni({ nivel, year, dni: record.dni })
+          const response = await Alumno.fetchAlumnoByDni({ nivel: targetNivel, year, dni: record.dni })
           return response === null
         } else {
-          const response = await Alumno.fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante: record.codigoEstudiante })
+          const response = await Alumno.fetchAlumnoByCodigoEstudiante({ nivel: targetNivel, year, codigoEstudiante: record.codigoEstudiante })
           return response === null
         }
       })
       //proceso ratificacion matricula
-      await Alumno.ratificarMatricula({ alumnos: filteredAlumnos, currentYear, lastYear: year, nivel, fechaMatricula: new Date(fechaMatricula) })
+      await Alumno.ratificarMatricula({ alumnos: filteredAlumnos, currentYear, lastYear: year, sourceNivel: nivel, targetNivel, fechaMatricula: new Date(fechaMatricula) })
       res.status(201).send(responseOk(null))
     } catch (error) {
       errorResponseHandler(res, error)

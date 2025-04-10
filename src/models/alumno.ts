@@ -190,7 +190,21 @@ export class Alumno {
     return alumnos
   }
 
-  static async ratificarMatricula({ alumnos, nivel, currentYear, lastYear, fechaMatricula }: { fechaMatricula: Date; alumnos: AMatriculado[]; nivel: Nivel; currentYear: Year; lastYear: Year }): Promise<void> {
+  static async ratificarMatricula({
+    alumnos,
+    sourceNivel,
+    targetNivel,
+    currentYear,
+    lastYear,
+    fechaMatricula,
+  }: {
+    fechaMatricula: Date
+    alumnos: AMatriculado[]
+    targetNivel: Nivel
+    sourceNivel: Nivel
+    currentYear: Year
+    lastYear: Year
+  }): Promise<void> {
     const alumnosNoId: AMatriculadoNoId[] = alumnos.map((alumno) => {
       const { _id, ...rest } = alumno
       return { ...rest }
@@ -204,7 +218,7 @@ export class Alumno {
     //matricular en el año presente:
     const matriculaResult = await mongoClient
       .db()
-      .collection(`matriculados${nivel}${currentYear}`)
+      .collection(`matriculados${targetNivel}${currentYear}`)
       .insertMany([...alumnosNoId], { session })
     if (!matriculaResult.acknowledged || matriculaResult.insertedCount !== cantidadAlumnos) {
       await session.abortTransaction()
@@ -216,7 +230,7 @@ export class Alumno {
     //borrar de la lista ratificar del año pasado
     const deleteResult = await mongoClient
       .db()
-      .collection(`ratificar${nivel}${lastYear}`)
+      .collection(`ratificar${sourceNivel}${lastYear}`)
       .deleteMany({ _id: { $in: oldAlumnosIds } })
 
     if (!deleteResult.acknowledged || deleteResult.deletedCount !== cantidadAlumnos) {
@@ -227,7 +241,7 @@ export class Alumno {
 
     //asistencia:
     let alumnoAsistenciaRecords: AsistenciaRecord[] = []
-    const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year: currentYear })
+    const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel: targetNivel, year: currentYear })
     // if (!lastDayFromCalendar) {
     //   await session.abortTransaction()
     //   await session.endSession()
@@ -236,7 +250,7 @@ export class Alumno {
 
     if (lastDayFromCalendar != null) {
       const lastDate = new Date(`${currentYear}-${parseMonthNameToMonthNumber1to12(lastDayFromCalendar.month)}-${lastDayFromCalendar.day}`)
-      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysRange({ nivel, year: currentYear, startDate: fechaMatricula, endDate: lastDate })
+      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysRange({ nivel: targetNivel, year: currentYear, startDate: fechaMatricula, endDate: lastDate })
       alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
         return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
       })
@@ -245,7 +259,7 @@ export class Alumno {
       return { alumnoId, records: alumnoAsistenciaRecords }
     })
 
-    const asistenciasResponse = await Calendario.insertManyAlumnoAsistenciaRecord({ nivel, year: currentYear, recordsAsistencia, session })
+    const asistenciasResponse = await Calendario.insertManyAlumnoAsistenciaRecord({ nivel: targetNivel, year: currentYear, recordsAsistencia, session })
     if (asistenciasResponse.insertedCount != cantidadAlumnos) {
       await session.abortTransaction()
       await session.endSession()
@@ -256,7 +270,7 @@ export class Alumno {
     //pensiones
     const pensiones: PensionRecord[] = []
     for (let i = fechaMatricula.getMonth(); i <= 11; i++) {
-      const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false }
+      const record = { fecha: '', monto_pagar: targetNivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false }
       pensiones.push(record)
     }
     const recordsPensiones = newAlumnosIds.map((alumnoId) => {
@@ -265,7 +279,7 @@ export class Alumno {
 
     const pensionesResponse = await mongoClient
       .db()
-      .collection(`pensiones${nivel}${currentYear}`)
+      .collection(`pensiones${targetNivel}${currentYear}`)
       .insertMany([...recordsPensiones], { session })
     if (pensionesResponse.insertedCount != cantidadAlumnos) {
       await session.abortTransaction()
