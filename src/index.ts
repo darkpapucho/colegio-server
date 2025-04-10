@@ -6,6 +6,7 @@ import { documentoRouter } from './routes/documento'
 import { errorResponseHandler } from './error/errors'
 import { empleadoRouter } from './routes/empleado'
 import { calendarioRouter } from './routes/calendario'
+import { pensionRouter } from './routes/pension'
 
 const PORT = process.env.PORT || 4000
 const app = express()
@@ -17,6 +18,7 @@ app.use('/alumno', alumnoRouter)
 app.use('/documento', documentoRouter)
 app.use('/empleado', empleadoRouter)
 app.use('/calendario', calendarioRouter)
+app.use('/pensiones', pensionRouter)
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.log('error catched')
   console.log({ err })

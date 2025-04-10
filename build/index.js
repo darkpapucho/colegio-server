@@ -11,6 +11,7 @@ const documento_1 = require("./routes/documento");
 const errors_1 = require("./error/errors");
 const empleado_1 = require("./routes/empleado");
 const calendario_1 = require("./routes/calendario");
+const pension_1 = require("./routes/pension");
 const PORT = process.env.PORT || 4000;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -20,6 +21,7 @@ app.use('/alumno', alumno_1.alumnoRouter);
 app.use('/documento', documento_1.documentoRouter);
 app.use('/empleado', empleado_1.empleadoRouter);
 app.use('/calendario', calendario_1.calendarioRouter);
+app.use('/pensiones', pension_1.pensionRouter);
 app.use((err, _req, res, _next) => {
     console.log('error catched');
     console.log({ err });
