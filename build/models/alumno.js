@@ -44,7 +44,7 @@ class Alumno {
             session.startTransaction();
             try {
                 const matriculaResult = yield this.nuevaMatricula({ alumno, nivel, year, session });
-                if (!matriculaResult.acknowledged) {
+                if (!matriculaResult.acknowledged || !matriculaResult.insertedId) {
                     yield session.abortTransaction();
                     yield session.endSession();
                     return false;
@@ -65,6 +65,18 @@ class Alumno {
                 });
                 const result2 = yield Calendario_1.default.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: matriculaResult.insertedId, records: alumnoAsistenciaRecords });
                 if (!result2.acknowledged) {
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    return false;
+                }
+                //insertar pensiones de acuerdo a la fecha de matricula
+                const pensiones = [];
+                for (let i = fechaMatricula.getMonth(); i <= 11; i++) {
+                    const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false };
+                    pensiones.push(record);
+                }
+                const pensionesResponse = yield db_1.mongoClient.db().collection(`pensiones${nivel}${year}`).insertOne({ alumnoId: matriculaResult.insertedId, pensiones }, { session });
+                if (!pensionesResponse.acknowledged || !pensionesResponse.insertedId) {
                     yield session.abortTransaction();
                     yield session.endSession();
                     return false;
@@ -265,40 +277,81 @@ class Alumno {
             return alumnos;
         });
     }
-    static ratificarMatricula({ alumnos, currentYearCollectionName, lastYearCollectionName }) {
+    static ratificarMatricula({ alumnos, nivel, currentYear, lastYear, fechaMatricula }) {
         return __awaiter(this, void 0, void 0, function* () {
             const alumnosNoId = alumnos.map((alumno) => {
                 const { _id } = alumno, rest = __rest(alumno, ["_id"]);
                 return Object.assign({}, rest);
             });
             const cantidadAlumnos = alumnos.length;
-            const alumnosIds = alumnos.map((alumno) => new mongodb_1.ObjectId(alumno._id));
+            const oldAlumnosIds = alumnos.map((alumno) => new mongodb_1.ObjectId(alumno._id)); //old ids
             const session = db_1.mongoClient.startSession();
-            try {
-                session.startTransaction();
-                const response1 = yield db_1.mongoClient
-                    .db()
-                    .collection(currentYearCollectionName)
-                    .insertMany([...alumnosNoId], { session });
-                if (!response1.acknowledged || response1.insertedCount !== cantidadAlumnos) {
-                    throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
-                }
-                const response2 = yield db_1.mongoClient
-                    .db()
-                    .collection(lastYearCollectionName)
-                    .deleteMany({ _id: { $in: alumnosIds } });
-                if (!response2.acknowledged || response2.deletedCount !== cantidadAlumnos) {
-                    throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
-                }
-                session.commitTransaction();
-                // for await(let alumno of alumnos){
-                //   mongoClient.db().collection(lastYearCollectionName).deleteOne({_id:new ObjectId(alumno._id)})
-                // }
-            }
-            catch (error) {
+            session.startTransaction();
+            //matricular en el año presente:
+            const matriculaResult = yield db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${currentYear}`)
+                .insertMany([...alumnosNoId], { session });
+            if (!matriculaResult.acknowledged || matriculaResult.insertedCount !== cantidadAlumnos) {
                 yield session.abortTransaction();
-                session.endSession();
+                yield session.endSession();
+                throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
             }
+            const newAlumnosIds = Object.values(matriculaResult.insertedIds);
+            //borrar de la lista ratificar del año pasado
+            const deleteResult = yield db_1.mongoClient
+                .db()
+                .collection(`ratificar${nivel}${lastYear}`)
+                .deleteMany({ _id: { $in: oldAlumnosIds } });
+            if (!deleteResult.acknowledged || deleteResult.deletedCount !== cantidadAlumnos) {
+                yield session.abortTransaction();
+                yield session.endSession();
+                throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
+            }
+            //asistencia:
+            let alumnoAsistenciaRecords = [];
+            const lastDayFromCalendar = yield Calendario_1.default.fetchLastDayOfCalendarioEscolar({ nivel, year: currentYear });
+            // if (!lastDayFromCalendar) {
+            //   await session.abortTransaction()
+            //   await session.endSession()
+            // }
+            if (lastDayFromCalendar != null) {
+                const lastDate = new Date(`${currentYear}-${(0, periodosDates_1.parseMonthNameToMonthNumber1to12)(lastDayFromCalendar.month)}-${lastDayFromCalendar.day}`);
+                const calendarioDaysForMatricula = yield Calendario_1.default.getCalendarioDaysRange({ nivel, year: currentYear, startDate: fechaMatricula, endDate: lastDate });
+                alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
+                    return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' };
+                });
+            }
+            const recordsAsistencia = newAlumnosIds.map((alumnoId) => {
+                return { alumnoId, records: alumnoAsistenciaRecords };
+            });
+            const asistenciasResponse = yield Calendario_1.default.insertManyAlumnoAsistenciaRecord({ nivel, year: currentYear, recordsAsistencia, session });
+            if (asistenciasResponse.insertedCount != cantidadAlumnos) {
+                yield session.abortTransaction();
+                yield session.endSession();
+                throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
+            }
+            //notas: manejado por un trigger de la base de datos
+            //pensiones
+            const pensiones = [];
+            for (let i = fechaMatricula.getMonth(); i <= 11; i++) {
+                const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false };
+                pensiones.push(record);
+            }
+            const recordsPensiones = newAlumnosIds.map((alumnoId) => {
+                return { alumnoId, pensiones };
+            });
+            const pensionesResponse = yield db_1.mongoClient
+                .db()
+                .collection(`pensiones${nivel}${currentYear}`)
+                .insertMany([...recordsPensiones], { session });
+            if (pensionesResponse.insertedCount != cantidadAlumnos) {
+                yield session.abortTransaction();
+                yield session.endSession();
+                throw new Error(enums_1.ErrorMessages.OPERATION_NOT_COMPLETED);
+            }
+            yield session.commitTransaction();
+            yield session.endSession();
         });
     }
     static getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }) {

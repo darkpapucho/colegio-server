@@ -7,6 +7,7 @@ import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/util
 import { Month } from '../types/asistencia'
 import Calendario from './Calendario'
 import { parseMonthNameToMonthNumber1to12 } from '../vars/periodosDates'
+import { PensionRecord } from '../types/pensiones'
 
 export class Alumno {
   static async ProcesoNuevoMatricula({ nivel, year, alumno }: { nivel: Nivel; year: Year; alumno: NuevoAlumno }) {
@@ -14,12 +15,12 @@ export class Alumno {
     session.startTransaction()
     try {
       const matriculaResult = await this.nuevaMatricula({ alumno, nivel, year, session })
-
-      if (!matriculaResult.acknowledged) {
+      if (!matriculaResult.acknowledged || !matriculaResult.insertedId) {
         await session.abortTransaction()
         await session.endSession()
         return false
       }
+
       const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year })
 
       if (!lastDayFromCalendar) {
@@ -40,6 +41,18 @@ export class Alumno {
       })
       const result2 = await Calendario.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: matriculaResult.insertedId, records: alumnoAsistenciaRecords })
       if (!result2.acknowledged) {
+        await session.abortTransaction()
+        await session.endSession()
+        return false
+      }
+      //insertar pensiones de acuerdo a la fecha de matricula
+      const pensiones = []
+      for (let i = fechaMatricula.getMonth(); i <= 11; i++) {
+        const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false }
+        pensiones.push(record)
+      }
+      const pensionesResponse = await mongoClient.db().collection(`pensiones${nivel}${year}`).insertOne({ alumnoId: matriculaResult.insertedId, pensiones }, { session })
+      if (!pensionesResponse.acknowledged || !pensionesResponse.insertedId) {
         await session.abortTransaction()
         await session.endSession()
         return false
@@ -177,42 +190,91 @@ export class Alumno {
     return alumnos
   }
 
-  static async ratificarMatricula({ alumnos, currentYearCollectionName, lastYearCollectionName }: { alumnos: AMatriculado[]; currentYearCollectionName: string; lastYearCollectionName: string }): Promise<void> {
+  static async ratificarMatricula({ alumnos, nivel, currentYear, lastYear, fechaMatricula }: { fechaMatricula: Date; alumnos: AMatriculado[]; nivel: Nivel; currentYear: Year; lastYear: Year }): Promise<void> {
     const alumnosNoId: AMatriculadoNoId[] = alumnos.map((alumno) => {
       const { _id, ...rest } = alumno
       return { ...rest }
     })
     const cantidadAlumnos = alumnos.length
-    const alumnosIds: ObjectId[] = alumnos.map((alumno) => new ObjectId(alumno._id))
+    const oldAlumnosIds: ObjectId[] = alumnos.map((alumno) => new ObjectId(alumno._id)) //old ids
+
     const session = mongoClient.startSession()
 
-    try {
-      session.startTransaction()
-      const response1 = await mongoClient
-        .db()
-        .collection(currentYearCollectionName)
-        .insertMany([...alumnosNoId], { session })
-      if (!response1.acknowledged || response1.insertedCount !== cantidadAlumnos) {
-        throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
-      }
-
-      const response2 = await mongoClient
-        .db()
-        .collection(lastYearCollectionName)
-        .deleteMany({ _id: { $in: alumnosIds } })
-      if (!response2.acknowledged || response2.deletedCount !== cantidadAlumnos) {
-        throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
-      }
-
-      session.commitTransaction()
-
-      // for await(let alumno of alumnos){
-      //   mongoClient.db().collection(lastYearCollectionName).deleteOne({_id:new ObjectId(alumno._id)})
-      // }
-    } catch (error) {
+    session.startTransaction()
+    //matricular en el año presente:
+    const matriculaResult = await mongoClient
+      .db()
+      .collection(`matriculados${nivel}${currentYear}`)
+      .insertMany([...alumnosNoId], { session })
+    if (!matriculaResult.acknowledged || matriculaResult.insertedCount !== cantidadAlumnos) {
       await session.abortTransaction()
-      session.endSession()
+      await session.endSession()
+      throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
     }
+    const newAlumnosIds = Object.values(matriculaResult.insertedIds)
+
+    //borrar de la lista ratificar del año pasado
+    const deleteResult = await mongoClient
+      .db()
+      .collection(`ratificar${nivel}${lastYear}`)
+      .deleteMany({ _id: { $in: oldAlumnosIds } })
+
+    if (!deleteResult.acknowledged || deleteResult.deletedCount !== cantidadAlumnos) {
+      await session.abortTransaction()
+      await session.endSession()
+      throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
+    }
+
+    //asistencia:
+    let alumnoAsistenciaRecords: AsistenciaRecord[] = []
+    const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year: currentYear })
+    // if (!lastDayFromCalendar) {
+    //   await session.abortTransaction()
+    //   await session.endSession()
+
+    // }
+
+    if (lastDayFromCalendar != null) {
+      const lastDate = new Date(`${currentYear}-${parseMonthNameToMonthNumber1to12(lastDayFromCalendar.month)}-${lastDayFromCalendar.day}`)
+      const calendarioDaysForMatricula = await Calendario.getCalendarioDaysRange({ nivel, year: currentYear, startDate: fechaMatricula, endDate: lastDate })
+      alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
+        return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
+      })
+    }
+    const recordsAsistencia = newAlumnosIds.map((alumnoId) => {
+      return { alumnoId, records: alumnoAsistenciaRecords }
+    })
+
+    const asistenciasResponse = await Calendario.insertManyAlumnoAsistenciaRecord({ nivel, year: currentYear, recordsAsistencia, session })
+    if (asistenciasResponse.insertedCount != cantidadAlumnos) {
+      await session.abortTransaction()
+      await session.endSession()
+      throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
+    }
+    //notas: manejado por un trigger de la base de datos
+
+    //pensiones
+    const pensiones: PensionRecord[] = []
+    for (let i = fechaMatricula.getMonth(); i <= 11; i++) {
+      const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false }
+      pensiones.push(record)
+    }
+    const recordsPensiones = newAlumnosIds.map((alumnoId) => {
+      return { alumnoId, pensiones }
+    })
+
+    const pensionesResponse = await mongoClient
+      .db()
+      .collection(`pensiones${nivel}${currentYear}`)
+      .insertMany([...recordsPensiones], { session })
+    if (pensionesResponse.insertedCount != cantidadAlumnos) {
+      await session.abortTransaction()
+      await session.endSession()
+      throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
+    }
+
+    await session.commitTransaction()
+    await session.endSession()
   }
 
   static async getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }: { estadosMatricula?: EstadoMatricula[]; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }): Promise<WithId<AMatriculado>[]> {

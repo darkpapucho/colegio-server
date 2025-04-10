@@ -2,6 +2,21 @@ import { ObjectId } from 'mongodb'
 import { Sexo, Grado, Seccion, Secciones } from './enums'
 import { Month } from './asistencia'
 
+type TipoApoderado = 'MADRE' | 'PADRE' | 'APODERADO'
+type Sexo = 'Hombre' | 'Mujer'
+
+type NuevoApoderado = {
+  apellidos: string
+  nombres: string
+  nombreCompleto: string
+  dni: string
+  correo: string
+  telefono: string
+  relacion: TipoApoderado
+}
+
+type Apoderado = NuevoApoderado & { _id: string }
+
 type EstadoMatricula = 'DEFINITIVA' | 'EN PROCESO' | 'PENDIENTE' | 'TRASLADADO'
 
 export interface AMatriculado {
@@ -18,6 +33,7 @@ export interface AMatriculado {
   dni?: string
   codigoEstudiante: string
   nombreCompleto: string
+  apoderado?: Apoderado[]
 }
 
 export interface NuevoAlumno {

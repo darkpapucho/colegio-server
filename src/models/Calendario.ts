@@ -11,6 +11,25 @@ import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from
 import { getMonthsBetween, MONTHS_YEAR } from '../utils/calendario'
 
 export default class Calendario {
+  static async insertManyAlumnoAsistenciaRecord({
+    nivel,
+    year,
+    recordsAsistencia,
+    session,
+  }: {
+    session?: ClientSession
+    nivel: Nivel
+    year: Year
+    recordsAsistencia: { alumnoId: ObjectId; records: AsistenciaRecord[] }[]
+  }) {
+    const response = await mongoClient
+      .db()
+      .collection(`asistencias${nivel}${year}`)
+      .insertMany([...recordsAsistencia], { session })
+    console.log({ calendarioInserts: response })
+    return response
+  }
+
   static async fetchAsistenciaListByDayIdAndValue({ nivel, year, dayId, asistenciaValue }: { asistenciaValue: AsistenciaValue; nivel: Nivel; year: Year; dayId: string }) {
     const cursor = mongoClient
       .db()

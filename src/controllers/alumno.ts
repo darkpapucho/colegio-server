@@ -5,7 +5,7 @@ import { responseError, responseOk } from '../utils/responses'
 import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
-import { GradosInicial, VALID_GRADOS } from '../types/enums'
+import { VALID_GRADOS, Year } from '../types/enums'
 import { AMatriculado, AMatriculadoNoId, AsistenciaValue, PartialAlumno } from '../types/alumno'
 import { ObjectId, WithId } from 'mongodb'
 import Calendario from '../models/Calendario'
@@ -167,35 +167,36 @@ export class AlumnoControllers {
   static async ratificarMatricula(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req) // asserted
-      const currentYear = new Date().getFullYear()
+      const currentYear = ('' + new Date().getFullYear()) as Year
       const { grado } = req.query
       assertGrado(grado)
-
-      if (currentYear - Number(year) !== 1) {
+      if (Number(currentYear) - Number(year) !== 1) {
         throw new Error(ErrorMessages.RATIFICACION_MATRICULA_INVALID_AÑO)
       }
       if (grado === 'SEXTO') {
         throw new Error(ErrorMessages.RATIFICACION_MATRICULA_INVALID_GRADO)
       }
 
-      let currentYearCollectionName: string = ''
-      let lastYearCollectionName: string = ''
-      if (grado === GradosInicial.Grupo5años) {
-        currentYearCollectionName = `matriculadosprimaria${currentYear}`
-        lastYearCollectionName = `ratificarinicial${year}`
-      } else {
-        currentYearCollectionName = `matriculados${nivel}${currentYear}`
-        lastYearCollectionName = `ratificar${nivel}${year}`
-      }
-      const { alumnos } = req.body
+      const { alumnos, fechaMatricula } = req.body
       //assert alumnos data
-      const alumnosParsed = alumnos.map((alumno: AMatriculado) => {
+      const alumnosParsed: AMatriculado[] = alumnos.map((alumno: AMatriculado) => {
         assertIsAMatriculado(alumno)
         const currentGradoIndex = VALID_GRADOS.indexOf(alumno.grado)
         alumno.grado = VALID_GRADOS[currentGradoIndex + 1]
         return alumno
       })
-      await Alumno.ratificarMatricula({ alumnos: alumnosParsed, currentYearCollectionName, lastYearCollectionName })
+      //filter out alumnos that are already matriculados:
+      const filteredAlumnos = alumnosParsed.filter(async (record) => {
+        if (record.dni) {
+          const response = await Alumno.fetchAlumnoByDni({ nivel, year, dni: record.dni })
+          return response === null
+        } else {
+          const response = await Alumno.fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante: record.codigoEstudiante })
+          return response === null
+        }
+      })
+      //proceso ratificacion matricula
+      await Alumno.ratificarMatricula({ alumnos: filteredAlumnos, currentYear, lastYear: year, nivel, fechaMatricula: new Date(fechaMatricula) })
       res.status(201).send(responseOk(null))
     } catch (error) {
       errorResponseHandler(res, error)

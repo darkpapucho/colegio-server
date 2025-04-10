@@ -27,6 +27,16 @@ const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPe
 const periodosDates_1 = require("../vars/periodosDates");
 const calendario_1 = require("../utils/calendario");
 class Calendario {
+    static insertManyAlumnoAsistenciaRecord({ nivel, year, recordsAsistencia, session, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`asistencias${nivel}${year}`)
+                .insertMany([...recordsAsistencia], { session });
+            console.log({ calendarioInserts: response });
+            return response;
+        });
+    }
     static fetchAsistenciaListByDayIdAndValue({ nivel, year, dayId, asistenciaValue }) {
         var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {

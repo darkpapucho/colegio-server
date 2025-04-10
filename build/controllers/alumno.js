@@ -202,26 +202,16 @@ class AlumnoControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req); // asserted
-                const currentYear = new Date().getFullYear();
+                const currentYear = ('' + new Date().getFullYear());
                 const { grado } = req.query;
                 (0, global_1.assertGrado)(grado);
-                if (currentYear - Number(year) !== 1) {
+                if (Number(currentYear) - Number(year) !== 1) {
                     throw new Error(enums_1.ErrorMessages.RATIFICACION_MATRICULA_INVALID_AÑO);
                 }
                 if (grado === 'SEXTO') {
                     throw new Error(enums_1.ErrorMessages.RATIFICACION_MATRICULA_INVALID_GRADO);
                 }
-                let currentYearCollectionName = '';
-                let lastYearCollectionName = '';
-                if (grado === enums_2.GradosInicial.Grupo5años) {
-                    currentYearCollectionName = `matriculadosprimaria${currentYear}`;
-                    lastYearCollectionName = `ratificarinicial${year}`;
-                }
-                else {
-                    currentYearCollectionName = `matriculados${nivel}${currentYear}`;
-                    lastYearCollectionName = `ratificar${nivel}${year}`;
-                }
-                const { alumnos } = req.body;
+                const { alumnos, fechaMatricula } = req.body;
                 //assert alumnos data
                 const alumnosParsed = alumnos.map((alumno) => {
                     (0, validators_1.assertIsAMatriculado)(alumno);
@@ -229,7 +219,19 @@ class AlumnoControllers {
                     alumno.grado = enums_2.VALID_GRADOS[currentGradoIndex + 1];
                     return alumno;
                 });
-                yield alumno_1.Alumno.ratificarMatricula({ alumnos: alumnosParsed, currentYearCollectionName, lastYearCollectionName });
+                //filter out alumnos that are already matriculados:
+                const filteredAlumnos = alumnosParsed.filter((record) => __awaiter(this, void 0, void 0, function* () {
+                    if (record.dni) {
+                        const response = yield alumno_1.Alumno.fetchAlumnoByDni({ nivel, year, dni: record.dni });
+                        return response === null;
+                    }
+                    else {
+                        const response = yield alumno_1.Alumno.fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante: record.codigoEstudiante });
+                        return response === null;
+                    }
+                }));
+                //proceso ratificacion matricula
+                yield alumno_1.Alumno.ratificarMatricula({ alumnos: filteredAlumnos, currentYear, lastYear: year, nivel, fechaMatricula: new Date(fechaMatricula) });
                 res.status(201).send((0, responses_1.responseOk)(null));
             }
             catch (error) {
