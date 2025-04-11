@@ -6,6 +6,55 @@ import { PensionRecord } from '../types/pensiones'
 import { VALID_MONTHS } from '../types/asistencia'
 
 export default class Pension {
+  static async getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas }: { currentMonth: number; nivel: Nivel; year: Year; numeroPensionesAtrasadas: number }) {
+    const cursor = mongoClient
+      .db()
+      .collection<{ alumnoId: ObjectId; pensiones: PensionRecord[]; numPensionesPagadas: number }>(`pensiones${nivel}${year}`)
+      .aggregate<{ comentario?: { fecha: string; detalle: string }; numeroPensionesAtrasadas: number; alumnoId: string; pensiones: PensionRecord[]; estudiante: AMatriculado }>([
+        {
+          $match: {
+            $expr: {
+              $eq: [
+                '$numPensionesPagadas',
+                {
+                  $subtract: [
+                    {
+                      $subtract: [{ $subtract: [currentMonth, 1] }, numeroPensionesAtrasadas],
+                    },
+                    { $subtract: [10, { $size: '$pensiones' }] },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $addFields: {
+            numeroPensionesAtrasadas,
+          },
+        },
+        {
+          $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' },
+        },
+        {
+          $project: { numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, comentario: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } },
+        },
+      ])
+    const result = []
+    for await (const doc of cursor) {
+      result.push(doc)
+    }
+    console.log({ result })
+    return result
+  }
+  static async getPensionesGlobalReport({ nivel, year }: { nivel: Nivel; year: Year }) {
+    const cursor = mongoClient.db().collection<{ alumnoId: ObjectId; pensiones: PensionRecord[]; numPensionesPagadas: number }>(`pensiones${nivel}${year}`).find({})
+    const list = []
+    for await (const doc of cursor) {
+      list.push(doc)
+    }
+    return list
+  }
   static async updateMontoPagarPension({ nivel, year, alumnoId, pensiones }: { nivel: Nivel; year: Year; alumnoId: string; pensiones: PensionRecord[] }) {
     const response = mongoClient
       .db()
@@ -17,7 +66,7 @@ export default class Pension {
     const response = mongoClient
       .db()
       .collection(`pensiones${nivel}${year}`)
-      .aggregate<{ alumnoId: ObjectId; pensiones: PensionRecord[]; estudiante: AMatriculado }>([
+      .aggregate<{ alumnoId: ObjectId; pensiones: PensionRecord[]; estudiante: AMatriculado; numPensionesPagadas: number }>([
         { $lookup: { from: `matriculados${nivel}${year}`, foreignField: '_id', localField: 'alumnoId', as: 'estudiante' } },
         { $project: { _id: 0, alumnoId: 1, pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
         { $match: { 'estudiante.grado': grado, 'estudiante.seccion': seccion, 'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } } },
@@ -91,7 +140,7 @@ export default class Pension {
       .updateOne(
         { alumnoId: new ObjectId(alumnoId), 'pensiones.mes': mes },
         {
-          $inc: { 'pensiones.$.monto_pagado': monto_abonado },
+          $inc: { 'pensiones.$.monto_pagado': monto_abonado, numPensionesPagadas: 1 },
           $set: { 'pensiones.$.pagado': pagadoCompletamente, 'pensiones.$.fecha': fecha, 'pensiones.$.reciboId': reciboId },
         },
         { session },

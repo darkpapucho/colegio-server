@@ -20,6 +20,85 @@ const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const asistencia_1 = require("../types/asistencia");
 class Pension {
+    static getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas }) {
+        var _a, e_1, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const cursor = db_1.mongoClient
+                .db()
+                .collection(`pensiones${nivel}${year}`)
+                .aggregate([
+                {
+                    $match: {
+                        $expr: {
+                            $eq: [
+                                '$numPensionesPagadas',
+                                {
+                                    $subtract: [
+                                        {
+                                            $subtract: [{ $subtract: [currentMonth, 1] }, numeroPensionesAtrasadas],
+                                        },
+                                        { $subtract: [10, { $size: '$pensiones' }] },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    $addFields: {
+                        numeroPensionesAtrasadas,
+                    },
+                },
+                {
+                    $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' },
+                },
+                {
+                    $project: { numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, comentario: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } },
+                },
+            ]);
+            const result = [];
+            try {
+                for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
+                    _c = cursor_1_1.value;
+                    _d = false;
+                    const doc = _c;
+                    result.push(doc);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            console.log({ result });
+            return result;
+        });
+    }
+    static getPensionesGlobalReport({ nivel, year }) {
+        var _a, e_2, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const cursor = db_1.mongoClient.db().collection(`pensiones${nivel}${year}`).find({});
+            const list = [];
+            try {
+                for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
+                    _c = cursor_2_1.value;
+                    _d = false;
+                    const doc = _c;
+                    list.push(doc);
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+            return list;
+        });
+    }
     static updateMontoPagarPension({ nivel, year, alumnoId, pensiones }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = db_1.mongoClient
@@ -30,7 +109,7 @@ class Pension {
         });
     }
     static getListByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }) {
-        var _a, e_1, _b, _c;
+        var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const response = db_1.mongoClient
                 .db()
@@ -49,12 +128,12 @@ class Pension {
                     result.push(doc);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = response_1.return)) yield _b.call(response_1);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return result;
         });
@@ -94,7 +173,7 @@ class Pension {
                 .db()
                 .collection(`pensiones${nivel}${year}`)
                 .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId), 'pensiones.mes': mes }, {
-                $inc: { 'pensiones.$.monto_pagado': monto_abonado },
+                $inc: { 'pensiones.$.monto_pagado': monto_abonado, numPensionesPagadas: 1 },
                 $set: { 'pensiones.$.pagado': pagadoCompletamente, 'pensiones.$.fecha': fecha, 'pensiones.$.reciboId': reciboId },
             }, { session });
             if (!updatePensionRecordResponse.acknowledged || !updatePensionRecordResponse.modifiedCount) {

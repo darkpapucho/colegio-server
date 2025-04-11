@@ -11,3 +11,6 @@ exports.pensionRouter = (0, express_1.Router)();
 exports.pensionRouter.post('/get-lista-by-grado-seccion', verifyCredentials_1.verifyCredentials, pension_1.default.getListGradoSeccion);
 exports.pensionRouter.post('/pagar-pension-alumnoid-mes', verifyCredentials_1.verifyCredentials, pension_1.default.pagarPensionByAlumnoIdAndMonth);
 exports.pensionRouter.post('/update-monto-pagar-pensiones', verifyCredentials_1.verifyCredentials, pension_1.default.updateMontoPagarPension);
+exports.pensionRouter.post('/get-pensiones-global-report', verifyCredentials_1.verifyCredentials, pension_1.default.getPensionesGlobalReport);
+exports.pensionRouter.post('/get-lista-by-numero-pensiones-atrasadas', verifyCredentials_1.verifyCredentials, pension_1.default.getListAlumnosByNumPensionesAtrasadas);
+//pensionRouter.post("/editar-comentario-pension",verifyCredentials)

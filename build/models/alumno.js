@@ -75,7 +75,7 @@ class Alumno {
                     const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false };
                     pensiones.push(record);
                 }
-                const pensionesResponse = yield db_1.mongoClient.db().collection(`pensiones${nivel}${year}`).insertOne({ alumnoId: matriculaResult.insertedId, pensiones }, { session });
+                const pensionesResponse = yield db_1.mongoClient.db().collection(`pensiones${nivel}${year}`).insertOne({ numPensionesPagadas: 0, alumnoId: matriculaResult.insertedId, pensiones }, { session });
                 if (!pensionesResponse.acknowledged || !pensionesResponse.insertedId) {
                     yield session.abortTransaction();
                     yield session.endSession();
@@ -339,7 +339,7 @@ class Alumno {
                 pensiones.push(record);
             }
             const recordsPensiones = newAlumnosIds.map((alumnoId) => {
-                return { alumnoId, pensiones };
+                return { alumnoId, pensiones, numPensionesPagadas: 0 };
             });
             const pensionesResponse = yield db_1.mongoClient
                 .db()

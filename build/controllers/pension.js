@@ -17,6 +17,43 @@ const pension_1 = __importDefault(require("../models/pension"));
 const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 class PensionController {
+    static getListAlumnosByNumPensionesAtrasadas(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { numeroPensionesAtrasadas, currentMonth } = req.body;
+                //const delta = 10 - pensiones.length
+                //numPensionesPagadas = currentMonth - 1 - numeroPensionesAtrasadas- delta
+                const response = yield pension_1.default.getListAlumnosByNumPensionesAtrasadas({ nivel, year, numeroPensionesAtrasadas, currentMonth });
+                res.send((0, responses_1.responseOk)(response));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static getPensionesGlobalReport(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { currentMonth } = req.body;
+                const consolidado = Array.from({ length: currentMonth }, (_, i) => {
+                    //caso de marzo: length = 2 -> 0 y 1;
+                    return { numeroPensionesAtrasadas: i, totalAlumnos: 0 };
+                });
+                const list = yield pension_1.default.getPensionesGlobalReport({ nivel, year });
+                list.forEach((record) => {
+                    const delta = 10 - record.pensiones.length;
+                    const numeroPensionesAtrasadas = currentMonth - 1 - record.numPensionesPagadas - delta;
+                    consolidado[numeroPensionesAtrasadas].totalAlumnos = consolidado[numeroPensionesAtrasadas].totalAlumnos + 1;
+                });
+                res.send((0, responses_1.responseOk)(consolidado));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static getListGradoSeccion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
