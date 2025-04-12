@@ -4,6 +4,7 @@ import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { AMatriculado } from '../types/alumno'
 import { PensionRecord } from '../types/pensiones'
 import { VALID_MONTHS } from '../types/asistencia'
+import { CorrelativoType } from '../types/correlativos'
 
 export default class Pension {
   static async getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas }: { currentMonth: number; nivel: Nivel; year: Year; numeroPensionesAtrasadas: number }) {
@@ -36,9 +37,9 @@ export default class Pension {
         {
           $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' },
         },
-        {
-          $project: { numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, comentario: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } },
-        },
+        { $lookup: { from: `anotacionesRelevantes${nivel}${year}`, localField: 'alumnoId', foreignField: 'alumnoId', as: 'comentario' } },
+        { $project: { comentario: { $arrayElemAt: ['$comentario', 0] }, numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
+
         { $sort: { 'estudiante.grado': 1, 'estudiante.seccion': 1 } },
       ])
     const result = []
@@ -108,13 +109,21 @@ export default class Pension {
     session.startTransaction()
     let reciboId: ObjectId | null = null
     if (pagadoCompletamente) {
-      //crear recibo
+      //fetch numero de recibo:
+      const reciboNumberResponse = await mongoClient.db().collection(`correlativos${year}`).findOne<{ tipo: CorrelativoType; current: number }>({ tipo: 'recibo' })
+      let reciboNumber: number
+      if (!reciboNumberResponse) {
+        reciboNumber = 0
+      } else {
+        reciboNumber = reciboNumberResponse.current
+      }
       //crear recibo:
       const createReciboResponse = await mongoClient
         .db()
         .collection(`recibos${year}`)
         .insertOne(
           {
+            numRecibo: reciboNumber + 1,
             nivel,
             alumnoId: new ObjectId(alumnoId),
             fecha,
@@ -134,6 +143,16 @@ export default class Pension {
         throw new Error('error procesando el pago')
       }
       reciboId = createReciboResponse.insertedId
+      //increase the current in the correlativos:
+      const increaseCorrelativoResponse = await mongoClient
+        .db()
+        .collection(`correlativos${year}`)
+        .updateOne({ tipo: 'recibo' }, { $set: { current: reciboNumber + 1 } }, { upsert: true, session })
+      if (!increaseCorrelativoResponse.acknowledged || !increaseCorrelativoResponse.modifiedCount) {
+        await session.abortTransaction()
+        await session.endSession()
+        throw new Error('error procesando el pago, incremento del correlativo')
+      }
     }
     //actualizar pension record
 

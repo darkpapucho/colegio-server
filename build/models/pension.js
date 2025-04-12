@@ -52,9 +52,8 @@ class Pension {
                 {
                     $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' },
                 },
-                {
-                    $project: { numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, comentario: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } },
-                },
+                { $lookup: { from: `anotacionesRelevantes${nivel}${year}`, localField: 'alumnoId', foreignField: 'alumnoId', as: 'comentario' } },
+                { $project: { comentario: { $arrayElemAt: ['$comentario', 0] }, numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
                 { $sort: { 'estudiante.grado': 1, 'estudiante.seccion': 1 } },
             ]);
             const result = [];
@@ -146,12 +145,21 @@ class Pension {
             session.startTransaction();
             let reciboId = null;
             if (pagadoCompletamente) {
-                //crear recibo
+                //fetch numero de recibo:
+                const reciboNumberResponse = yield db_1.mongoClient.db().collection(`correlativos${year}`).findOne({ tipo: 'recibo' });
+                let reciboNumber;
+                if (!reciboNumberResponse) {
+                    reciboNumber = 0;
+                }
+                else {
+                    reciboNumber = reciboNumberResponse.current;
+                }
                 //crear recibo:
                 const createReciboResponse = yield db_1.mongoClient
                     .db()
                     .collection(`recibos${year}`)
                     .insertOne({
+                    numRecibo: reciboNumber + 1,
                     nivel,
                     alumnoId: new mongodb_1.ObjectId(alumnoId),
                     fecha,
@@ -168,6 +176,16 @@ class Pension {
                     throw new Error('error procesando el pago');
                 }
                 reciboId = createReciboResponse.insertedId;
+                //increase the current in the correlativos:
+                const increaseCorrelativoResponse = yield db_1.mongoClient
+                    .db()
+                    .collection(`correlativos${year}`)
+                    .updateOne({ tipo: 'recibo' }, { $set: { current: reciboNumber + 1 } }, { upsert: true, session });
+                if (!increaseCorrelativoResponse.acknowledged || !increaseCorrelativoResponse.modifiedCount) {
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    throw new Error('error procesando el pago, incremento del correlativo');
+                }
             }
             //actualizar pension record
             const updatePensionRecordResponse = yield db_1.mongoClient
