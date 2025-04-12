@@ -181,7 +181,7 @@ class Pension {
                     .db()
                     .collection(`correlativos${year}`)
                     .updateOne({ tipo: 'recibo' }, { $set: { current: reciboNumber + 1 } }, { upsert: true, session });
-                if (!increaseCorrelativoResponse.acknowledged || !increaseCorrelativoResponse.modifiedCount) {
+                if (!increaseCorrelativoResponse.acknowledged) {
                     yield session.abortTransaction();
                     yield session.endSession();
                     throw new Error('error procesando el pago, incremento del correlativo');
