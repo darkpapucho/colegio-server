@@ -39,12 +39,13 @@ export default class Pension {
         {
           $project: { numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, comentario: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } },
         },
+        { $sort: { 'estudiante.grado': 1, 'estudiante.seccion': 1 } },
       ])
     const result = []
     for await (const doc of cursor) {
       result.push(doc)
     }
-    console.log({ result })
+
     return result
   }
   static async getPensionesGlobalReport({ nivel, year }: { nivel: Nivel; year: Year }) {
@@ -62,6 +63,7 @@ export default class Pension {
       .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $set: { pensiones } })
     return response
   }
+
   static async getListByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }: { grado: Grado; seccion: Seccion; nivel: Nivel; year: Year; estadosMatricula?: EstadoMatricula[] }) {
     const response = mongoClient
       .db()
@@ -70,6 +72,7 @@ export default class Pension {
         { $lookup: { from: `matriculados${nivel}${year}`, foreignField: '_id', localField: 'alumnoId', as: 'estudiante' } },
         { $project: { _id: 0, alumnoId: 1, pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
         { $match: { 'estudiante.grado': grado, 'estudiante.seccion': seccion, 'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } } },
+        { $sort: { 'estudiante.nombreCompleto': 1 } },
       ])
 
     const result = []

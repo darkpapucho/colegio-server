@@ -55,6 +55,7 @@ class Pension {
                 {
                     $project: { numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, comentario: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } },
                 },
+                { $sort: { 'estudiante.grado': 1, 'estudiante.seccion': 1 } },
             ]);
             const result = [];
             try {
@@ -72,7 +73,6 @@ class Pension {
                 }
                 finally { if (e_1) throw e_1.error; }
             }
-            console.log({ result });
             return result;
         });
     }
@@ -118,6 +118,7 @@ class Pension {
                 { $lookup: { from: `matriculados${nivel}${year}`, foreignField: '_id', localField: 'alumnoId', as: 'estudiante' } },
                 { $project: { _id: 0, alumnoId: 1, pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
                 { $match: { 'estudiante.grado': grado, 'estudiante.seccion': seccion, 'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } } },
+                { $sort: { 'estudiante.nombreCompleto': 1 } },
             ]);
             const result = [];
             try {

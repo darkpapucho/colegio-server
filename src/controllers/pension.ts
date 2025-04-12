@@ -29,8 +29,12 @@ export default class PensionController {
       const list = await Pension.getPensionesGlobalReport({ nivel, year })
 
       list.forEach((record) => {
+        console.log({ alumnoId: record._id })
         const delta = 10 - record.pensiones.length
-        const numeroPensionesAtrasadas = currentMonth - 1 - record.numPensionesPagadas - delta
+        //para los alumnos que han pagado pensiones por adelantado el resultado de la sgte operacion es negativo, manejar ese caso:
+        let numeroPensionesAtrasadas = currentMonth - 1 - record.numPensionesPagadas - delta
+        numeroPensionesAtrasadas = numeroPensionesAtrasadas >= 0 ? numeroPensionesAtrasadas : 0
+        console.log({ delta, length: record.pensiones.length, numPensionesPagadas: record.numPensionesPagadas, numeroPensionesAtrasadas })
         consolidado[numeroPensionesAtrasadas].totalAlumnos = consolidado[numeroPensionesAtrasadas].totalAlumnos + 1
       })
 
