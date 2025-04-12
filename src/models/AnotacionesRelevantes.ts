@@ -16,4 +16,11 @@ export default class AnotacionesRelevantes {
       .collection(`anotacionesRelevantes${nivel}${year}`)
       .findOne({ alumnoId: new ObjectId(alumnoId) })
   }
+  static async eliminarAnotacionRelevanteByAlumnoId({ nivel, year, alumnoId }: { nivel: Nivel; year: Year; alumnoId: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`anotacionesRelevantes${nivel}${year}`)
+      .deleteOne({ alumnoId: new ObjectId(alumnoId) })
+    return response
+  }
 }

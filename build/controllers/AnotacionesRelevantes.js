@@ -22,11 +22,34 @@ class AnotacionesRelevantesController {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { detalle, fecha, alumnoId, issuer } = req.body;
-                yield AnotacionesRelevantes_1.default.editarAnotacionByAlumnoId({ nivel, year, detalle, fecha, alumnoId, issuer });
-                res.send((0, responses_1.responseOk)(null));
+                const response = yield AnotacionesRelevantes_1.default.editarAnotacionByAlumnoId({ nivel, year, detalle, fecha, alumnoId, issuer });
+                if (response.upsertedCount) {
+                    return res.send((0, responses_1.responseOk)(null));
+                }
+                else {
+                    return res.send((0, responses_1.responseError)('no se pudo editar la anotación'));
+                }
             }
             catch (err) {
-                (0, errors_1.errorResponseHandler)(res, err);
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static eliminarAnotacionByAlumnoId(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId } = req.body;
+                const response = yield AnotacionesRelevantes_1.default.eliminarAnotacionRelevanteByAlumnoId({ nivel, year, alumnoId });
+                if (response.acknowledged) {
+                    return res.send((0, responses_1.responseOk)(null));
+                }
+                else {
+                    return res.send((0, responses_1.responseError)('no se pudo eliminar la anotación'));
+                }
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
             }
         });
     }

@@ -5,3 +5,4 @@ import AnotacionesRelevantesController from '../controllers/AnotacionesRelevante
 export const anotacionesRelevantesRouter = Router()
 
 anotacionesRelevantesRouter.post('/editar-anotacion-relevante-by-alumnoId', verifyCredentials, AnotacionesRelevantesController.editarAnotacionByAlumnoId)
+anotacionesRelevantesRouter.post('/eliminar-anotacion-relevante-by-alumno-id', verifyCredentials, AnotacionesRelevantesController.eliminarAnotacionByAlumnoId)

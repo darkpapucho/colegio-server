@@ -29,5 +29,14 @@ class AnotacionesRelevantes {
                 .findOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) });
         });
     }
+    static eliminarAnotacionRelevanteByAlumnoId({ nivel, year, alumnoId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`anotacionesRelevantes${nivel}${year}`)
+                .deleteOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) });
+            return response;
+        });
+    }
 }
 exports.default = AnotacionesRelevantes;
