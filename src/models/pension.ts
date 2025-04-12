@@ -7,6 +7,28 @@ import { VALID_MONTHS } from '../types/asistencia'
 import { CorrelativoType } from '../types/correlativos'
 
 export default class Pension {
+  static async getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate }: { nivel: Nivel; year: Year; initDate: string; endDate: string }) {
+    initDate = initDate + 'T00:00'
+    endDate = endDate + 'T23:59'
+    const response = mongoClient
+      .db()
+      .collection(`pensiones${nivel}${year}`)
+      .aggregate<{ alumno: { dni: string; nombreCompleto: string; grado: Grado; seccion: Seccion }; pensiones: Pension[] }>([
+        { $match: {} },
+        { $project: { alumnoId: 1, pensiones: { $filter: { input: '$pensiones', as: 'pensiones', cond: { $and: [{ $gte: ['$$pensiones.fecha', initDate] }, { $lte: ['$$pensiones.fecha', endDate] }] } } } } },
+        { $match: { 'pensiones.0': { $exists: true } } },
+        { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
+        { $project: { pensiones: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
+        { $project: { pensiones: 1, 'alumno.nombreCompleto': 1, 'alumno.grado': 1, 'alumno.seccion': 1, 'alumno.dni': 1 } },
+        { $sort: { 'alumno.nombreCompleto': 1 } },
+      ])
+    const result = []
+    for await (const doc of response) {
+      result.push(doc)
+    }
+
+    return result
+  }
   static async getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas }: { currentMonth: number; nivel: Nivel; year: Year; numeroPensionesAtrasadas: number }) {
     const cursor = mongoClient
       .db()

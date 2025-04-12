@@ -17,6 +17,19 @@ const pension_1 = __importDefault(require("../models/pension"));
 const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 class PensionController {
+    static getRecordPensionesPagadasByDateRange(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { initDate, endDate } = req.body;
+                const response = yield pension_1.default.getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate });
+                res.send((0, responses_1.responseOk)(response));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static getListAlumnosByNumPensionesAtrasadas(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

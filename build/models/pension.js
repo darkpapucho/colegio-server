@@ -20,8 +20,44 @@ const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const asistencia_1 = require("../types/asistencia");
 class Pension {
-    static getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas }) {
+    static getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate }) {
         var _a, e_1, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            initDate = initDate + 'T00:00';
+            endDate = endDate + 'T23:59';
+            const response = db_1.mongoClient
+                .db()
+                .collection(`pensiones${nivel}${year}`)
+                .aggregate([
+                { $match: {} },
+                { $project: { alumnoId: 1, pensiones: { $filter: { input: '$pensiones', as: 'pensiones', cond: { $and: [{ $gte: ['$$pensiones.fecha', initDate] }, { $lte: ['$$pensiones.fecha', endDate] }] } } } } },
+                { $match: { 'pensiones.0': { $exists: true } } },
+                { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
+                { $project: { pensiones: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
+                { $project: { pensiones: 1, 'alumno.nombreCompleto': 1, 'alumno.grado': 1, 'alumno.seccion': 1, 'alumno.dni': 1 } },
+                { $sort: { 'alumno.nombreCompleto': 1 } },
+            ]);
+            const result = [];
+            try {
+                for (var _d = true, response_1 = __asyncValues(response), response_1_1; response_1_1 = yield response_1.next(), _a = response_1_1.done, !_a; _d = true) {
+                    _c = response_1_1.value;
+                    _d = false;
+                    const doc = _c;
+                    result.push(doc);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = response_1.return)) yield _b.call(response_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            return result;
+        });
+    }
+    static getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas }) {
+        var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -65,18 +101,18 @@ class Pension {
                     result.push(doc);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
             return result;
         });
     }
     static getPensionesGlobalReport({ nivel, year }) {
-        var _a, e_2, _b, _c;
+        var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient.db().collection(`pensiones${nivel}${year}`).find({});
             const list = [];
@@ -88,12 +124,12 @@ class Pension {
                     list.push(doc);
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return list;
         });
@@ -108,7 +144,7 @@ class Pension {
         });
     }
     static getListByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }) {
-        var _a, e_3, _b, _c;
+        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const response = db_1.mongoClient
                 .db()
@@ -121,19 +157,19 @@ class Pension {
             ]);
             const result = [];
             try {
-                for (var _d = true, response_1 = __asyncValues(response), response_1_1; response_1_1 = yield response_1.next(), _a = response_1_1.done, !_a; _d = true) {
-                    _c = response_1_1.value;
+                for (var _d = true, response_2 = __asyncValues(response), response_2_1; response_2_1 = yield response_2.next(), _a = response_2_1.done, !_a; _d = true) {
+                    _c = response_2_1.value;
                     _d = false;
                     const doc = _c;
                     result.push(doc);
                 }
             }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = response_1.return)) yield _b.call(response_1);
+                    if (!_d && !_a && (_b = response_2.return)) yield _b.call(response_2);
                 }
-                finally { if (e_3) throw e_3.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             return result;
         });

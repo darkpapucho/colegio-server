@@ -13,4 +13,4 @@ exports.pensionRouter.post('/pagar-pension-alumnoid-mes', verifyCredentials_1.ve
 exports.pensionRouter.post('/update-monto-pagar-pensiones', verifyCredentials_1.verifyCredentials, pension_1.default.updateMontoPagarPension);
 exports.pensionRouter.post('/get-pensiones-global-report', verifyCredentials_1.verifyCredentials, pension_1.default.getPensionesGlobalReport);
 exports.pensionRouter.post('/get-lista-by-numero-pensiones-atrasadas', verifyCredentials_1.verifyCredentials, pension_1.default.getListAlumnosByNumPensionesAtrasadas);
-//pensionRouter.post("/editar-comentario-pension",verifyCredentials)
+exports.pensionRouter.post('/get-record-pensiones-pagadas-by-date-range', verifyCredentials_1.verifyCredentials, pension_1.default.getRecordPensionesPagadasByDateRange);

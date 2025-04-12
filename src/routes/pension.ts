@@ -9,4 +9,4 @@ pensionRouter.post('/pagar-pension-alumnoid-mes', verifyCredentials, PensionCont
 pensionRouter.post('/update-monto-pagar-pensiones', verifyCredentials, PensionController.updateMontoPagarPension)
 pensionRouter.post('/get-pensiones-global-report', verifyCredentials, PensionController.getPensionesGlobalReport)
 pensionRouter.post('/get-lista-by-numero-pensiones-atrasadas', verifyCredentials, PensionController.getListAlumnosByNumPensionesAtrasadas)
-//pensionRouter.post("/editar-comentario-pension",verifyCredentials)
+pensionRouter.post('/get-record-pensiones-pagadas-by-date-range', verifyCredentials, PensionController.getRecordPensionesPagadasByDateRange)

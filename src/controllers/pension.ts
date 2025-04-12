@@ -5,6 +5,17 @@ import { Request, Response } from 'express'
 import { responseOk } from '../utils/responses'
 import { ObjectId } from 'mongodb'
 export default class PensionController {
+  static async getRecordPensionesPagadasByDateRange(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { initDate, endDate } = req.body
+
+      const response = await Pension.getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate })
+      res.send(responseOk(response))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async getListAlumnosByNumPensionesAtrasadas(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
