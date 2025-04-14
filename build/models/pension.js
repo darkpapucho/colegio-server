@@ -180,6 +180,7 @@ class Pension {
             const session = db_1.mongoClient.startSession();
             session.startTransaction();
             let reciboId = null;
+            //si esta pagado completamente, creamos un recibo y incrementamos el correlativo de recibos
             if (pagadoCompletamente) {
                 //fetch numero de recibo:
                 const reciboNumberResponse = yield db_1.mongoClient.db().collection(`correlativos${year}`).findOne({ tipo: 'recibo' });
@@ -228,7 +229,7 @@ class Pension {
                 .db()
                 .collection(`pensiones${nivel}${year}`)
                 .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId), 'pensiones.mes': mes }, {
-                $inc: { 'pensiones.$.monto_pagado': monto_abonado, numPensionesPagadas: 1 },
+                $inc: { 'pensiones.$.monto_pagado': monto_abonado, numPensionesPagadas: pagadoCompletamente ? 1 : 0 },
                 $set: { 'pensiones.$.pagado': pagadoCompletamente, 'pensiones.$.fecha': fecha, 'pensiones.$.reciboId': reciboId },
             }, { session });
             if (!updatePensionRecordResponse.acknowledged || !updatePensionRecordResponse.modifiedCount) {

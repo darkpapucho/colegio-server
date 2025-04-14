@@ -47,5 +47,5 @@ export function convertNumberToMonthName(monthNumber: number): Month {
 }
 
 export function parseMonthNameToMonthNumber1to12(monthName: Month) {
-  return VALID_MONTHS.findIndex((month) => month === monthName) + 1
+  return VALID_MONTHS.findIndex((month) => month === monthName.toLowerCase()) + 1
 }

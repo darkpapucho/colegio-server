@@ -10,3 +10,4 @@ pensionRouter.post('/update-monto-pagar-pensiones', verifyCredentials, PensionCo
 pensionRouter.post('/get-pensiones-global-report', verifyCredentials, PensionController.getPensionesGlobalReport)
 pensionRouter.post('/get-lista-by-numero-pensiones-atrasadas', verifyCredentials, PensionController.getListAlumnosByNumPensionesAtrasadas)
 pensionRouter.post('/get-record-pensiones-pagadas-by-date-range', verifyCredentials, PensionController.getRecordPensionesPagadasByDateRange)
+pensionRouter.post('/download-pension-table-grado-seccion-pdf', verifyCredentials, PensionController.generatetPensionesTablePdfByGradoSeccion)

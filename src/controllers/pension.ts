@@ -4,7 +4,85 @@ import { extractNivelYearFromHeaders } from '../utils/global'
 import { Request, Response } from 'express'
 import { responseOk } from '../utils/responses'
 import { ObjectId } from 'mongodb'
+import PDFDocument from 'pdfkit'
+import { generatePensionTablePdf } from '../utils/pensionTablePdf'
+import { drawCell } from '../utils/drawCellTable'
+import { NOMBRE_COLEGIO } from '../utils/generarBoletaNotas/utils/vars'
+
 export default class PensionController {
+  static async generatetPensionesTablePdfByGradoSeccion(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { grado, seccion } = req.body
+      const list = await Pension.getListByGradoSeccion({ nivel, year, grado, seccion })
+      //parse the data:
+      const data = await list.map((record) => ({ alumno: record.estudiante.nombreCompleto, pensiones: record.pensiones }))
+      const document = new PDFDocument({ autoFirstPage: false, layout: 'landscape' })
+      document.pipe(res)
+      document.addPage()
+      const BEGIN = { x: 20, y: 20 }
+      const CELL_HEIGHT = 20
+      const CELL_WIDTH = 100
+      const CELL_WIDTH_DATA = 180
+      drawCell(document, { begin: { x: BEGIN.x, y: BEGIN.y }, height: 20, width: CELL_WIDTH, content: `  COLEGIO`, options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' } })
+      drawCell(document, {
+        begin: { x: BEGIN.x, y: BEGIN.y + CELL_HEIGHT },
+        height: 20,
+        width: CELL_WIDTH,
+        content: `  NIVEL`,
+        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
+      })
+      drawCell(document, {
+        begin: { x: BEGIN.x + CELL_WIDTH, y: BEGIN.y },
+        height: 20,
+        width: CELL_WIDTH_DATA,
+        content: `  ${NOMBRE_COLEGIO.toUpperCase()}`,
+        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
+      })
+      drawCell(document, {
+        begin: { x: BEGIN.x + CELL_WIDTH, y: BEGIN.y + CELL_HEIGHT },
+        height: 20,
+        width: CELL_WIDTH_DATA,
+        content: `  ${nivel.toUpperCase()}`,
+        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
+      })
+      //###########################
+      drawCell(document, {
+        begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA, y: BEGIN.y },
+        height: 20,
+        width: CELL_WIDTH_DATA,
+        content: `  GRADO`,
+        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
+      })
+      drawCell(document, {
+        begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA, y: BEGIN.y + CELL_HEIGHT },
+        height: 20,
+        width: CELL_WIDTH,
+        content: `  SECCIÓN`,
+        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
+      })
+      drawCell(document, {
+        begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA + CELL_WIDTH, y: BEGIN.y },
+        height: 20,
+        width: CELL_WIDTH,
+        content: `  ${grado}`,
+        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
+      })
+      drawCell(document, {
+        begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA + CELL_WIDTH, y: BEGIN.y + CELL_HEIGHT },
+        height: 20,
+        width: CELL_WIDTH,
+        content: `  ${seccion}`,
+        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
+      })
+      generatePensionTablePdf(document, data, 'primerSemestre')
+      document.addPage()
+      generatePensionTablePdf(document, data, 'segundoSemestre')
+      document.end()
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async getRecordPensionesPagadasByDateRange(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

@@ -1,6 +1,6 @@
 export const DRE = 'DRE Lima Metropolitana'
 export const UGEL = 'UGEL 04 Comas'
-export const NOMBRE_COLEGIO = 'Jesús el Nazareno de Villas de Ancón'
+export const NOMBRE_COLEGIO = 'Jesús el Nazareno'
 export const HEADER_FONT_COLOR = 'white'
 export const HEADER_COLOR_CONTENT = '#1D5D9B'
 export const TEXT_COLOR = 'black'

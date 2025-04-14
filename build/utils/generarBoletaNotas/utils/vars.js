@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TABLE_NOTAS_HEIGHT = exports.TABLE_NOTAS_WIDTH = exports.CONCLUSION_DESCRIPTIVA_CELDA_WIDTH = exports.MARGIN_LEFT = exports.COMPETENCIA_CELDA_WIDTH = exports.CURSO_CELDA_WIDTH = exports.NOTAS_TABLE_HEADER_HEIGHT = exports.NOTAS_TABLE_WIDTH = exports.NOTA_CELDA_WIDTH = exports.NOTA_CELDA_HEIGHT = exports.BOLD_FONT = exports.NORMAL_FONT = exports.BOLETA_NOTA_HEADERS = exports.BORDER_COLOR = exports.FILL_COLOR = exports.TEXT_COLOR = exports.HEADER_COLOR_CONTENT = exports.HEADER_FONT_COLOR = exports.NOMBRE_COLEGIO = exports.UGEL = exports.DRE = void 0;
 exports.DRE = 'DRE Lima Metropolitana';
 exports.UGEL = 'UGEL 04 Comas';
-exports.NOMBRE_COLEGIO = 'Jesús el Nazareno de Villas de Ancón';
+exports.NOMBRE_COLEGIO = 'Jesús el Nazareno';
 exports.HEADER_FONT_COLOR = 'white';
 exports.HEADER_COLOR_CONTENT = '#1D5D9B';
 exports.TEXT_COLOR = 'black';

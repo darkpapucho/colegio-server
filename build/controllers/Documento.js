@@ -23,7 +23,6 @@ const alumno_1 = require("../models/alumno");
 // import { generadorCursos } from '../utils/generateCursosByGradoSeccion'
 const responses_1 = require("../utils/responses");
 const mongodb_1 = require("mongodb");
-const pdfkit_2 = __importDefault(require("pdfkit"));
 const generarBoletaNotas_1 = __importDefault(require("../utils/generarBoletaNotas/generarBoletaNotas"));
 class DocumentoControllers {
     static fetchNotasByCursos(req, res) {
@@ -51,7 +50,7 @@ class DocumentoControllers {
                 if (!notasRecord) {
                     throw new Error('No se encontró el record de notas del alumno');
                 }
-                const libreta = new pdfkit_2.default({
+                const libreta = new pdfkit_1.default({
                     layout: 'portrait',
                     size: 'A4',
                     font: 'Courier',
@@ -86,7 +85,7 @@ class DocumentoControllers {
                 (0, global_1.assertSeccion)(seccion);
                 const registros = yield documentos_1.default.getRegistrosByGradoSeccion({ grado, seccion, nivel, year });
                 //creacion de la libreta
-                const libretas = new pdfkit_2.default({
+                const libretas = new pdfkit_1.default({
                     layout: 'portrait',
                     size: 'A4',
                     font: 'Courier',

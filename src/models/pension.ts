@@ -130,6 +130,8 @@ export default class Pension {
     const session = mongoClient.startSession()
     session.startTransaction()
     let reciboId: ObjectId | null = null
+
+    //si esta pagado completamente, creamos un recibo y incrementamos el correlativo de recibos
     if (pagadoCompletamente) {
       //fetch numero de recibo:
       const reciboNumberResponse = await mongoClient.db().collection(`correlativos${year}`).findOne<{ tipo: CorrelativoType; current: number }>({ tipo: 'recibo' })
@@ -178,6 +180,7 @@ export default class Pension {
         throw new Error('error procesando el pago, incremento del correlativo')
       }
     }
+
     //actualizar pension record
 
     const updatePensionRecordResponse = await mongoClient
@@ -186,7 +189,7 @@ export default class Pension {
       .updateOne(
         { alumnoId: new ObjectId(alumnoId), 'pensiones.mes': mes },
         {
-          $inc: { 'pensiones.$.monto_pagado': monto_abonado, numPensionesPagadas: 1 },
+          $inc: { 'pensiones.$.monto_pagado': monto_abonado, numPensionesPagadas: pagadoCompletamente ? 1 : 0 },
           $set: { 'pensiones.$.pagado': pagadoCompletamente, 'pensiones.$.fecha': fecha, 'pensiones.$.reciboId': reciboId },
         },
         { session },

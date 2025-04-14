@@ -4,6 +4,7 @@ import { assertGrado, assertSeccion, extractNivelYearFromHeaders } from '../util
 import { assertIsAMatriculado, assertIsEmitirDocumentsData, assertIsString } from '../utils/validators'
 import { Request, Response } from 'express'
 import PdfDocument from 'pdfkit'
+
 import fs from 'fs'
 import { errorResponseHandler } from '../error/errors'
 import { Alumno } from '../models/alumno'
@@ -11,7 +12,7 @@ import { Alumno } from '../models/alumno'
 import { responseOk } from '../utils/responses'
 import { ObjectId } from 'mongodb'
 import { RegistroNota } from '../types/documents'
-import PDFDocument from 'pdfkit'
+
 import generarBoletasDeNotas from '../utils/generarBoletaNotas/generarBoletaNotas'
 import { SalonProfesor } from '../types/user'
 
@@ -42,7 +43,7 @@ export default class DocumentoControllers {
       if (!notasRecord) {
         throw new Error('No se encontró el record de notas del alumno')
       }
-      const libreta = new PDFDocument({
+      const libreta = new PdfDocument({
         layout: 'portrait',
         size: 'A4',
         font: 'Courier',
@@ -77,7 +78,7 @@ export default class DocumentoControllers {
       const registros = await Documento.getRegistrosByGradoSeccion({ grado, seccion, nivel, year })
 
       //creacion de la libreta
-      const libretas = new PDFDocument({
+      const libretas = new PdfDocument({
         layout: 'portrait',
         size: 'A4',
         font: 'Courier',

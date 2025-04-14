@@ -14,3 +14,4 @@ exports.pensionRouter.post('/update-monto-pagar-pensiones', verifyCredentials_1.
 exports.pensionRouter.post('/get-pensiones-global-report', verifyCredentials_1.verifyCredentials, pension_1.default.getPensionesGlobalReport);
 exports.pensionRouter.post('/get-lista-by-numero-pensiones-atrasadas', verifyCredentials_1.verifyCredentials, pension_1.default.getListAlumnosByNumPensionesAtrasadas);
 exports.pensionRouter.post('/get-record-pensiones-pagadas-by-date-range', verifyCredentials_1.verifyCredentials, pension_1.default.getRecordPensionesPagadasByDateRange);
+exports.pensionRouter.post('/download-pension-table-grado-seccion-pdf', verifyCredentials_1.verifyCredentials, pension_1.default.generatetPensionesTablePdfByGradoSeccion);

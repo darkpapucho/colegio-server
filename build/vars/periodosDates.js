@@ -49,6 +49,6 @@ function convertNumberToMonthName(monthNumber) {
 }
 exports.convertNumberToMonthName = convertNumberToMonthName;
 function parseMonthNameToMonthNumber1to12(monthName) {
-    return asistencia_1.VALID_MONTHS.findIndex((month) => month === monthName) + 1;
+    return asistencia_1.VALID_MONTHS.findIndex((month) => month === monthName.toLowerCase()) + 1;
 }
 exports.parseMonthNameToMonthNumber1to12 = parseMonthNameToMonthNumber1to12;
