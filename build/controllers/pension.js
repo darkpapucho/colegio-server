@@ -18,78 +18,49 @@ const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const pensionTablePdf_1 = require("../utils/pensionTablePdf");
-const drawCellTable_1 = require("../utils/drawCellTable");
-const vars_1 = require("../utils/generarBoletaNotas/utils/vars");
 class PensionController {
     static generatetPensionesTablePdfByGradoSeccion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { grado, seccion } = req.body;
-                const list = yield pension_1.default.getListByGradoSeccion({ nivel, year, grado, seccion });
-                //parse the data:
-                const data = yield list.map((record) => ({ alumno: record.estudiante.nombreCompleto, pensiones: record.pensiones }));
-                const document = new pdfkit_1.default({ autoFirstPage: false, layout: 'landscape' });
+                const { grado, seccion, allGrades } = req.body;
+                const document = new pdfkit_1.default({ autoFirstPage: false, layout: 'landscape', margin: 10 });
                 document.pipe(res);
-                document.addPage();
-                const BEGIN = { x: 20, y: 20 };
-                const CELL_HEIGHT = 20;
-                const CELL_WIDTH = 100;
-                const CELL_WIDTH_DATA = 180;
-                (0, drawCellTable_1.drawCell)(document, { begin: { x: BEGIN.x, y: BEGIN.y }, height: 20, width: CELL_WIDTH, content: `  COLEGIO`, options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' } });
-                (0, drawCellTable_1.drawCell)(document, {
-                    begin: { x: BEGIN.x, y: BEGIN.y + CELL_HEIGHT },
-                    height: 20,
-                    width: CELL_WIDTH,
-                    content: `  NIVEL`,
-                    options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
-                });
-                (0, drawCellTable_1.drawCell)(document, {
-                    begin: { x: BEGIN.x + CELL_WIDTH, y: BEGIN.y },
-                    height: 20,
-                    width: CELL_WIDTH_DATA,
-                    content: `  ${vars_1.NOMBRE_COLEGIO.toUpperCase()}`,
-                    options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
-                });
-                (0, drawCellTable_1.drawCell)(document, {
-                    begin: { x: BEGIN.x + CELL_WIDTH, y: BEGIN.y + CELL_HEIGHT },
-                    height: 20,
-                    width: CELL_WIDTH_DATA,
-                    content: `  ${nivel.toUpperCase()}`,
-                    options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
-                });
-                //###########################
-                (0, drawCellTable_1.drawCell)(document, {
-                    begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA, y: BEGIN.y },
-                    height: 20,
-                    width: CELL_WIDTH_DATA,
-                    content: `  GRADO`,
-                    options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
-                });
-                (0, drawCellTable_1.drawCell)(document, {
-                    begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA, y: BEGIN.y + CELL_HEIGHT },
-                    height: 20,
-                    width: CELL_WIDTH,
-                    content: `  SECCIÓN`,
-                    options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
-                });
-                (0, drawCellTable_1.drawCell)(document, {
-                    begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA + CELL_WIDTH, y: BEGIN.y },
-                    height: 20,
-                    width: CELL_WIDTH,
-                    content: `  ${grado}`,
-                    options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
-                });
-                (0, drawCellTable_1.drawCell)(document, {
-                    begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA + CELL_WIDTH, y: BEGIN.y + CELL_HEIGHT },
-                    height: 20,
-                    width: CELL_WIDTH,
-                    content: `  ${seccion}`,
-                    options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
-                });
-                (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, 'primerSemestre');
-                document.addPage();
-                (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, 'segundoSemestre');
+                if (allGrades) {
+                    const list = yield pension_1.default.getListByNivel({ nivel, year });
+                    //parse data:
+                    const dataList = new Map();
+                    list.forEach((record) => {
+                        const salon = (record.grado + ' ' + record.seccion);
+                        if (dataList.has(salon)) {
+                            dataList.get(salon).push(record);
+                        }
+                        else {
+                            dataList.set(salon, [record]);
+                        }
+                    });
+                    const dataArray = Array.from(dataList);
+                    dataArray.forEach((record) => {
+                        const salon = record[0];
+                        const GRADO = salon.substring(0, salon.lastIndexOf(' '));
+                        const SECCION = salon.substring(salon.lastIndexOf(' '));
+                        const data = record[1];
+                        document.addPage();
+                        (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, { nivel, grado: GRADO, seccion: SECCION, semestre: 1 });
+                        document.addPage();
+                        (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, { nivel, grado: GRADO, seccion: SECCION, semestre: 2 });
+                    });
+                }
+                else {
+                    const list = yield pension_1.default.getListByGradoSeccion({ nivel, year, grado, seccion });
+                    //parse the data:
+                    const data = list.map((record) => ({ nombreCompleto: record.estudiante.nombreCompleto, pensiones: record.pensiones }));
+                    //write PDF
+                    document.addPage();
+                    (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, { nivel, grado, seccion, semestre: 1 });
+                    document.addPage();
+                    (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, { nivel, grado, seccion, semestre: 2 });
+                }
                 document.end();
             }
             catch (err) {

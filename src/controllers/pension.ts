@@ -6,78 +6,54 @@ import { responseOk } from '../utils/responses'
 import { ObjectId } from 'mongodb'
 import PDFDocument from 'pdfkit'
 import { generatePensionTablePdf } from '../utils/pensionTablePdf'
-import { drawCell } from '../utils/drawCellTable'
-import { NOMBRE_COLEGIO } from '../utils/generarBoletaNotas/utils/vars'
+import { Grado, Seccion } from '../types/enums'
+import { PensionRecord } from '../types/pensiones'
+import { Salon } from '../types/salones'
 
 export default class PensionController {
   static async generatetPensionesTablePdfByGradoSeccion(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { grado, seccion } = req.body
-      const list = await Pension.getListByGradoSeccion({ nivel, year, grado, seccion })
-      //parse the data:
-      const data = await list.map((record) => ({ alumno: record.estudiante.nombreCompleto, pensiones: record.pensiones }))
-      const document = new PDFDocument({ autoFirstPage: false, layout: 'landscape' })
+      const { grado, seccion, allGrades } = req.body
+
+      const document = new PDFDocument({ autoFirstPage: false, layout: 'landscape', margin: 10 })
       document.pipe(res)
-      document.addPage()
-      const BEGIN = { x: 20, y: 20 }
-      const CELL_HEIGHT = 20
-      const CELL_WIDTH = 100
-      const CELL_WIDTH_DATA = 180
-      drawCell(document, { begin: { x: BEGIN.x, y: BEGIN.y }, height: 20, width: CELL_WIDTH, content: `  COLEGIO`, options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' } })
-      drawCell(document, {
-        begin: { x: BEGIN.x, y: BEGIN.y + CELL_HEIGHT },
-        height: 20,
-        width: CELL_WIDTH,
-        content: `  NIVEL`,
-        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
-      })
-      drawCell(document, {
-        begin: { x: BEGIN.x + CELL_WIDTH, y: BEGIN.y },
-        height: 20,
-        width: CELL_WIDTH_DATA,
-        content: `  ${NOMBRE_COLEGIO.toUpperCase()}`,
-        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
-      })
-      drawCell(document, {
-        begin: { x: BEGIN.x + CELL_WIDTH, y: BEGIN.y + CELL_HEIGHT },
-        height: 20,
-        width: CELL_WIDTH_DATA,
-        content: `  ${nivel.toUpperCase()}`,
-        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
-      })
-      //###########################
-      drawCell(document, {
-        begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA, y: BEGIN.y },
-        height: 20,
-        width: CELL_WIDTH_DATA,
-        content: `  GRADO`,
-        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
-      })
-      drawCell(document, {
-        begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA, y: BEGIN.y + CELL_HEIGHT },
-        height: 20,
-        width: CELL_WIDTH,
-        content: `  SECCIÓN`,
-        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left', fillColor: '#dedede' },
-      })
-      drawCell(document, {
-        begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA + CELL_WIDTH, y: BEGIN.y },
-        height: 20,
-        width: CELL_WIDTH,
-        content: `  ${grado}`,
-        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
-      })
-      drawCell(document, {
-        begin: { x: BEGIN.x + CELL_WIDTH + CELL_WIDTH_DATA + CELL_WIDTH, y: BEGIN.y + CELL_HEIGHT },
-        height: 20,
-        width: CELL_WIDTH,
-        content: `  ${seccion}`,
-        options: { fontSize: 12, textVerticalOffSet: 5, align: 'left' },
-      })
-      generatePensionTablePdf(document, data, 'primerSemestre')
-      document.addPage()
-      generatePensionTablePdf(document, data, 'segundoSemestre')
+      if (allGrades) {
+        const list = await Pension.getListByNivel({ nivel, year })
+
+        //parse data:
+        const dataList = new Map<Salon, { nombreCompleto: String; grado: Grado; seccion: Seccion; pensiones: PensionRecord[] }[]>()
+        list.forEach((record) => {
+          const salon = (record.grado + ' ' + record.seccion) as Salon
+          if (dataList.has(salon)) {
+            dataList.get(salon)!.push(record)
+          } else {
+            dataList.set(salon, [record])
+          }
+        })
+        const dataArray = Array.from(dataList)
+        dataArray.forEach((record) => {
+          const salon = record[0]
+          const GRADO = salon.substring(0, salon.lastIndexOf(' ')) as Grado
+          const SECCION = salon.substring(salon.lastIndexOf(' ')) as Seccion
+          const data = record[1] as unknown as { nombreCompleto: string; pensiones: PensionRecord[] }[]
+
+          document.addPage()
+          generatePensionTablePdf(document, data, { nivel, grado: GRADO, seccion: SECCION, semestre: 1 })
+          document.addPage()
+          generatePensionTablePdf(document, data, { nivel, grado: GRADO, seccion: SECCION, semestre: 2 })
+        })
+      } else {
+        const list = await Pension.getListByGradoSeccion({ nivel, year, grado, seccion })
+        //parse the data:
+        const data = list.map((record) => ({ nombreCompleto: record.estudiante.nombreCompleto, pensiones: record.pensiones }))
+        //write PDF
+        document.addPage()
+        generatePensionTablePdf(document, data, { nivel, grado, seccion, semestre: 1 })
+        document.addPage()
+        generatePensionTablePdf(document, data, { nivel, grado, seccion, semestre: 2 })
+      }
+
       document.end()
     } catch (err) {
       errorResponseHandler(res, err)

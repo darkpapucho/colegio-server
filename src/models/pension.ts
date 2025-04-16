@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb'
+import { ClientSession, ObjectId } from 'mongodb'
 import { mongoClient } from '../db'
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { AMatriculado } from '../types/alumno'
@@ -105,6 +105,27 @@ export default class Pension {
 
     return result
   }
+
+  static async getListByNivel({ nivel, year, estadosMatricula, session }: { nivel: Nivel; year: Year; estadosMatricula?: EstadoMatricula; session?: ClientSession }) {
+    const cursor = mongoClient
+      .db()
+      .collection(`pensiones${nivel}${year}`)
+      .aggregate<{ nombreCompleto: string; grado: Grado; seccion: Seccion; pensiones: PensionRecord[] }>(
+        [
+          { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+          { $project: { pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
+          { $match: { 'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } } },
+          { $project: { nombreCompleto: '$estudiante.nombreCompleto', grado: '$estudiante.grado', seccion: '$estudiante.seccion', pensiones: 1 } },
+        ],
+        { session },
+      )
+    const response = []
+    for await (const doc of cursor) {
+      response.push(doc)
+    }
+    return response
+  }
+
   static async pagarPensionByAlumnoIdAndMonth({
     nivel,
     year,

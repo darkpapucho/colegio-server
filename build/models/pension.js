@@ -174,6 +174,37 @@ class Pension {
             return result;
         });
     }
+    static getListByNivel({ nivel, year, estadosMatricula, session }) {
+        var _a, e_5, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const cursor = db_1.mongoClient
+                .db()
+                .collection(`pensiones${nivel}${year}`)
+                .aggregate([
+                { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+                { $project: { pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
+                { $match: { 'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } } },
+                { $project: { nombreCompleto: '$estudiante.nombreCompleto', grado: '$estudiante.grado', seccion: '$estudiante.seccion', pensiones: 1 } },
+            ], { session });
+            const response = [];
+            try {
+                for (var _d = true, cursor_3 = __asyncValues(cursor), cursor_3_1; cursor_3_1 = yield cursor_3.next(), _a = cursor_3_1.done, !_a; _d = true) {
+                    _c = cursor_3_1.value;
+                    _d = false;
+                    const doc = _c;
+                    response.push(doc);
+                }
+            }
+            catch (e_5_1) { e_5 = { error: e_5_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
+                }
+                finally { if (e_5) throw e_5.error; }
+            }
+            return response;
+        });
+    }
     static pagarPensionByAlumnoIdAndMonth({ nivel, year, alumnoId, fecha, mes, monto_abonado, monto_pagar, monto_pagado, issuer, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const pagadoCompletamente = monto_pagado + monto_abonado === monto_pagar ? true : false;

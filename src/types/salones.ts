@@ -1,0 +1,51 @@
+export enum SalonesInicial {
+  Grupo3años_A = 'Grupo 3 años A',
+  Grupo3años_B = 'Grupo 3 años B',
+  Grupo3años_C = 'Grupo 3 años C',
+  Grupo4años_A = 'Grupo 4 años A',
+  Grupo4años_B = 'Grupo 4 años B',
+  Grupo4años_C = 'Grupo 4 años C',
+  Grupo5años_A = 'Grupo 5 años A',
+  Grupo5años_B = 'Grupo 5 años B',
+  Grupo5años_C = 'Grupo 5 años C',
+}
+export enum SalonesPrimaria {
+  PRIMERO_A = 'PRIMERO A',
+  PRIMERO_B = 'PRIMERO B',
+  PRIMERO_C = 'PRIMERO C',
+  SEGUNDO_A = 'SEGUNDO A',
+  SEGUNDO_B = 'SEGUNDO B',
+  SEGUNDO_C = 'SEGUNDO C',
+  TERCERO_A = 'TERCERO A',
+  TERCERO_B = 'TERCERO B',
+  TERCERO_C = 'TERCERO C',
+  CUARTO_A = 'CUARTO A',
+  CUARTO_B = 'CUARTO B',
+  CUARTO_C = 'CUARTO C',
+  QUINTO_A = 'QUINTO A',
+  QUINTO_B = 'QUINTO B',
+  QUINTO_C = 'QUINTO C',
+  SEXTO_A = 'SEXTO A',
+  SEXTO_B = 'SEXTO B',
+  SEXTO_C = 'SEXTO C',
+}
+
+export enum SalonesSecundaria {
+  PRIMERO_A = 'PRIMERO A',
+  PRIMERO_B = 'PRIMERO B',
+  PRIMERO_C = 'PRIMERO C',
+  SEGUNDO_A = 'SEGUNDO A',
+  SEGUNDO_B = 'SEGUNDO B',
+  SEGUNDO_C = 'SEGUNDO C',
+  TERCERO_A = 'TERCERO A ',
+  TERCERO_B = 'TERCERO B',
+  TERCERO_C = 'TERCERO C',
+  CUARTO_A = 'CUARTO A',
+  CUARTO_B = 'CUARTO B',
+  CUARTO_C = 'CUARTO C',
+  QUINTO_A = 'QUINTO A',
+  QUINTO_B = 'QUINTO B',
+  QUINTO_C = 'QUINTO C',
+}
+
+export type Salon = SalonesPrimaria | SalonesInicial | SalonesSecundaria
