@@ -66,7 +66,6 @@ class EmpleadoControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { startTime, endTime, curso, salon, profesorId } = req.body;
                 const response = yield empleado_1.default.deleteHorarioCell({ nivel, year, startTime, endTime, curso, salon, profesorId });
-                console.log({ response, startTime, endTime, curso, salon });
                 if (response.modifiedCount == 0) {
                     return res.send((0, responses_1.responseError)('no se pudo elininar del horario'));
                 }

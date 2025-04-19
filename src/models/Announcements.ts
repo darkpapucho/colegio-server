@@ -3,6 +3,13 @@ import { mongoClient } from '../db'
 import { Nivel, Year } from '../types/enums'
 
 export default class Announcements {
+  static async deleteAnnouncement({ nivel, year, anuncioId }: { nivel: Nivel; year: Year; anuncioId: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`anuncios${nivel}${year}`)
+      .deleteOne({ _id: new ObjectId(anuncioId) })
+    return response
+  }
   static async fetchAllAnnouncements({ nivel, year }: { nivel: Nivel; year: Year }) {
     const cursor = mongoClient.db().collection(`anuncios${nivel}${year}`).find<{ _id: ObjectId; title: string; content: string; userId: ObjectId; date: string }>({})
     const result = []

@@ -19,6 +19,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 class Announcements {
+    static deleteAnnouncement({ nivel, year, anuncioId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`anuncios${nivel}${year}`)
+                .deleteOne({ _id: new mongodb_1.ObjectId(anuncioId) });
+            return response;
+        });
+    }
     static fetchAllAnnouncements({ nivel, year }) {
         var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {

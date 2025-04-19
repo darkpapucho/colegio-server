@@ -17,6 +17,19 @@ const global_1 = require("../utils/global");
 const Announcements_1 = __importDefault(require("../models/Announcements"));
 const responses_1 = require("../utils/responses");
 class AnnouncementsController {
+    static deleteAnuncio(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { anuncioId } = req.body;
+                yield Announcements_1.default.deleteAnnouncement({ nivel, year, anuncioId });
+                res.send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static fetchAnnouncements(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

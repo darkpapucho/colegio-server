@@ -36,7 +36,7 @@ export default class EmpleadoControllers {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { startTime, endTime, curso, salon, profesorId } = req.body
       const response = await Empleado.deleteHorarioCell({ nivel, year, startTime, endTime, curso, salon, profesorId })
-      console.log({ response, startTime, endTime, curso, salon })
+
       if (response.modifiedCount == 0) {
         return res.send(responseError('no se pudo elininar del horario'))
       }
