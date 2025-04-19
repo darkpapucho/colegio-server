@@ -26,7 +26,7 @@ export default class Calendario {
       .db()
       .collection(`asistencias${nivel}${year}`)
       .insertMany([...recordsAsistencia], { session })
-    console.log({ calendarioInserts: response })
+
     return response
   }
 

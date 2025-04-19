@@ -23,9 +23,8 @@ export default class EmpleadoControllers {
   static async agregarAnuncioProfesor(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { date, title, content, profesorId } = req.body
-      const anuncioId = await Empleado.agregarAnuncioProfesor({ nivel, year, date, title, content, profesorId })
-      console.log({ anuncioId, date, title, content, profesorId })
+      const { date, title, content, profesorId, salones } = req.body
+      const anuncioId = await Empleado.agregarAnuncioProfesor({ nivel, year, date, title, content, profesorId, salones })
 
       return res.send(responseOk(anuncioId))
     } catch (err) {
@@ -50,12 +49,9 @@ export default class EmpleadoControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { startTime, endTime, profesorId, curso, salon } = req.body
-      console.log({ startTime, endTime, profesorId, curso, salon, nivel, year })
-      // await Empleado.deleteHorarioCellStartsWith({ nivel, year, start: inicioDate, profesorId })
-      // await Empleado.deleteHorarioCellEndWith({ nivel, year, end: finDate, profesorId })
       await Empleado.agregarHorarioCell({ startTime, endTime, profesorId, curso, salon, nivel, year })
       const response = await Empleado.fetchProfesorHorario({ nivel, year, profesorId })
-      console.log({ horario: response?.horario })
+
       res.send(responseOk(response?.horario ? response?.horario : []))
     } catch (err) {
       errorResponseHandler(res, err)
@@ -135,6 +131,7 @@ export default class EmpleadoControllers {
       assertIsProfesorData(profesorData)
       //agregamos el campo anuncios a la hora de crear al profesor
       newProfesor['anuncios'] = []
+      newProfesor['horario'] = []
       const response2 = await Empleado.crearProfesor({ nivel, year, newProfesor, session })
       if (!response2.insertedId) {
         await session.abortTransaction()

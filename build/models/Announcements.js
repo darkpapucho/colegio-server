@@ -42,12 +42,12 @@ class Announcements {
             return result;
         });
     }
-    static addAnnouncement({ nivel, year, userId, date, content }) {
+    static addAnnouncement({ nivel, year, userId, date, content, title }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
                 .db()
                 .collection(`anuncios${nivel}${year}`)
-                .insertOne({ userId: new mongodb_1.ObjectId(userId), date, content });
+                .insertOne({ userId: new mongodb_1.ObjectId(userId), date, content, title });
             return response;
         });
     }

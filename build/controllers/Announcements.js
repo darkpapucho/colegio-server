@@ -29,5 +29,18 @@ class AnnouncementsController {
             }
         });
     }
+    static addAnnouncement(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { date, title, content, userId } = req.body; // _id of the empleado collection
+                const response = yield Announcements_1.default.addAnnouncement({ nivel, year, date, title, content, userId });
+                res.send((0, responses_1.responseOk)(response.insertedId));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
 }
 exports.default = AnnouncementsController;

@@ -14,4 +14,14 @@ export default class AnnouncementsController {
       errorResponseHandler(res, err)
     }
   }
+  static async addAnnouncement(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { date, title, content, userId } = req.body // _id of the empleado collection
+      const response = await Announcements.addAnnouncement({ nivel, year, date, title, content, userId })
+      res.send(responseOk(response.insertedId))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
 }

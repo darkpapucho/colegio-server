@@ -16,12 +16,12 @@ export default class Empleado {
       .updateOne({ _id: new ObjectId(profesorId) }, { $pull: { anuncios: { _id: new ObjectId(anuncioId) } } })
     return response
   }
-  static async agregarAnuncioProfesor({ nivel, year, content, title, date, profesorId }: { nivel: Nivel; year: Year; content: string; title: string; profesorId: string; date: string }) {
+  static async agregarAnuncioProfesor({ salones, nivel, year, content, title, date, profesorId }: { nivel: Nivel; year: Year; content: string; title: string; profesorId: string; date: string; salones: string[] }) {
     const anuncioId = new ObjectId()
     await mongoClient
       .db()
       .collection(`empleados${nivel}${year}`)
-      .updateOne({ _id: new ObjectId(profesorId) }, { $push: { anuncios: { content, title, date, _id: anuncioId } } })
+      .updateOne({ _id: new ObjectId(profesorId) }, { $push: { anuncios: { content, title, date, _id: anuncioId, salones } } })
     return anuncioId
   }
   static async deleteHorarioCell({ nivel, year, startTime, endTime, curso, salon, profesorId }: { nivel: Nivel; year: Year; startTime: string; endTime: string; curso: string; salon: string; profesorId: string }) {

@@ -40,13 +40,13 @@ class Empleado {
             return response;
         });
     }
-    static agregarAnuncioProfesor({ nivel, year, content, title, date, profesorId }) {
+    static agregarAnuncioProfesor({ salones, nivel, year, content, title, date, profesorId }) {
         return __awaiter(this, void 0, void 0, function* () {
             const anuncioId = new mongodb_1.ObjectId();
             yield db_1.mongoClient
                 .db()
                 .collection(`empleados${nivel}${year}`)
-                .updateOne({ _id: new mongodb_1.ObjectId(profesorId) }, { $push: { anuncios: { content, title, date, _id: anuncioId } } });
+                .updateOne({ _id: new mongodb_1.ObjectId(profesorId) }, { $push: { anuncios: { content, title, date, _id: anuncioId, salones } } });
             return anuncioId;
         });
     }

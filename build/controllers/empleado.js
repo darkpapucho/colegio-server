@@ -51,9 +51,8 @@ class EmpleadoControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { date, title, content, profesorId } = req.body;
-                const anuncioId = yield empleado_1.default.agregarAnuncioProfesor({ nivel, year, date, title, content, profesorId });
-                console.log({ anuncioId, date, title, content, profesorId });
+                const { date, title, content, profesorId, salones } = req.body;
+                const anuncioId = yield empleado_1.default.agregarAnuncioProfesor({ nivel, year, date, title, content, profesorId, salones });
                 return res.send((0, responses_1.responseOk)(anuncioId));
             }
             catch (err) {
@@ -83,12 +82,8 @@ class EmpleadoControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { startTime, endTime, profesorId, curso, salon } = req.body;
-                console.log({ startTime, endTime, profesorId, curso, salon, nivel, year });
-                // await Empleado.deleteHorarioCellStartsWith({ nivel, year, start: inicioDate, profesorId })
-                // await Empleado.deleteHorarioCellEndWith({ nivel, year, end: finDate, profesorId })
                 yield empleado_1.default.agregarHorarioCell({ startTime, endTime, profesorId, curso, salon, nivel, year });
                 const response = yield empleado_1.default.fetchProfesorHorario({ nivel, year, profesorId });
-                console.log({ horario: response === null || response === void 0 ? void 0 : response.horario });
                 res.send((0, responses_1.responseOk)((response === null || response === void 0 ? void 0 : response.horario) ? response === null || response === void 0 ? void 0 : response.horario : []));
             }
             catch (err) {
@@ -180,6 +175,7 @@ class EmpleadoControllers {
                 (0, validators_1.assertIsProfesorData)(profesorData);
                 //agregamos el campo anuncios a la hora de crear al profesor
                 newProfesor['anuncios'] = [];
+                newProfesor['horario'] = [];
                 const response2 = yield empleado_1.default.crearProfesor({ nivel, year, newProfesor, session });
                 if (!response2.insertedId) {
                     yield session.abortTransaction();
