@@ -34,6 +34,68 @@ const validators_1 = require("../utils/validators");
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 class EmpleadoControllers {
+    static deleteAnuncioProfesor(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { anuncioId, profesorId } = req.body;
+                yield empleado_1.default.deleteAnuncioProfesor({ nivel, year, profesorId, anuncioId });
+                res.send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static agregarAnuncioProfesor(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { date, title, content, profesorId } = req.body;
+                const anuncioId = yield empleado_1.default.agregarAnuncioProfesor({ nivel, year, date, title, content, profesorId });
+                console.log({ anuncioId, date, title, content, profesorId });
+                return res.send((0, responses_1.responseOk)(anuncioId));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static eliminarHorarioCell(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { startTime, endTime, curso, salon, profesorId } = req.body;
+                const response = yield empleado_1.default.deleteHorarioCell({ nivel, year, startTime, endTime, curso, salon, profesorId });
+                console.log({ response, startTime, endTime, curso, salon });
+                if (response.modifiedCount == 0) {
+                    return res.send((0, responses_1.responseError)('no se pudo elininar del horario'));
+                }
+                return res.send((0, responses_1.responseOk)(false));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static agregarHorarioCell(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { startTime, endTime, profesorId, curso, salon } = req.body;
+                console.log({ startTime, endTime, profesorId, curso, salon, nivel, year });
+                // await Empleado.deleteHorarioCellStartsWith({ nivel, year, start: inicioDate, profesorId })
+                // await Empleado.deleteHorarioCellEndWith({ nivel, year, end: finDate, profesorId })
+                yield empleado_1.default.agregarHorarioCell({ startTime, endTime, profesorId, curso, salon, nivel, year });
+                const response = yield empleado_1.default.fetchProfesorHorario({ nivel, year, profesorId });
+                console.log({ horario: response === null || response === void 0 ? void 0 : response.horario });
+                res.send((0, responses_1.responseOk)((response === null || response === void 0 ? void 0 : response.horario) ? response === null || response === void 0 ? void 0 : response.horario : []));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static deleteProfesor(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -116,6 +178,8 @@ class EmpleadoControllers {
                 }
                 const newProfesor = Object.assign(Object.assign({}, profesorData), { userId: response.insertedId.toString(), rol: 'profesor' });
                 (0, validators_1.assertIsProfesorData)(profesorData);
+                //agregamos el campo anuncios a la hora de crear al profesor
+                newProfesor['anuncios'] = [];
                 const response2 = yield empleado_1.default.crearProfesor({ nivel, year, newProfesor, session });
                 if (!response2.insertedId) {
                     yield session.abortTransaction();

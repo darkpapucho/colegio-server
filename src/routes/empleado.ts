@@ -9,3 +9,7 @@ empleadoRouter.get('/fetch-profesores', verifyCredentials, EmpleadoControllers.f
 empleadoRouter.post('/update-profesor', verifyCredentials, EmpleadoControllers.updateProfesor)
 empleadoRouter.post('/change-profesor-password', verifyCredentials, EmpleadoControllers.changeProfesorPassword)
 empleadoRouter.post('/delete-profesor', verifyCredentials, EmpleadoControllers.deleteProfesor)
+empleadoRouter.post('/agregar-horario-cell', verifyCredentials, EmpleadoControllers.agregarHorarioCell)
+empleadoRouter.post('/eliminar-horario-cell', verifyCredentials, EmpleadoControllers.eliminarHorarioCell)
+empleadoRouter.post('/agregar-anuncio-profesor', verifyCredentials, EmpleadoControllers.agregarAnuncioProfesor)
+empleadoRouter.post('/delete-anuncio-profesor', verifyCredentials, EmpleadoControllers.deleteAnuncioProfesor)

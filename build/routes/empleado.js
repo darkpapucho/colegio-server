@@ -13,3 +13,7 @@ exports.empleadoRouter.get('/fetch-profesores', verifyCredentials_1.verifyCreden
 exports.empleadoRouter.post('/update-profesor', verifyCredentials_1.verifyCredentials, empleado_1.default.updateProfesor);
 exports.empleadoRouter.post('/change-profesor-password', verifyCredentials_1.verifyCredentials, empleado_1.default.changeProfesorPassword);
 exports.empleadoRouter.post('/delete-profesor', verifyCredentials_1.verifyCredentials, empleado_1.default.deleteProfesor);
+exports.empleadoRouter.post('/agregar-horario-cell', verifyCredentials_1.verifyCredentials, empleado_1.default.agregarHorarioCell);
+exports.empleadoRouter.post('/eliminar-horario-cell', verifyCredentials_1.verifyCredentials, empleado_1.default.eliminarHorarioCell);
+exports.empleadoRouter.post('/agregar-anuncio-profesor', verifyCredentials_1.verifyCredentials, empleado_1.default.agregarAnuncioProfesor);
+exports.empleadoRouter.post('/delete-anuncio-profesor', verifyCredentials_1.verifyCredentials, empleado_1.default.deleteAnuncioProfesor);

@@ -9,4 +9,5 @@ export type Profesor = {
   rol: 'profesor'
   userId: string | ObjectId
   _id: string | ObjectId
+  horario: { curso: string; salon: string; start: Date; end: Date }[]
 }

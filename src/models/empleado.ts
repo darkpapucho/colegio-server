@@ -4,7 +4,49 @@ import { ClientSession, ObjectId } from 'mongodb'
 import { ProfesorData } from '../types/user'
 import { Profesor } from '../types/empleado'
 import { hashPassword } from '../utils/hashPassword'
+
+import { Curso } from '../types/salon'
+import { HorarioProfesorCell } from '../types/horarioProfesor'
+
 export default class Empleado {
+  static async deleteAnuncioProfesor({ nivel, year, anuncioId, profesorId }: { profesorId: string; nivel: Nivel; year: Year; anuncioId: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`empleados${nivel}${year}`)
+      .updateOne({ _id: new ObjectId(profesorId) }, { $pull: { anuncios: { _id: new ObjectId(anuncioId) } } })
+    return response
+  }
+  static async agregarAnuncioProfesor({ nivel, year, content, title, date, profesorId }: { nivel: Nivel; year: Year; content: string; title: string; profesorId: string; date: string }) {
+    const anuncioId = new ObjectId()
+    await mongoClient
+      .db()
+      .collection(`empleados${nivel}${year}`)
+      .updateOne({ _id: new ObjectId(profesorId) }, { $push: { anuncios: { content, title, date, _id: anuncioId } } })
+    return anuncioId
+  }
+  static async deleteHorarioCell({ nivel, year, startTime, endTime, curso, salon, profesorId }: { nivel: Nivel; year: Year; startTime: string; endTime: string; curso: string; salon: string; profesorId: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`empleados${nivel}${year}`)
+      .updateOne({ _id: new ObjectId(profesorId) }, { $pull: { horario: { startTime, endTime, curso, salon } } })
+    return response
+  }
+  static async fetchProfesorHorario({ nivel, year, profesorId }: { nivel: Nivel; year: Year; profesorId: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`empleados${nivel}${year}`)
+      .findOne<{ horario: HorarioProfesorCell[] }>({ _id: new ObjectId(profesorId) }, { projection: { horario: 1, _id: 0 } })
+    return response
+  }
+
+  static async agregarHorarioCell({ startTime, endTime, profesorId, curso, salon, nivel, year }: { profesorId: string; nivel: Nivel; year: Year; endTime: string; curso: Curso; salon: string; startTime: string }) {
+    const response = mongoClient
+      .db()
+      .collection(`empleados${nivel}${year}`)
+      .updateOne({ _id: new ObjectId(profesorId) }, { $push: { horario: { startTime, endTime, curso, salon } } })
+
+    return response
+  }
   static async deleteProfesor({ nivel, year, userId }: { nivel: Nivel; year: Year; userId: string }) {
     const response = await mongoClient
       .db()

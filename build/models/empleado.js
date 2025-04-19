@@ -31,6 +31,52 @@ const db_1 = require("../db");
 const mongodb_1 = require("mongodb");
 const hashPassword_1 = require("../utils/hashPassword");
 class Empleado {
+    static deleteAnuncioProfesor({ nivel, year, anuncioId, profesorId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`empleados${nivel}${year}`)
+                .updateOne({ _id: new mongodb_1.ObjectId(profesorId) }, { $pull: { anuncios: { _id: new mongodb_1.ObjectId(anuncioId) } } });
+            return response;
+        });
+    }
+    static agregarAnuncioProfesor({ nivel, year, content, title, date, profesorId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const anuncioId = new mongodb_1.ObjectId();
+            yield db_1.mongoClient
+                .db()
+                .collection(`empleados${nivel}${year}`)
+                .updateOne({ _id: new mongodb_1.ObjectId(profesorId) }, { $push: { anuncios: { content, title, date, _id: anuncioId } } });
+            return anuncioId;
+        });
+    }
+    static deleteHorarioCell({ nivel, year, startTime, endTime, curso, salon, profesorId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`empleados${nivel}${year}`)
+                .updateOne({ _id: new mongodb_1.ObjectId(profesorId) }, { $pull: { horario: { startTime, endTime, curso, salon } } });
+            return response;
+        });
+    }
+    static fetchProfesorHorario({ nivel, year, profesorId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`empleados${nivel}${year}`)
+                .findOne({ _id: new mongodb_1.ObjectId(profesorId) }, { projection: { horario: 1, _id: 0 } });
+            return response;
+        });
+    }
+    static agregarHorarioCell({ startTime, endTime, profesorId, curso, salon, nivel, year }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = db_1.mongoClient
+                .db()
+                .collection(`empleados${nivel}${year}`)
+                .updateOne({ _id: new mongodb_1.ObjectId(profesorId) }, { $push: { horario: { startTime, endTime, curso, salon } } });
+            return response;
+        });
+    }
     static deleteProfesor({ nivel, year, userId }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient

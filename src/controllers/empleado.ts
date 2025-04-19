@@ -10,6 +10,57 @@ import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
 import { mongoClient } from '../db'
 export default class EmpleadoControllers {
+  static async deleteAnuncioProfesor(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { anuncioId, profesorId } = req.body
+      await Empleado.deleteAnuncioProfesor({ nivel, year, profesorId, anuncioId })
+      res.send(responseOk(null))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async agregarAnuncioProfesor(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { date, title, content, profesorId } = req.body
+      const anuncioId = await Empleado.agregarAnuncioProfesor({ nivel, year, date, title, content, profesorId })
+      console.log({ anuncioId, date, title, content, profesorId })
+
+      return res.send(responseOk(anuncioId))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
+  static async eliminarHorarioCell(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { startTime, endTime, curso, salon, profesorId } = req.body
+      const response = await Empleado.deleteHorarioCell({ nivel, year, startTime, endTime, curso, salon, profesorId })
+      console.log({ response, startTime, endTime, curso, salon })
+      if (response.modifiedCount == 0) {
+        return res.send(responseError('no se pudo elininar del horario'))
+      }
+      return res.send(responseOk(false))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
+  static async agregarHorarioCell(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { startTime, endTime, profesorId, curso, salon } = req.body
+      console.log({ startTime, endTime, profesorId, curso, salon, nivel, year })
+      // await Empleado.deleteHorarioCellStartsWith({ nivel, year, start: inicioDate, profesorId })
+      // await Empleado.deleteHorarioCellEndWith({ nivel, year, end: finDate, profesorId })
+      await Empleado.agregarHorarioCell({ startTime, endTime, profesorId, curso, salon, nivel, year })
+      const response = await Empleado.fetchProfesorHorario({ nivel, year, profesorId })
+      console.log({ horario: response?.horario })
+      res.send(responseOk(response?.horario ? response?.horario : []))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async deleteProfesor(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -82,7 +133,8 @@ export default class EmpleadoControllers {
       }
       const newProfesor = { ...profesorData, userId: response.insertedId.toString(), rol: 'profesor' }
       assertIsProfesorData(profesorData)
-
+      //agregamos el campo anuncios a la hora de crear al profesor
+      newProfesor['anuncios'] = []
       const response2 = await Empleado.crearProfesor({ nivel, year, newProfesor, session })
       if (!response2.insertedId) {
         await session.abortTransaction()
