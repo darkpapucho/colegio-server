@@ -16,7 +16,8 @@ export default class Announcements {
     for await (const doc of cursor) {
       result.push(doc)
     }
-    return result
+    
+    return result.sort((prev,curr)=>prev.date>curr.date?-1:1);
   }
   static async addAnnouncement({ nivel, year, userId, date, content, title }: { title: string; nivel: Nivel; userId: string | ObjectId; year: Year; date: string; content: string }) {
     const response = await mongoClient

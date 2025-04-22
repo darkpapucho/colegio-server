@@ -48,7 +48,7 @@ class Announcements {
                 }
                 finally { if (e_1) throw e_1.error; }
             }
-            return result;
+            return result.sort((prev, curr) => prev.date > curr.date ? -1 : 1);
         });
     }
     static addAnnouncement({ nivel, year, userId, date, content, title }) {
