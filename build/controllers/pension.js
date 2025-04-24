@@ -44,7 +44,7 @@ class PensionController {
                         const salon = record[0];
                         const GRADO = salon.substring(0, salon.lastIndexOf(' '));
                         const SECCION = salon.substring(salon.lastIndexOf(' '));
-                        const data = record[1];
+                        const data = record[1].sort((prev, curr) => (prev.nombreCompleto > curr.nombreCompleto ? 1 : -1));
                         document.addPage();
                         (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, { nivel, grado: GRADO, seccion: SECCION, semestre: 1 });
                         document.addPage();
@@ -54,7 +54,7 @@ class PensionController {
                 else {
                     const list = yield pension_1.default.getListByGradoSeccion({ nivel, year, grado, seccion });
                     //parse the data:
-                    const data = list.map((record) => ({ nombreCompleto: record.estudiante.nombreCompleto, pensiones: record.pensiones }));
+                    const data = list.map((record) => ({ nombreCompleto: record.estudiante.nombreCompleto, pensiones: record.pensiones })).sort((prev, curr) => (prev.nombreCompleto > curr.nombreCompleto ? 1 : -1));
                     //write PDF
                     document.addPage();
                     (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, { nivel, grado, seccion, semestre: 1 });
