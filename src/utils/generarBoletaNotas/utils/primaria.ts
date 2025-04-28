@@ -64,7 +64,7 @@ export function tablaNotasEstructuraPrimaria(document: PDFKit.PDFDocument) {
   document
     .rect(MARGIN_LEFT, 200 + NOTAS_TABLE_HEADER_HEIGHT, CURSO_CELDA_WIDTH, NUMERO_COMPETENCIAS_PRIMARIA * NOTA_CELDA_HEIGHT)
     .fillOpacity(0.5)
-    .fillAndStroke(FILL_COLOR, BORDER_COLOR)
+    .fillAndStroke(FILL_COLOR, BORDER_COLOR) //BORDER_COLOR
 
   //LINEAS HORIZONTALES
   document.fillOpacity(1)
@@ -164,7 +164,9 @@ export function tablaNotasDatosPrimaria({ document, cursos }: { document: PDFKit
   for (const periodo of PERIODOS) {
     for (const CURSO_PRIMARIA of CURSOS_PRIMARIA_BOLETA_NOTAS) {
       for (let i = 0; i < cursos[CURSO_PRIMARIA.key].numCompetencias; i++) {
-        document.fontSize(9).text(cursos[CURSO_PRIMARIA.key][periodo][i] ? cursos[CURSO_PRIMARIA.key][periodo][i] : ' ', 315 + NOTA_CELDA_WIDTH * convertPeriodoKeyToIndex(periodo), 237 + count, { width: 30, align: 'center' })
+        document
+          .fontSize(9)
+          .text(cursos[CURSO_PRIMARIA.key][periodo][i] ? cursos[CURSO_PRIMARIA.key][periodo][i] : ' ', 315 + NOTA_CELDA_WIDTH * convertPeriodoKeyToIndex(periodo), 237 + count, { width: 30, align: 'center' })
         count += NOTA_CELDA_HEIGHT
       }
     }

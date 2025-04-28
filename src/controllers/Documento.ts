@@ -4,7 +4,6 @@ import { assertGrado, assertSeccion, extractNivelYearFromHeaders } from '../util
 import { assertIsAMatriculado, assertIsEmitirDocumentsData, assertIsString } from '../utils/validators'
 import { Request, Response } from 'express'
 import PdfDocument from 'pdfkit'
-
 import fs from 'fs'
 import { errorResponseHandler } from '../error/errors'
 import { Alumno } from '../models/alumno'
@@ -13,7 +12,7 @@ import { responseOk } from '../utils/responses'
 import { ObjectId } from 'mongodb'
 import { RegistroNota } from '../types/documents'
 
-import generarBoletasDeNotas from '../utils/generarBoletaNotas/generarBoletaNotas'
+import generarBoletasDeNotasPdf, { createStudentZipInMemory } from '../utils/generarBoletaNotas/generarBoletaNotas'
 import { SalonProfesor } from '../types/user'
 
 export default class DocumentoControllers {
@@ -43,26 +42,7 @@ export default class DocumentoControllers {
       if (!notasRecord) {
         throw new Error('No se encontró el record de notas del alumno')
       }
-      const libreta = new PdfDocument({
-        layout: 'portrait',
-        size: 'A4',
-        font: 'Courier',
-        margins: { top: 20, left: 20, right: 20, bottom: 20 },
-        autoFirstPage: false,
-      })
-
-      libreta.pipe(fs.createWriteStream('./files/libretaIndividual.pdf'))
-      libreta.pipe(res)
-      if (notasRecord.length === 0) {
-        libreta.addPage()
-        libreta.text('NO HAY ALUMNOS EN ESTE AÑO/SALÓN', 0, 100, {
-          width: 600,
-          align: 'center',
-        })
-      } else {
-        generarBoletasDeNotas({ document: libreta, registros: notasRecord, year, nivel })
-      }
-      libreta.end()
+      generarBoletasDeNotasPdf({ res, registros: notasRecord, year, nivel })
     } catch (err) {
       errorResponseHandler(res, err)
     }
@@ -70,33 +50,23 @@ export default class DocumentoControllers {
 
   static async generateLibretasByGradoSeccion(req: Request, res: Response) {
     try {
-      const { grado, seccion } = req.body
+      const { grado, seccion, estadosMatricula, zipped } = req.body
+
       const { nivel, year } = extractNivelYearFromHeaders(req)
       assertGrado(grado)
       assertSeccion(seccion)
 
-      const registros = await Documento.getRegistrosByGradoSeccion({ grado, seccion, nivel, year })
+      const registros = await Documento.getRegistrosByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula })
 
       //creacion de la libreta
-      const libretas = new PdfDocument({
-        layout: 'portrait',
-        size: 'A4',
-        font: 'Courier',
-        margins: { top: 20, left: 20, right: 20, bottom: 20 },
-        autoFirstPage: false,
-      })
-      libretas.pipe(fs.createWriteStream('./files/libreta.pdf'))
-      libretas.pipe(res)
-      if (registros.length === 0) {
-        libretas.addPage()
-        libretas.text('NO HAY ALUMNOS EN ESTE AÑO/SALÓN', 0, 100, {
-          width: 600,
-          align: 'center',
-        })
+
+      //zip archive
+
+      if (zipped) {
+        await createStudentZipInMemory({ registros, nivel, grado, seccion, year, res })
       } else {
-        generarBoletasDeNotas({ document: libretas, registros, year, nivel })
+        generarBoletasDeNotasPdf({ res, registros, year, nivel })
       }
-      libretas.end()
     } catch (err) {
       errorResponseHandler(res, err)
     }

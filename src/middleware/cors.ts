@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 import { config } from 'dotenv'
 config()
-const ALLOWED_ORIGIN = process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN : 'http://localhost:3000'
-const ALLOWED_ORIGINS = ALLOWED_ORIGIN!.split('-')
+const ALLOWED_ORIGINS = process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN!.split(',') : ['http://localhost:3000', 'http://localhost:3050']
+
 export const cors = (req: Request, res: Response, next: NextFunction) => {
   const origin = req.get('origin') //extract origin from the headers
   //const route = req.url

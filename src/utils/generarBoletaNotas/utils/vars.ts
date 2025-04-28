@@ -1,9 +1,12 @@
+import { NUMERO_COMPETENCIAS_PRIMARIA } from '../../../vars/constants'
+
 export const DRE = 'DRE Lima Metropolitana'
 export const UGEL = 'UGEL 04 Comas'
 export const NOMBRE_COLEGIO = 'Jesús el Nazareno'
 export const HEADER_FONT_COLOR = 'white'
 export const HEADER_COLOR_CONTENT = '#1D5D9B'
 export const TEXT_COLOR = 'black'
+export const TEXT_HEADER = 'white'
 export const FILL_COLOR = '#32407B'
 export const BORDER_COLOR = 'black'
 export const BOLETA_NOTA_HEADERS = ['DRE:', 'UGEL:', 'Nivel:', 'Institución Educativa:', 'Grado:', 'Sección:', 'Apellidos y nombres: ']
@@ -19,4 +22,4 @@ export const COMPETENCIA_CELDA_WIDTH = 140 + 30
 export const MARGIN_LEFT = 50
 export const CONCLUSION_DESCRIPTIVA_CELDA_WIDTH = 55
 export const TABLE_NOTAS_WIDTH = 500
-export const TABLE_NOTAS_HEIGHT = 624
+export const TABLE_NOTAS_HEIGHT = NOTAS_TABLE_HEADER_HEIGHT + NOTA_CELDA_HEIGHT * NUMERO_COMPETENCIAS_PRIMARIA //624

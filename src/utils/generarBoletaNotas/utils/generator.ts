@@ -6,20 +6,18 @@ import { conclusionesDescriptivasTabla, escalaCalificaciones, firmas, resumenAsi
 
 export const generarBoletasNotasPrimaria = ({ document, registro, nivel }: { document: PDFKit.PDFDocument; registro: ExtendedRegistroNota; nivel: Nivel }) => {
   const { estudiante, cursos, conclusionesDescriptivas, inasistencias, tardanzas } = registro
-  // const {personalSocial, educacionFisica,comunicacion, arteCultura, ingles, matematica, cienciaTecnologia, religion, competenciasTransversales} = cursos;
-  // const notas = {personalSocial, educacionFisica,comunicacion, arteCultura, ingles, matematica, cienciaTecnologia, religion, competenciasTransversales};
+
   const { grado, seccion, nombreCompleto } = estudiante[0]
+  //parte de adelante
 
   tableHead(document)
   tableHeadData({ document, nivel, grado, seccion, nombreCompleto })
   tablaNotasEstructuraPrimaria(document)
   tablaNotasCamposPrimaria(document)
   tablaNotasDatosPrimaria({ document, cursos })
-  // if(tipo==="anual"){
-  //   tablaNotasPromedios(pdfDoc, notas,nivel,grado);
-  // }
   tablaNotasPromedios({ document, cursos, nivel, grado }) //modified
-  conclusionesDescriptivasTabla({ document: document, conclusionesDescriptivas })
+  //PARTE DE ATRAS DE LA HOJA
+  conclusionesDescriptivasTabla({ document, conclusionesDescriptivas })
   resumenAsistencias({ document, inasistencias, tardanzas })
   escalaCalificaciones(document)
   firmas({ document })
@@ -28,20 +26,16 @@ export const generarBoletasNotasPrimaria = ({ document, registro, nivel }: { doc
 export const generarBoletasNotasInicial = ({ document, registro, nivel }: { nivel: Nivel; registro: ExtendedRegistroNota; document: PDFKit.PDFDocument }) => {
   const { estudiante, cursos, conclusionesDescriptivas, inasistencias, tardanzas } = registro
   const { grado, seccion, nombreCompleto } = estudiante[0]
-  // if (grado === 'Grupo 5 años') {
-  //   notas = { personalSocial, psicomotriz, comunicacion, matematica, cienciaTecnologia, competenciasTransversales };
-  // } else {
-  //   notas = { personalSocial, psicomotriz, comunicacion, matematica, cienciaTecnologia };
-  // }
+
   tableHead(document)
   tableHeadData({ document, nivel, grado, seccion, nombreCompleto })
   tablaNotasEstructuraInicial({ document, grado })
   tablaNotasCamposInicial({ document, grado })
   tablaNotasDatosInicial({ document, cursos, grado })
-  // if (tipo === 'anual') {
-  //   tablaNotasPromedios(document, notas, nivel, grado);
-  // }
+
   tablaNotasPromedios({ document, cursos, nivel, grado }) //modified
+  //PARTE DE ATRAS DE LA HOJA
+  document.addPage()
   conclusionesDescriptivasTabla({ document, conclusionesDescriptivas })
   resumenAsistencias({ document, inasistencias, tardanzas })
   escalaCalificaciones(document)

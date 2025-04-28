@@ -102,7 +102,6 @@ exports.firmas = firmas;
 function conclusionesDescriptivasTabla({ document, conclusionesDescriptivas }) {
     // let marginTop = 40;
     // let marginRight = 50;
-    document.addPage();
     document.rect(50, 50, 500, 22).fillOpacity(0.5).fillAndStroke(vars_1.FILL_COLOR, vars_1.BORDER_COLOR);
     document.rect(50, 72, 70, 44 * 4).fillAndStroke(vars_1.FILL_COLOR, vars_1.BORDER_COLOR);
     document.moveTo(120, 50).lineTo(120, 72).stroke();
@@ -117,7 +116,7 @@ function conclusionesDescriptivasTabla({ document, conclusionesDescriptivas }) {
         .moveTo(550, 72)
         .lineTo(550, 72 + 44 * 4)
         .stroke();
-    document.fillOpacity(1).fill(vars_1.TEXT_COLOR);
+    document.fillOpacity(1).fill(vars_1.TEXT_HEADER).font(vars_1.BOLD_FONT);
     document.fontSize(9).text('Periodo', 50, 58, { width: 70, align: 'center' });
     document.fontSize(9).text('Conclusión descriptiva del periodo', 120, 58, { width: 420, align: 'center' });
     document.fontSize(12).text('1', 50, 89, { width: 70, align: 'center' });

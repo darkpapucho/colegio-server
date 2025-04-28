@@ -1,7 +1,7 @@
 import { ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
 
-import { Grado, Nivel, Seccion, Year } from '../types/enums'
+import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { CursoNotaRecord, ExtendedRegistroNota, RegistroNota } from '../types/documents'
 import { SalonProfesor } from '../types/user'
 
@@ -144,7 +144,7 @@ export default class Documento {
     }
     return registros
   }
-  static async getRegistrosByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+  static async getRegistrosByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }: { estadosMatricula?: EstadoMatricula[]; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
     const notasCollection = `notas${nivel}${year}`
     const alumnosCollection = `matriculados${nivel}${year}`
     const cursor = mongoClient
@@ -163,6 +163,7 @@ export default class Documento {
           $match: {
             'estudiante.grado': grado,
             'estudiante.seccion': seccion,
+            'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
           },
         },
       ])

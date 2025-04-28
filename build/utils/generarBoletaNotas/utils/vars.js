@@ -1,12 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TABLE_NOTAS_HEIGHT = exports.TABLE_NOTAS_WIDTH = exports.CONCLUSION_DESCRIPTIVA_CELDA_WIDTH = exports.MARGIN_LEFT = exports.COMPETENCIA_CELDA_WIDTH = exports.CURSO_CELDA_WIDTH = exports.NOTAS_TABLE_HEADER_HEIGHT = exports.NOTAS_TABLE_WIDTH = exports.NOTA_CELDA_WIDTH = exports.NOTA_CELDA_HEIGHT = exports.BOLD_FONT = exports.NORMAL_FONT = exports.BOLETA_NOTA_HEADERS = exports.BORDER_COLOR = exports.FILL_COLOR = exports.TEXT_COLOR = exports.HEADER_COLOR_CONTENT = exports.HEADER_FONT_COLOR = exports.NOMBRE_COLEGIO = exports.UGEL = exports.DRE = void 0;
+exports.TABLE_NOTAS_HEIGHT = exports.TABLE_NOTAS_WIDTH = exports.CONCLUSION_DESCRIPTIVA_CELDA_WIDTH = exports.MARGIN_LEFT = exports.COMPETENCIA_CELDA_WIDTH = exports.CURSO_CELDA_WIDTH = exports.NOTAS_TABLE_HEADER_HEIGHT = exports.NOTAS_TABLE_WIDTH = exports.NOTA_CELDA_WIDTH = exports.NOTA_CELDA_HEIGHT = exports.BOLD_FONT = exports.NORMAL_FONT = exports.BOLETA_NOTA_HEADERS = exports.BORDER_COLOR = exports.FILL_COLOR = exports.TEXT_HEADER = exports.TEXT_COLOR = exports.HEADER_COLOR_CONTENT = exports.HEADER_FONT_COLOR = exports.NOMBRE_COLEGIO = exports.UGEL = exports.DRE = void 0;
+const constants_1 = require("../../../vars/constants");
 exports.DRE = 'DRE Lima Metropolitana';
 exports.UGEL = 'UGEL 04 Comas';
 exports.NOMBRE_COLEGIO = 'Jesús el Nazareno';
 exports.HEADER_FONT_COLOR = 'white';
 exports.HEADER_COLOR_CONTENT = '#1D5D9B';
 exports.TEXT_COLOR = 'black';
+exports.TEXT_HEADER = 'white';
 exports.FILL_COLOR = '#32407B';
 exports.BORDER_COLOR = 'black';
 exports.BOLETA_NOTA_HEADERS = ['DRE:', 'UGEL:', 'Nivel:', 'Institución Educativa:', 'Grado:', 'Sección:', 'Apellidos y nombres: '];
@@ -21,4 +23,4 @@ exports.COMPETENCIA_CELDA_WIDTH = 140 + 30;
 exports.MARGIN_LEFT = 50;
 exports.CONCLUSION_DESCRIPTIVA_CELDA_WIDTH = 55;
 exports.TABLE_NOTAS_WIDTH = 500;
-exports.TABLE_NOTAS_HEIGHT = 624;
+exports.TABLE_NOTAS_HEIGHT = exports.NOTAS_TABLE_HEADER_HEIGHT + exports.NOTA_CELDA_HEIGHT * constants_1.NUMERO_COMPETENCIAS_PRIMARIA; //624

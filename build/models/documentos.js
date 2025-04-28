@@ -196,7 +196,7 @@ class Documento {
             return registros;
         });
     }
-    static getRegistrosByGradoSeccion({ nivel, year, grado, seccion }) {
+    static getRegistrosByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }) {
         return __awaiter(this, void 0, void 0, function* () {
             const notasCollection = `notas${nivel}${year}`;
             const alumnosCollection = `matriculados${nivel}${year}`;
@@ -216,6 +216,7 @@ class Documento {
                     $match: {
                         'estudiante.grado': grado,
                         'estudiante.seccion': seccion,
+                        'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
                     },
                 },
             ]);

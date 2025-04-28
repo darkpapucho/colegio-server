@@ -2,7 +2,7 @@ import { Periodo } from '../../../types/alumno'
 import { CursoNotaRecord, TardanzaInasistencia } from '../../../types/documents'
 import { Grado, Nivel, Nota } from '../../../types/enums'
 import { ESPACIOS_ENTRE_CURSOS_INICIAL, ESPACIOS_ENTRE_CURSOS_PRIMARIA } from '../../../vars/constants'
-import { BOLD_FONT, BORDER_COLOR, FILL_COLOR, HEADER_FONT_COLOR, NORMAL_FONT, NOTA_CELDA_HEIGHT, TEXT_COLOR } from './vars'
+import { BOLD_FONT, BORDER_COLOR, FILL_COLOR, HEADER_FONT_COLOR, NORMAL_FONT, NOTA_CELDA_HEIGHT, TEXT_COLOR, TEXT_HEADER } from './vars'
 
 export function convertToLetras(number: number) {
   switch (number) {
@@ -97,7 +97,7 @@ export function firmas({ document, profesor }: { document: PDFKit.PDFDocument; p
 export function conclusionesDescriptivasTabla({ document, conclusionesDescriptivas }: { document: PDFKit.PDFDocument; conclusionesDescriptivas: [string, string, string, string] }) {
   // let marginTop = 40;
   // let marginRight = 50;
-  document.addPage()
+
   document.rect(50, 50, 500, 22).fillOpacity(0.5).fillAndStroke(FILL_COLOR, BORDER_COLOR)
   document.rect(50, 72, 70, 44 * 4).fillAndStroke(FILL_COLOR, BORDER_COLOR)
 
@@ -114,7 +114,7 @@ export function conclusionesDescriptivasTabla({ document, conclusionesDescriptiv
     .moveTo(550, 72)
     .lineTo(550, 72 + 44 * 4)
     .stroke()
-  document.fillOpacity(1).fill(TEXT_COLOR)
+  document.fillOpacity(1).fill(TEXT_HEADER).font(BOLD_FONT)
   document.fontSize(9).text('Periodo', 50, 58, { width: 70, align: 'center' })
   document.fontSize(9).text('Conclusión descriptiva del periodo', 120, 58, { width: 420, align: 'center' })
   document.fontSize(12).text('1', 50, 89, { width: 70, align: 'center' })

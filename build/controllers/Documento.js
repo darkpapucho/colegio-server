@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -23,7 +46,7 @@ const alumno_1 = require("../models/alumno");
 // import { generadorCursos } from '../utils/generateCursosByGradoSeccion'
 const responses_1 = require("../utils/responses");
 const mongodb_1 = require("mongodb");
-const generarBoletaNotas_1 = __importDefault(require("../utils/generarBoletaNotas/generarBoletaNotas"));
+const generarBoletaNotas_1 = __importStar(require("../utils/generarBoletaNotas/generarBoletaNotas"));
 class DocumentoControllers {
     static fetchNotasByCursos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -50,26 +73,7 @@ class DocumentoControllers {
                 if (!notasRecord) {
                     throw new Error('No se encontró el record de notas del alumno');
                 }
-                const libreta = new pdfkit_1.default({
-                    layout: 'portrait',
-                    size: 'A4',
-                    font: 'Courier',
-                    margins: { top: 20, left: 20, right: 20, bottom: 20 },
-                    autoFirstPage: false,
-                });
-                libreta.pipe(fs_1.default.createWriteStream('./files/libretaIndividual.pdf'));
-                libreta.pipe(res);
-                if (notasRecord.length === 0) {
-                    libreta.addPage();
-                    libreta.text('NO HAY ALUMNOS EN ESTE AÑO/SALÓN', 0, 100, {
-                        width: 600,
-                        align: 'center',
-                    });
-                }
-                else {
-                    (0, generarBoletaNotas_1.default)({ document: libreta, registros: notasRecord, year, nivel });
-                }
-                libreta.end();
+                (0, generarBoletaNotas_1.default)({ res, registros: notasRecord, year, nivel });
             }
             catch (err) {
                 (0, errors_1.errorResponseHandler)(res, err);
@@ -79,32 +83,19 @@ class DocumentoControllers {
     static generateLibretasByGradoSeccion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { grado, seccion } = req.body;
+                const { grado, seccion, estadosMatricula, zipped } = req.body;
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 (0, global_1.assertGrado)(grado);
                 (0, global_1.assertSeccion)(seccion);
-                const registros = yield documentos_1.default.getRegistrosByGradoSeccion({ grado, seccion, nivel, year });
+                const registros = yield documentos_1.default.getRegistrosByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula });
                 //creacion de la libreta
-                const libretas = new pdfkit_1.default({
-                    layout: 'portrait',
-                    size: 'A4',
-                    font: 'Courier',
-                    margins: { top: 20, left: 20, right: 20, bottom: 20 },
-                    autoFirstPage: false,
-                });
-                libretas.pipe(fs_1.default.createWriteStream('./files/libreta.pdf'));
-                libretas.pipe(res);
-                if (registros.length === 0) {
-                    libretas.addPage();
-                    libretas.text('NO HAY ALUMNOS EN ESTE AÑO/SALÓN', 0, 100, {
-                        width: 600,
-                        align: 'center',
-                    });
+                //zip archive
+                if (zipped) {
+                    yield (0, generarBoletaNotas_1.createStudentZipInMemory)({ registros, nivel, grado, seccion, year, res });
                 }
                 else {
-                    (0, generarBoletaNotas_1.default)({ document: libretas, registros, year, nivel });
+                    (0, generarBoletaNotas_1.default)({ res, registros, year, nivel });
                 }
-                libretas.end();
             }
             catch (err) {
                 (0, errors_1.errorResponseHandler)(res, err);

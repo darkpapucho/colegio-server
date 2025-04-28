@@ -5,15 +5,30 @@ export const JWT_ISSUER = 'jesus_nazareno_client'
 
 //PRIMARIA
 export const CURSOS_PRIMARIA_BOLETA_NOTAS: CURSO_BOLETA_NOTA[] = [
-  { label: 'Personal Social', key: 'personalSocial', competencias: ['Construye su identidad.', 'Convive y participa democráticamente.', 'Construye interpretaciones históricas.', 'Gestiona responsablemente el espacio y el ambiente', 'Gestiona responsablemente los recursos económicos.'] },
+  {
+    label: 'Personal Social',
+    key: 'personalSocial',
+    competencias: [
+      'Construye su identidad.',
+      'Convive y participa democráticamente.',
+      'Construye interpretaciones históricas.',
+      'Gestiona responsablemente el espacio y el ambiente',
+      'Gestiona responsablemente los recursos económicos.',
+    ],
+  },
   { label: 'Educación Física', key: 'educacionFisica', competencias: ['Se desenvuelve de manera autónoma.', 'Asume una vida saludable.', 'Interactúa a través de sus habilidades sociomotrices.'] },
   { label: 'Comunicación', key: 'comunicacion', competencias: ['Se comunica oralmente.', 'Lee diversos tipos de textos.', 'Escribe diversos tipos de textos.'] },
   { label: 'Arte y Cultura', key: 'arteCultura', competencias: ['Aprecia las manifestaciones artístico-culturales.', 'Crea proyectos desde los lenguajes artísticos.'] },
   { label: 'Inglés', key: 'ingles', competencias: ['Se comunica oralmente en inglés.', 'Lee diversos tipos de textos en inglés.', 'Escribe diversos tipos textos en inglés.'] },
-  { label: 'Matemática', key: 'matematica', competencias: ['Resuelve problemas de cantidad.', 'Resuelve problemas de regularidad, equivalencia y cambio', 'Resuelve problemas de movimiento y localización.', 'Resuelve problemas de datos e incertidumbre.'] },
+  {
+    label: 'Matemática',
+    key: 'matematica',
+    competencias: ['Resuelve problemas de cantidad.', 'Resuelve problemas de regularidad, equivalencia y cambio', 'Resuelve problemas de movimiento y localización.', 'Resuelve problemas de datos e incertidumbre.'],
+  },
   { label: 'Ciencia y Tecnología', key: 'cienciaTecnologia', competencias: ['Indaga mediante métodos científicos.', 'Explica el mundo basándose en hechos científicos.', 'Diseña y construye soluciones tecnológicas.'] },
   { label: 'Educación Religiosa', key: 'religion', competencias: ['Construye su identidad como persona amada por Dios.', 'Asume a Dios en su proyecto de vida.'] },
-  { label: 'Competencias Transversales', key: 'competenciasTransversales', competencias: ['Se desenvuelve en entornos virtuales generados por las TIC.', 'Gestiona su aprendizaje de manera autónoma.'] },
+  //{ label: 'Competencias Transversales', key: 'competenciasTransversales', competencias: ['Se desenvuelve en entornos virtuales generados por las TIC.', 'Gestiona su aprendizaje de manera autónoma.'] },
+  { label: 'Computación', key: 'computacion', competencias: ['utiliza la computación como herramienta para resolver sus tareas'] },
 ]
 export const NUMERO_COMPETENCIAS_PRIMARIA = CURSOS_PRIMARIA_BOLETA_NOTAS.reduce((acc, current) => {
   return acc + current.competencias.length
@@ -50,6 +65,7 @@ export const ESPACIOS_ENTRE_CURSOS_INICIAL: { [key: string]: number } = {
   competenciasTransversales: 325,
 }
 // const SPACES = [0, 92, 156, 210, 262, 340, 417, 473, 513]
+//posicion vertical para los nombres de los cursos
 export const ESPACIOS_ENTRE_CURSOS_PRIMARIA: { [key: string]: number } = {
   personalSocial: 49,
   educacionFisica: 140,
@@ -59,5 +75,6 @@ export const ESPACIOS_ENTRE_CURSOS_PRIMARIA: { [key: string]: number } = {
   matematica: 390,
   cienciaTecnologia: 467,
   religion: 522,
-  competenciasTransversales: 568,
+  // competenciasTransversales: 568,
+  computacion: 559,
 }

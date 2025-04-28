@@ -42,7 +42,7 @@ function tablaNotasEstructuraPrimaria(document) {
     document
         .rect(vars_1.MARGIN_LEFT, 200 + vars_1.NOTAS_TABLE_HEADER_HEIGHT, vars_1.CURSO_CELDA_WIDTH, constants_1.NUMERO_COMPETENCIAS_PRIMARIA * vars_1.NOTA_CELDA_HEIGHT)
         .fillOpacity(0.5)
-        .fillAndStroke(vars_1.FILL_COLOR, vars_1.BORDER_COLOR);
+        .fillAndStroke(vars_1.FILL_COLOR, vars_1.BORDER_COLOR); //BORDER_COLOR
     //LINEAS HORIZONTALES
     document.fillOpacity(1);
     document
@@ -139,7 +139,9 @@ function tablaNotasDatosPrimaria({ document, cursos }) {
     for (const periodo of PERIODOS) {
         for (const CURSO_PRIMARIA of constants_1.CURSOS_PRIMARIA_BOLETA_NOTAS) {
             for (let i = 0; i < cursos[CURSO_PRIMARIA.key].numCompetencias; i++) {
-                document.fontSize(9).text(cursos[CURSO_PRIMARIA.key][periodo][i] ? cursos[CURSO_PRIMARIA.key][periodo][i] : ' ', 315 + vars_1.NOTA_CELDA_WIDTH * (0, utils_1.convertPeriodoKeyToIndex)(periodo), 237 + count, { width: 30, align: 'center' });
+                document
+                    .fontSize(9)
+                    .text(cursos[CURSO_PRIMARIA.key][periodo][i] ? cursos[CURSO_PRIMARIA.key][periodo][i] : ' ', 315 + vars_1.NOTA_CELDA_WIDTH * (0, utils_1.convertPeriodoKeyToIndex)(periodo), 237 + count, { width: 30, align: 'center' });
                 count += vars_1.NOTA_CELDA_HEIGHT;
             }
         }
