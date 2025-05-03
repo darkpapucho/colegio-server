@@ -62,7 +62,7 @@ export function assertIsNuevoAlumno(alumno: any): asserts alumno is NuevoAlumno 
     return
   } else {
     result.error.issues.forEach((issue) => console.log({ message: issue.message, field: issue.path[0] }))
-    console.log('invalid alumno')
+
     throw new Error(ErrorMessages.INVALID_REQUEST)
   }
 }
