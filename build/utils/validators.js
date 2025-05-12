@@ -63,7 +63,6 @@ function assertIsNuevoAlumno(alumno) {
     }
     else {
         result.error.issues.forEach((issue) => console.log({ message: issue.message, field: issue.path[0] }));
-        console.log('invalid alumno');
         throw new Error(enums_2.ErrorMessages.INVALID_REQUEST);
     }
 }
