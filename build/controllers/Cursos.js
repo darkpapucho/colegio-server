@@ -16,16 +16,37 @@ const errors_1 = require("../error/errors");
 const global_1 = require("../utils/global");
 const Cursos_1 = __importDefault(require("../models/Cursos"));
 const responses_1 = require("../utils/responses");
+const db_1 = require("../db");
+const alumno_1 = require("../models/alumno");
+const Notas_1 = __importDefault(require("../models/Notas"));
 class CursosController {
     static updateCursosSalon(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { cursos, grado, seccion } = req.body;
-                const response = yield Cursos_1.default.updateCursosSalon({ nivel, year, cursos, grado, seccion });
+                const session = db_1.mongoClient.startSession();
+                session.startTransaction();
+                //update las cursos del salon
+                const response = yield Cursos_1.default.updateCursosSalon({ nivel, year, cursos, grado, seccion, session });
                 if (!response.acknowledged || !response.matchedCount) {
-                    return res.send((0, responses_1.responseError)(`no se pudo modificar los cursos de ${grado} ${seccion}`));
+                    console.log({ response });
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    throw new Error('no se pudo modificar los cursos del salon');
                 }
+                const cursosKey = cursos.map((curso) => curso.key);
+                const alumnosId = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ grado, seccion, nivel, year });
+                console.log({ cursosKey, alumnosId, nivel, year, grado, seccion });
+                const notasUpdateResponse = yield Notas_1.default.updateCursosFieldsByAlumnosId({ nivel, year, alumnosId, cursosKey, session });
+                if (!notasUpdateResponse.acknowledged || !notasUpdateResponse.matchedCount) {
+                    console.log({ notasUpdateResponse });
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    throw new Error('no se pudo modificar los cursos del salon');
+                }
+                yield session.commitTransaction();
+                yield session.endSession();
                 return res.send((0, responses_1.responseOk)(null));
             }
             catch (err) {

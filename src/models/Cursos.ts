@@ -1,16 +1,11 @@
 import { mongoClient } from '../db'
 import { Grado, Nivel, Seccion, Year } from '../types/enums'
-
-type CURSO_SALON = {
-  label: string
-  key: string
-  code: string
-  short: string
-}
+import { CURSO_SALON } from '../types/cursos'
+import { ClientSession } from 'mongodb'
 
 export default class Cursos {
-  static async updateCursosSalon({ nivel, year, cursos, grado, seccion }: { nivel: Nivel; year: Year; cursos: CURSO_SALON[]; grado: Grado; seccion: Seccion }) {
-    const response = await mongoClient.db().collection(`cursos${nivel}${year}`).updateOne({ grado, seccion }, { $set: { cursos } }, { upsert: true })
+  static async updateCursosSalon({ nivel, year, cursos, grado, seccion, session }: { nivel: Nivel; year: Year; cursos: CURSO_SALON[]; grado: Grado; seccion: Seccion; session?: ClientSession }) {
+    const response = await mongoClient.db().collection(`cursos${nivel}${year}`).updateOne({ grado, seccion }, { $set: { cursos } }, { upsert: true, session })
     return response
   }
   static async getCursosSalon({ nivel, year, grado, seccion }: { nivel: Nivel; grado: Grado; seccion: Seccion; year: Year }) {

@@ -4,17 +4,38 @@ import { extractNivelYearFromHeaders } from '../utils/global'
 import Cursos from '../models/Cursos'
 import { responseError, responseOk } from '../utils/responses'
 import { Grado, Seccion } from '../types/enums'
+import { mongoClient } from '../db'
+import { CURSO_SALON } from '../types/cursos'
+import { Alumno } from '../models/alumno'
+import Notas from '../models/Notas'
 
 export default class CursosController {
   static async updateCursosSalon(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { cursos, grado, seccion } = req.body
-
-      const response = await Cursos.updateCursosSalon({ nivel, year, cursos, grado, seccion })
+      const { cursos, grado, seccion }: { cursos: CURSO_SALON[]; grado: Grado; seccion: Seccion } = req.body
+      const session = mongoClient.startSession()
+      session.startTransaction()
+      //update las cursos del salon
+      const response = await Cursos.updateCursosSalon({ nivel, year, cursos, grado, seccion, session })
       if (!response.acknowledged || !response.matchedCount) {
-        return res.send(responseError(`no se pudo modificar los cursos de ${grado} ${seccion}`))
+        console.log({ response })
+        await session.abortTransaction()
+        await session.endSession()
+        throw new Error('no se pudo modificar los cursos del salon')
       }
+      const cursosKey = cursos.map((curso) => curso.key)
+      const alumnosId = await Alumno.fetchAlumnosIdsByGradoSeccion({ grado, seccion, nivel, year })
+      console.log({ cursosKey, alumnosId, nivel, year, grado, seccion })
+      const notasUpdateResponse = await Notas.updateCursosFieldsByAlumnosId({ nivel, year, alumnosId, cursosKey, session })
+      if (!notasUpdateResponse.acknowledged || !notasUpdateResponse.matchedCount) {
+        console.log({ notasUpdateResponse })
+        await session.abortTransaction()
+        await session.endSession()
+        throw new Error('no se pudo modificar los cursos del salon')
+      }
+      await session.commitTransaction()
+      await session.endSession()
       return res.send(responseOk(null))
     } catch (err) {
       return errorResponseHandler(res, err)

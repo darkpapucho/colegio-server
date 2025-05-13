@@ -27,7 +27,7 @@ export function errorResponseHandler(res: Response, error: unknown) {
       return res.status(406).send(responseError(error.message))
     } else {
       console.log({ error })
-      return res.send(responseError(ErrorMessages.SERVER_ERROR))
+      return res.send(responseError(error.message))
     }
   } catch (err) {
     return res.send(responseError(ErrorMessages.UNKNOWN_ERROR))

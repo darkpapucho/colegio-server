@@ -34,7 +34,7 @@ function errorResponseHandler(res, error) {
         }
         else {
             console.log({ error });
-            return res.send((0, responses_1.responseError)(enums_1.ErrorMessages.SERVER_ERROR));
+            return res.send((0, responses_1.responseError)(error.message));
         }
     }
     catch (err) {
