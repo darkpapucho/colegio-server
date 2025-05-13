@@ -19,17 +19,15 @@ export default class CursosController {
       //update las cursos del salon
       const response = await Cursos.updateCursosSalon({ nivel, year, cursos, grado, seccion, session })
       if (!response.acknowledged || !response.matchedCount) {
-        console.log({ response })
         await session.abortTransaction()
         await session.endSession()
         throw new Error('no se pudo modificar los cursos del salon')
       }
       const cursosKey = cursos.map((curso) => curso.key)
       const alumnosId = await Alumno.fetchAlumnosIdsByGradoSeccion({ grado, seccion, nivel, year })
-      console.log({ cursosKey, alumnosId, nivel, year, grado, seccion })
+
       const notasUpdateResponse = await Notas.updateCursosFieldsByAlumnosId({ nivel, year, alumnosId, cursosKey, session })
       if (!notasUpdateResponse.acknowledged || !notasUpdateResponse.matchedCount) {
-        console.log({ notasUpdateResponse })
         await session.abortTransaction()
         await session.endSession()
         throw new Error('no se pudo modificar los cursos del salon')

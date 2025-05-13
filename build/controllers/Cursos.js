@@ -30,17 +30,14 @@ class CursosController {
                 //update las cursos del salon
                 const response = yield Cursos_1.default.updateCursosSalon({ nivel, year, cursos, grado, seccion, session });
                 if (!response.acknowledged || !response.matchedCount) {
-                    console.log({ response });
                     yield session.abortTransaction();
                     yield session.endSession();
                     throw new Error('no se pudo modificar los cursos del salon');
                 }
                 const cursosKey = cursos.map((curso) => curso.key);
                 const alumnosId = yield alumno_1.Alumno.fetchAlumnosIdsByGradoSeccion({ grado, seccion, nivel, year });
-                console.log({ cursosKey, alumnosId, nivel, year, grado, seccion });
                 const notasUpdateResponse = yield Notas_1.default.updateCursosFieldsByAlumnosId({ nivel, year, alumnosId, cursosKey, session });
                 if (!notasUpdateResponse.acknowledged || !notasUpdateResponse.matchedCount) {
-                    console.log({ notasUpdateResponse });
                     yield session.abortTransaction();
                     yield session.endSession();
                     throw new Error('no se pudo modificar los cursos del salon');

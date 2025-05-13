@@ -13,15 +13,11 @@ const db_1 = require("../db");
 class Notas {
     static updateCursosFieldsByAlumnosId({ alumnosId, cursosKey, session, nivel, year }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const parsedCursos = Array.from(cursosKey, (curso) => [curso, [0, 0, 0, 0]]);
-            const cursosMap = new Map(parsedCursos);
-            const cursos = Object.fromEntries(cursosMap);
-            console.log({ cursos });
+            const cursos = Object.fromEntries(cursosKey.map((curso) => [curso, [0, 0, 0, 0]]));
             const response = yield db_1.mongoClient
                 .db()
                 .collection(`notas${nivel}${year}`)
                 .updateMany({ alumnoId: { $in: alumnosId } }, { $set: { cursos } }, { session });
-            console.log({ response12: response });
             return response;
         });
     }
