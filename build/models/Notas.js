@@ -78,62 +78,109 @@ class Notas {
         });
     }
     static getNotasByGradoSeccionFromCursosProfesor({ nivel, year, grado, seccion, estadosMatricula, isTutor, cursosQuery, }) {
-        var _a, e_2, _b, _c;
+        var _a, e_2, _b, _c, _d, e_3, _e, _f;
         return __awaiter(this, void 0, void 0, function* () {
-            const cursor = db_1.mongoClient
-                .db()
-                .collection(`matriculados${nivel}${year}`)
-                .aggregate([
-                { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA', 'EN PROCESO'] } } },
-                { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
-                { $lookup: { from: `notas${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
-                { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },
-                {
-                    $project: {
-                        _id: 0,
-                        alumno: 1,
-                        estadoMatricula: 1,
-                        alumnoId: '$record.alumnoId',
-                        tardanzas: '$record.tardanzas',
-                        inasistencias: '$record.inasistencias',
-                        conclusionesDescriptivas: '$record.conclusionesDescriptivas',
-                        conducta: '$record.conducta',
-                        conductaPPFF: '$record.conductaPPFF',
-                        cursos: '$record.cursos',
+            if (isTutor) {
+                const cursor = db_1.mongoClient
+                    .db()
+                    .collection(`matriculados${nivel}${year}`)
+                    .aggregate([
+                    { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA', 'EN PROCESO'] } } },
+                    { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
+                    { $lookup: { from: `notas${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
+                    { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },
+                    {
+                        $project: {
+                            _id: 0,
+                            alumno: 1,
+                            estadoMatricula: 1,
+                            alumnoId: '$record.alumnoId',
+                            tardanzas: '$record.tardanzas',
+                            inasistencias: '$record.inasistencias',
+                            conclusionesDescriptivas: '$record.conclusionesDescriptivas',
+                            conducta: '$record.conducta',
+                            conductaPPFF: '$record.conductaPPFF',
+                            cursos: '$record.cursos',
+                        },
                     },
-                },
-                {
-                    $project: {
-                        alumno: 1,
-                        estadosMatricula: 1,
-                        alumnoId: 1,
-                        tardanzas: isTutor ? 1 : 0,
-                        inasistencias: isTutor ? 1 : 0,
-                        conclusionesDescriptivas: isTutor ? 1 : 0,
-                        conducta: isTutor ? 1 : 0,
-                        conductaPPFF: isTutor ? 1 : 0,
-                        cursos: cursosQuery,
+                    {
+                        $project: {
+                            alumno: 1,
+                            estadoMatricula: 0,
+                            alumnoId: 1,
+                            tardanzas: isTutor ? 1 : 0,
+                            inasistencias: isTutor ? 1 : 0,
+                            conclusionesDescriptivas: isTutor ? 1 : 0,
+                            conducta: isTutor ? 1 : 0,
+                            conductaPPFF: isTutor ? 1 : 0,
+                            cursos: cursosQuery,
+                        },
                     },
-                },
-                { $sort: { alumno: 1 } },
-            ]);
-            const result = [];
-            try {
-                for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
-                    _c = cursor_2_1.value;
-                    _d = false;
-                    const doc = _c;
-                    result.push(doc);
-                }
-            }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
-            finally {
+                    { $sort: { alumno: 1 } },
+                ]);
+                const result = [];
                 try {
-                    if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
+                    for (var _g = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _g = true) {
+                        _c = cursor_2_1.value;
+                        _g = false;
+                        const doc = _c;
+                        result.push(doc);
+                    }
                 }
-                finally { if (e_2) throw e_2.error; }
+                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                finally {
+                    try {
+                        if (!_g && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
+                    }
+                    finally { if (e_2) throw e_2.error; }
+                }
+                return result;
             }
-            return result;
+            else {
+                const cursor = db_1.mongoClient
+                    .db()
+                    .collection(`matriculados${nivel}${year}`)
+                    .aggregate([
+                    { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA', 'EN PROCESO'] } } },
+                    { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
+                    { $lookup: { from: `notas${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
+                    { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },
+                    {
+                        $project: {
+                            _id: 0,
+                            alumno: 1,
+                            estadoMatricula: 1,
+                            alumnoId: '$record.alumnoId',
+                            cursos: '$record.cursos',
+                        },
+                    },
+                    {
+                        $project: {
+                            alumno: 1,
+                            alumnoId: 1,
+                            cursos: cursosQuery,
+                        },
+                    },
+                    { $sort: { alumno: 1 } },
+                ]);
+                const result = [];
+                try {
+                    for (var _h = true, cursor_3 = __asyncValues(cursor), cursor_3_1; cursor_3_1 = yield cursor_3.next(), _d = cursor_3_1.done, !_d; _h = true) {
+                        _f = cursor_3_1.value;
+                        _h = false;
+                        const doc = _f;
+                        result.push(doc);
+                    }
+                }
+                catch (e_3_1) { e_3 = { error: e_3_1 }; }
+                finally {
+                    try {
+                        if (!_h && !_d && (_e = cursor_3.return)) yield _e.call(cursor_3);
+                    }
+                    finally { if (e_3) throw e_3.error; }
+                }
+                return result;
+            }
         });
     }
     static updateRecordNotasByTeacher({ nivel, year, registro, isTutor, cursosProfesor, }) {

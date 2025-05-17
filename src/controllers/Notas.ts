@@ -21,6 +21,7 @@ export default class NotasController {
 
       if (!grado || !seccion) throw new Error('grado o seccion inválido')
       const cursosQuery: { [key: string]: 1 | 0 } = Object.fromEntries((cursosProfesor as CURSO_SALON[]).map((curso) => [curso.key, 1]))
+
       const registroNotas = await Notas.getNotasByGradoSeccionFromCursosProfesor({ grado, seccion, isTutor, cursosQuery, nivel, year })
 
       res.send(responseOk(registroNotas))
