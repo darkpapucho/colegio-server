@@ -106,13 +106,12 @@ class Notas {
                     {
                         $project: {
                             alumno: 1,
-                            estadoMatricula: 0,
                             alumnoId: 1,
-                            tardanzas: isTutor ? 1 : 0,
-                            inasistencias: isTutor ? 1 : 0,
-                            conclusionesDescriptivas: isTutor ? 1 : 0,
-                            conducta: isTutor ? 1 : 0,
-                            conductaPPFF: isTutor ? 1 : 0,
+                            tardanzas: 1,
+                            inasistencias: 1,
+                            conclusionesDescriptivas: 1,
+                            conducta: 1,
+                            conductaPPFF: 1,
                             cursos: cursosQuery,
                         },
                     },
