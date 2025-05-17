@@ -15,6 +15,7 @@ const pension_1 = require("./routes/pension");
 const anotacionesRelevantes_1 = require("./routes/anotacionesRelevantes");
 const anuncios_1 = require("./routes/anuncios");
 const cursos_1 = require("./routes/cursos");
+const notas_1 = require("./routes/notas");
 const PORT = process.env.PORT || 4000;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -28,6 +29,7 @@ app.use('/pensiones', pension_1.pensionRouter);
 app.use('/anotaciones-relevantes', anotacionesRelevantes_1.anotacionesRelevantesRouter);
 app.use('/announcements', anuncios_1.anunciosRouter);
 app.use('/cursos', cursos_1.cursosRouter);
+app.use('/notas', notas_1.notasRouter);
 // app.use('/pagos', pagosRouter)
 app.use((err, _req, res, _next) => {
     console.log('error catched');

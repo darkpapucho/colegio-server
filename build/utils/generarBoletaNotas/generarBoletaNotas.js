@@ -67,7 +67,7 @@ function generatePDFBuffer({ nivel, year, registro }) {
     });
 }
 exports.generatePDFBuffer = generatePDFBuffer;
-function createStudentZipInMemory({ registros, nivel, year, grado, seccion, res }) {
+function createStudentZipInMemory({ registros, nivel, year, grado, seccion, res, }) {
     return __awaiter(this, void 0, void 0, function* () {
         const zipFile = (0, archiver_1.default)('zip', { zlib: { level: 9 } });
         const tempStream = new stream_1.PassThrough();

@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = require("../db");
 class Cursos {
-    static updateCursosSalon({ nivel, year, cursos, grado, seccion, session }) {
+    static updateCursosSalon({ nivel, year, cursos, grado, seccion, session, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient.db().collection(`cursos${nivel}${year}`).updateOne({ grado, seccion }, { $set: { cursos } }, { upsert: true, session });
             return response;

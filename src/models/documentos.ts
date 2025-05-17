@@ -20,7 +20,11 @@ export default class Documento {
           .forEach((element) => {
             notas[Object.keys(element)[0]] = Object.values(element)[0]
           })
-
+        //  const notas2: { [key: string]: CursoNotaRecord } = Object.fromEntries(
+        //    cursosKeys.map((cursoKey) => {
+        //      return  [ `cursos.${cursoKey}`, cursos[cursoKey] ]
+        //    }),
+        //  )
         await collection.updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $set: { tardanzas, inasistencias, conclusionesDescriptivas, ...notas } })
       }
     } else {
@@ -144,7 +148,19 @@ export default class Documento {
     }
     return registros
   }
-  static async getRegistrosByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }: { estadosMatricula?: EstadoMatricula[]; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+  static async getRegistrosByGradoSeccion({
+    nivel,
+    year,
+    grado,
+    seccion,
+    estadosMatricula,
+  }: {
+    estadosMatricula?: EstadoMatricula[]
+    nivel: Nivel
+    year: Year
+    grado: Grado
+    seccion: Seccion
+  }) {
     const notasCollection = `notas${nivel}${year}`
     const alumnosCollection = `matriculados${nivel}${year}`
     const cursor = mongoClient

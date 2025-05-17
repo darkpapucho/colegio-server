@@ -1,4 +1,17 @@
-import { CursosLabelInicial, CursosLabelPrimaria, CursosKeyInicial, CursosKeyPrimaria, GradosInicial, GradosPrimaria, SalonesInicial, SalonesPrimaria, Secciones } from './enums'
+import { CURSO_SALON } from './cursos'
+import {
+  CursosLabelInicial,
+  CursosLabelPrimaria,
+  CursosKeyInicial,
+  CursosKeyPrimaria,
+  GradosInicial,
+  GradosPrimaria,
+  SalonesInicial,
+  SalonesPrimaria,
+  Secciones,
+  Grado,
+  Seccion,
+} from './enums'
 
 export interface SalonInicial {
   label: SalonesInicial
@@ -23,4 +36,12 @@ export interface SalonPrimaria {
 export interface Curso {
   label: CursosLabelInicial | CursosLabelPrimaria
   value: CursosValueInicial | CursosValuePrimaria
+}
+
+export type SalonProfesor = {
+  label: string
+  value: { grado: Grado; seccion: Seccion }
+  order: number
+  tutor: boolean
+  cursos: CURSO_SALON[]
 }

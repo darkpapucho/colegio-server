@@ -27,6 +27,7 @@ export default class CursosController {
       const alumnosId = await Alumno.fetchAlumnosIdsByGradoSeccion({ grado, seccion, nivel, year })
 
       const notasUpdateResponse = await Notas.updateCursosFieldsByAlumnosId({ nivel, year, alumnosId, cursosKey, session })
+
       if (!notasUpdateResponse.acknowledged || !notasUpdateResponse.matchedCount) {
         await session.abortTransaction()
         await session.endSession()

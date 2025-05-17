@@ -1,14 +1,44 @@
-import { Nivel, Year } from '../types/enums'
+import { Grado, Nivel, Seccion, Year } from '../types/enums'
 import { mongoClient } from '../db'
 import { ClientSession, ObjectId } from 'mongodb'
 import { ProfesorData } from '../types/user'
 import { Profesor } from '../types/empleado'
 import { hashPassword } from '../utils/hashPassword'
-
-import { Curso } from '../types/salon'
+import { Curso, SalonProfesor } from '../types/salon'
 import { HorarioProfesorCell } from '../types/horarioProfesor'
 
 export default class Empleado {
+  static async findTutorByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+    const cursor = mongoClient
+      .db()
+      .collection(`empleados${nivel}${year}`)
+      .aggregate<{ nombreCompleto: string; salon: SalonProfesor }>([
+        {
+          $match: { rol: 'profesor' },
+        },
+        {
+          $project: {
+            nombres: 1,
+            apellidos: 1,
+            salones: { $filter: { input: '$salones', as: 'salon', cond: { $and: [{ $eq: ['$$salon.label', `${grado} ${seccion}`] }, { $eq: ['$$salon.tutor', true] }] } } },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            nombreCompleto: { $concat: ['$apellidos', ', ', '$nombres'] },
+            salon: { $arrayElemAt: ['$salones', 0] },
+          },
+        },
+        { $match: { salon: { $exists: true, $ne: null } } },
+      ])
+    const result = []
+    for await (const doc of cursor) {
+      result.push(doc)
+    }
+
+    return result[0]
+  }
   static async deleteAnuncioProfesor({ nivel, year, anuncioId, profesorId }: { profesorId: string; nivel: Nivel; year: Year; anuncioId: string }) {
     const response = await mongoClient
       .db()
@@ -16,7 +46,23 @@ export default class Empleado {
       .updateOne({ _id: new ObjectId(profesorId) }, { $pull: { anuncios: { _id: new ObjectId(anuncioId) } } })
     return response
   }
-  static async agregarAnuncioProfesor({ salones, nivel, year, content, title, date, profesorId }: { nivel: Nivel; year: Year; content: string; title: string; profesorId: string; date: string; salones: string[] }) {
+  static async agregarAnuncioProfesor({
+    salones,
+    nivel,
+    year,
+    content,
+    title,
+    date,
+    profesorId,
+  }: {
+    nivel: Nivel
+    year: Year
+    content: string
+    title: string
+    profesorId: string
+    date: string
+    salones: string[]
+  }) {
     const anuncioId = new ObjectId()
     await mongoClient
       .db()
@@ -24,7 +70,23 @@ export default class Empleado {
       .updateOne({ _id: new ObjectId(profesorId) }, { $push: { anuncios: { content, title, date, _id: anuncioId, salones } } })
     return anuncioId
   }
-  static async deleteHorarioCell({ nivel, year, startTime, endTime, curso, salon, profesorId }: { nivel: Nivel; year: Year; startTime: string; endTime: string; curso: string; salon: string; profesorId: string }) {
+  static async deleteHorarioCell({
+    nivel,
+    year,
+    startTime,
+    endTime,
+    curso,
+    salon,
+    profesorId,
+  }: {
+    nivel: Nivel
+    year: Year
+    startTime: string
+    endTime: string
+    curso: string
+    salon: string
+    profesorId: string
+  }) {
     const response = await mongoClient
       .db()
       .collection(`empleados${nivel}${year}`)
@@ -39,7 +101,23 @@ export default class Empleado {
     return response
   }
 
-  static async agregarHorarioCell({ startTime, endTime, profesorId, curso, salon, nivel, year }: { profesorId: string; nivel: Nivel; year: Year; endTime: string; curso: Curso; salon: string; startTime: string }) {
+  static async agregarHorarioCell({
+    startTime,
+    endTime,
+    profesorId,
+    curso,
+    salon,
+    nivel,
+    year,
+  }: {
+    profesorId: string
+    nivel: Nivel
+    year: Year
+    endTime: string
+    curso: Curso
+    salon: string
+    startTime: string
+  }) {
     const response = mongoClient
       .db()
       .collection(`empleados${nivel}${year}`)

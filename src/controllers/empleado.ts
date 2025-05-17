@@ -9,7 +9,18 @@ import { assertIsProfesorData } from '../utils/validators'
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
 import { mongoClient } from '../db'
+import { Grado, Seccion } from '../types/enums'
 export default class EmpleadoControllers {
+  static async findTutorByGradoSeccion(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { grado, seccion }: { grado: Grado; seccion: Seccion } = req.body
+      const response = await Empleado.findTutorByGradoSeccion({ nivel, year, grado, seccion })
+      res.send(responseOk(response))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async deleteAnuncioProfesor(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

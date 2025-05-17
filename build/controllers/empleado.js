@@ -34,6 +34,19 @@ const validators_1 = require("../utils/validators");
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 class EmpleadoControllers {
+    static findTutorByGradoSeccion(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion } = req.body;
+                const response = yield empleado_1.default.findTutorByGradoSeccion({ nivel, year, grado, seccion });
+                res.send((0, responses_1.responseOk)(response));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static deleteAnuncioProfesor(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

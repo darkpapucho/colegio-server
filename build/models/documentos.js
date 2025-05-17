@@ -34,6 +34,11 @@ class Documento {
                         .forEach((element) => {
                         notas[Object.keys(element)[0]] = Object.values(element)[0];
                     });
+                    //  const notas2: { [key: string]: CursoNotaRecord } = Object.fromEntries(
+                    //    cursosKeys.map((cursoKey) => {
+                    //      return  [ `cursos.${cursoKey}`, cursos[cursoKey] ]
+                    //    }),
+                    //  )
                     yield collection.updateOne({ alumnoId: new mongodb_1.ObjectId(record.alumnoId) }, { $set: Object.assign({ tardanzas, inasistencias, conclusionesDescriptivas }, notas) });
                 }
             }
@@ -196,7 +201,7 @@ class Documento {
             return registros;
         });
     }
-    static getRegistrosByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }) {
+    static getRegistrosByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const notasCollection = `notas${nivel}${year}`;
             const alumnosCollection = `matriculados${nivel}${year}`;

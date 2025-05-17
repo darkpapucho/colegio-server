@@ -57,7 +57,21 @@ export function generatePDFBuffer({ nivel, year, registro }: { registro: Extende
   })
 }
 
-export async function createStudentZipInMemory({ registros, nivel, year, grado, seccion, res }: { registros: ExtendedRegistroNota[]; res: Response; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+export async function createStudentZipInMemory({
+  registros,
+  nivel,
+  year,
+  grado,
+  seccion,
+  res,
+}: {
+  registros: ExtendedRegistroNota[]
+  res: Response
+  nivel: Nivel
+  year: Year
+  grado: Grado
+  seccion: Seccion
+}) {
   const zipFile = archiver('zip', { zlib: { level: 9 } })
   const tempStream = new PassThrough()
   res.setHeader('Content-Type', 'application/zip')

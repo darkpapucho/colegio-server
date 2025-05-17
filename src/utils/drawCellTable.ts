@@ -14,13 +14,16 @@ export function drawCell(
       strokeColor?: PDFKit.Mixins.ColorValue
       textVerticalOffSet?: number
       fontSize?: number
+      textColor?: PDFKit.Mixins.ColorValue
+      paddingX?: number
     }
   },
 ) {
   const verticalOffSet = data.options?.textVerticalOffSet || 0
+  const paddingX = data.options?.paddingX || 0
   document.rect(data.begin.x, data.begin.y, data.width, data.height).fillAndStroke(data?.options?.fillColor ?? '#FFF', data?.options?.strokeColor ?? '#000')
   document
-    .fill('#000')
+    .fill(data.options?.textColor ?? '#000')
     .fontSize(data.options?.fontSize || 15)
-    .text(data.content, data.begin.x, data.begin.y + verticalOffSet, { width: data.width, align: data?.options?.align })
+    .text(data.content, data.begin.x + paddingX / 2, data.begin.y + verticalOffSet, { width: data.width - paddingX, align: data?.options?.align })
 }
