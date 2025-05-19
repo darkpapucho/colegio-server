@@ -12,6 +12,8 @@ import Calendario from '../models/Calendario'
 import { RecordNotas } from '../types/notas'
 import { CURSO_SALON } from '../types/cursos'
 
+import { zipLibretasPrimaria } from '../utils/generateNuevasLibretasPrimaria/archiver'
+
 export default class NotasController {
   static async getNotasByGradoSeccionProfesor(req: Request, res: Response) {
     try {
@@ -44,29 +46,33 @@ export default class NotasController {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       if (nivel !== 'primaria') throw new Error('Esta ruta solo aplica al nivel primaria')
       const { grado, seccion, zipped, estadosMatricula }: { grado: Grado; seccion: Seccion; all: boolean; zipped: boolean; estadosMatricula: EstadoMatricula[] } = req.body
-      console.log({ nivel, year, zipped })
+      // console.log({ nivel, year, zipped })
       const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
       const registro = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula })
       const cursosSalon = await Cursos.getCursosSalon({ nivel, grado, seccion, year })
       const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
-
-      const pdfDocument = new PdfDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })
-      pdfDocument.pipe(res)
-      registro.forEach((row) => {
-        generateLibretaPrimariaPDF({
-          notas: row,
-          nivel,
-          year,
-          grado,
-          seccion,
-          doc: pdfDocument,
-          tutor: tutor.nombreCompleto,
-          cursosSalon: cursosSalon!.cursos,
-          periodo: currentPeriodo?.periodo,
+      if (cursosSalon == null || !currentPeriodo || !currentPeriodo) throw new Error('error parsing data')
+      if (zipped) {
+        zipLibretasPrimaria({ res, tutor: tutor.nombreCompleto, nivel, grado, seccion, year, registro, cursosSalon: cursosSalon.cursos, periodo: currentPeriodo.periodo })
+      } else {
+        const pdfDocument = new PdfDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })
+        pdfDocument.pipe(res)
+        registro.forEach((row) => {
+          generateLibretaPrimariaPDF({
+            notas: row,
+            nivel,
+            year,
+            grado,
+            seccion,
+            doc: pdfDocument,
+            tutor: tutor.nombreCompleto,
+            cursosSalon: cursosSalon!.cursos,
+            periodo: currentPeriodo?.periodo,
+          })
         })
-      })
 
-      pdfDocument.end()
+        pdfDocument.end()
+      }
     } catch (err) {
       errorResponseHandler(res, err)
     }

@@ -21,6 +21,7 @@ const empleado_1 = __importDefault(require("../models/empleado"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const generateLibretasPrimaria_1 = __importDefault(require("../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria"));
 const Calendario_1 = __importDefault(require("../models/Calendario"));
+const archiver_1 = require("../utils/generateNuevasLibretasPrimaria/archiver");
 class NotasController {
     static getNotasByGradoSeccionProfesor(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -60,27 +61,34 @@ class NotasController {
                 if (nivel !== 'primaria')
                     throw new Error('Esta ruta solo aplica al nivel primaria');
                 const { grado, seccion, zipped, estadosMatricula } = req.body;
-                console.log({ nivel, year, zipped });
+                // console.log({ nivel, year, zipped })
                 const tutor = yield empleado_1.default.findTutorByGradoSeccion({ grado, seccion, nivel, year });
                 const registro = yield Notas_1.default.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula });
                 const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, grado, seccion, year });
                 const currentPeriodo = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
-                const pdfDocument = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });
-                pdfDocument.pipe(res);
-                registro.forEach((row) => {
-                    (0, generateLibretasPrimaria_1.default)({
-                        notas: row,
-                        nivel,
-                        year,
-                        grado,
-                        seccion,
-                        doc: pdfDocument,
-                        tutor: tutor.nombreCompleto,
-                        cursosSalon: cursosSalon.cursos,
-                        periodo: currentPeriodo === null || currentPeriodo === void 0 ? void 0 : currentPeriodo.periodo,
+                if (cursosSalon == null || !currentPeriodo || !currentPeriodo)
+                    throw new Error('error parsing data');
+                if (zipped) {
+                    (0, archiver_1.zipLibretasPrimaria)({ res, tutor: tutor.nombreCompleto, nivel, grado, seccion, year, registro, cursosSalon: cursosSalon.cursos, periodo: currentPeriodo.periodo });
+                }
+                else {
+                    const pdfDocument = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });
+                    pdfDocument.pipe(res);
+                    registro.forEach((row) => {
+                        (0, generateLibretasPrimaria_1.default)({
+                            notas: row,
+                            nivel,
+                            year,
+                            grado,
+                            seccion,
+                            doc: pdfDocument,
+                            tutor: tutor.nombreCompleto,
+                            cursosSalon: cursosSalon.cursos,
+                            periodo: currentPeriodo === null || currentPeriodo === void 0 ? void 0 : currentPeriodo.periodo,
+                        });
                     });
-                });
-                pdfDocument.end();
+                    pdfDocument.end();
+                }
             }
             catch (err) {
                 (0, errors_1.errorResponseHandler)(res, err);
