@@ -99,7 +99,7 @@ function firmas({ document, profesor }) {
     }
 }
 exports.firmas = firmas;
-function conclusionesDescriptivasTabla({ document, conclusionesDescriptivas }) {
+function conclusionesDescriptivasTabla({ document, conclusionesDescriptivas, }) {
     // let marginTop = 40;
     // let marginRight = 50;
     document.rect(50, 50, 500, 22).fillOpacity(0.5).fillAndStroke(vars_1.FILL_COLOR, vars_1.BORDER_COLOR);
@@ -125,7 +125,10 @@ function conclusionesDescriptivasTabla({ document, conclusionesDescriptivas }) {
     document.text('4', 50, 89 + 132, { width: 70, align: 'center' });
     let count = 0;
     for (const conclusion of conclusionesDescriptivas) {
-        document.fontSize(9).text(conclusion, 124, 78 + count, { width: 422, align: 'justify' });
+        document
+            .fillColor('#202020')
+            .fontSize(9)
+            .text(conclusion, 124, 78 + count, { width: 422, align: 'justify' });
         count += 44;
     }
 }

@@ -53,7 +53,7 @@ export default class NotasController {
       const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
       if (cursosSalon == null || !currentPeriodo || !currentPeriodo) throw new Error('error parsing data')
       if (zipped) {
-        zipLibretasPrimaria({ res, tutor: tutor.nombreCompleto, nivel, grado, seccion, year, registro, cursosSalon: cursosSalon.cursos, periodo: currentPeriodo.periodo })
+        await zipLibretasPrimaria({ res, tutor: tutor.nombreCompleto, nivel, grado, seccion, year, registro, cursosSalon: cursosSalon.cursos, periodo: currentPeriodo.periodo })
       } else {
         const pdfDocument = new PdfDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })
         pdfDocument.pipe(res)

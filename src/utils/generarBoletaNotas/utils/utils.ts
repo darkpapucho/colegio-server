@@ -94,7 +94,13 @@ export function firmas({ document, profesor }: { document: PDFKit.PDFDocument; p
   }
 }
 
-export function conclusionesDescriptivasTabla({ document, conclusionesDescriptivas }: { document: PDFKit.PDFDocument; conclusionesDescriptivas: [string, string, string, string] }) {
+export function conclusionesDescriptivasTabla({
+  document,
+  conclusionesDescriptivas,
+}: {
+  document: PDFKit.PDFDocument
+  conclusionesDescriptivas: [string, string, string, string]
+}) {
   // let marginTop = 40;
   // let marginRight = 50;
 
@@ -123,7 +129,10 @@ export function conclusionesDescriptivasTabla({ document, conclusionesDescriptiv
   document.text('4', 50, 89 + 132, { width: 70, align: 'center' })
   let count = 0
   for (const conclusion of conclusionesDescriptivas) {
-    document.fontSize(9).text(conclusion, 124, 78 + count, { width: 422, align: 'justify' })
+    document
+      .fillColor('#202020')
+      .fontSize(9)
+      .text(conclusion, 124, 78 + count, { width: 422, align: 'justify' })
     count += 44
   }
 }
