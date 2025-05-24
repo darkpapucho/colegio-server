@@ -75,7 +75,10 @@ class Alumno {
                     const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false };
                     pensiones.push(record);
                 }
-                const pensionesResponse = yield db_1.mongoClient.db().collection(`pensiones${nivel}${year}`).insertOne({ numPensionesPagadas: 0, alumnoId: matriculaResult.insertedId, pensiones }, { session });
+                const pensionesResponse = yield db_1.mongoClient
+                    .db()
+                    .collection(`pensiones${nivel}${year}`)
+                    .insertOne({ numPensionesPagadas: 0, alumnoId: matriculaResult.insertedId, pensiones }, { session });
                 if (!pensionesResponse.acknowledged || !pensionesResponse.insertedId) {
                     yield session.abortTransaction();
                     yield session.endSession();
@@ -131,7 +134,7 @@ class Alumno {
             }));
         });
     }
-    static increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }) {
+    static increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId, periodo, quantity, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
                 .db()
@@ -140,7 +143,7 @@ class Alumno {
             return response;
         });
     }
-    static increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }) {
+    static increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
                 .db()
@@ -149,7 +152,7 @@ class Alumno {
             return response;
         });
     }
-    static increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }) {
+    static increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
                 .db()
@@ -182,7 +185,7 @@ class Alumno {
     //     }
     //   })
     // }
-    static fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula }) {
+    static fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula, }) {
         var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = yield db_1.mongoClient
@@ -219,7 +222,7 @@ class Alumno {
         });
     }
     //busca alumnos con estado de matricula no "TRASLADADO"
-    static buscarAlumno({ nombreCompleto, collectionName, estadosMatricula }) {
+    static buscarAlumno({ nombreCompleto, collectionName, estadosMatricula, }) {
         var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             let alumnos = [];
@@ -354,7 +357,7 @@ class Alumno {
             yield session.endSession();
         });
     }
-    static getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }) {
+    static getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, }) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                 var _a, e_5, _b, _c;
@@ -407,6 +410,15 @@ class Alumno {
         return __awaiter(this, void 0, void 0, function* () {
             const alumno = yield db_1.mongoClient.db().collection(`matriculados${nivel}${year}`).findOne({ codigoEstudiante });
             return alumno;
+        });
+    }
+    static getById({ nivel, year, id }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .findOne({ _id: new mongodb_1.ObjectId(id) });
+            return response;
         });
     }
 }

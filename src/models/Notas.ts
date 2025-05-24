@@ -5,6 +5,50 @@ import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { QueryProfesor, QueryTutor, RecordNotas } from '../types/notas'
 import { CURSO_SALON } from '../types/cursos'
 export default class Notas {
+  static async getNotasByAlumnoId({ nivel, year, alumnoId }: { nivel: Nivel; year: Year; alumnoId: string }) {
+    const cursor = await mongoClient
+      .db()
+      .collection(`notas${nivel}${year}`)
+      .aggregate<RecordNotas>([
+        { $match: { alumnoId: new ObjectId(alumnoId) } },
+        {
+          $lookup: {
+            from: `matriculados${nivel}${year}`,
+            localField: 'alumnoId',
+            foreignField: '_id',
+            as: 'estudiante',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            alumnoId: 1,
+            tardanzas: 1,
+            inasistencias: 1,
+            conclusionesDescriptivas: 1,
+            cursos: 1,
+            conducta: 1,
+            conductaPPFF: 1,
+            estudiante: { $arrayElemAt: ['$estudiante', 0] },
+          },
+        },
+        {
+          $project: {
+            alumnoId: 1,
+            tardanzas: 1,
+            inasistencias: 1,
+            conclusionesDescriptivas: 1,
+            cursos: 1,
+            conducta: 1,
+            conductaPPFF: 1,
+            alumno: '$estudiante.nombreCompleto',
+            estadoMatricula: '$estudiante.estadoMatricula',
+          },
+        },
+      ])
+      .toArray()
+    return cursor[0]
+  }
   static async updateCursosFieldsByAlumnosId({
     //actualiza los campos de los cursos a evaluar por salon en notas$[nivel}${year}
     alumnosId,
@@ -72,6 +116,7 @@ export default class Notas {
 
     return result
   }
+  //fetch las notas de un salon de acuerdo a la lista de cursos del profesor
   static async getNotasByGradoSeccionFromCursosProfesor({
     nivel,
     year,

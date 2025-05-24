@@ -47,6 +47,11 @@ const alumno_1 = require("../models/alumno");
 const responses_1 = require("../utils/responses");
 const mongodb_1 = require("mongodb");
 const generarBoletaNotas_1 = __importStar(require("../utils/generarBoletaNotas/generarBoletaNotas"));
+const generateLibretasPrimaria_1 = __importDefault(require("../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria"));
+const Notas_1 = __importDefault(require("../models/Notas"));
+const Cursos_1 = __importDefault(require("../models/Cursos"));
+const empleado_1 = __importDefault(require("../models/empleado"));
+const Calendario_1 = __importDefault(require("../models/Calendario"));
 class DocumentoControllers {
     static fetchNotasByCursos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -69,11 +74,37 @@ class DocumentoControllers {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumnoId } = req.query;
                 (0, validators_1.assertIsString)(alumnoId);
-                const notasRecord = yield documentos_1.default.getRecordNotasAlumno({ nivel, year, alumnoId });
-                if (!notasRecord) {
-                    throw new Error('No se encontró el record de notas del alumno');
+                if (nivel === 'inicial') {
+                    const notasRecord = yield documentos_1.default.getRecordNotasAlumno({ nivel, year, alumnoId });
+                    if (!notasRecord) {
+                        throw new Error('No se encontró el record de notas del alumno');
+                    }
+                    (0, generarBoletaNotas_1.default)({ res, registros: notasRecord, year, nivel });
                 }
-                (0, generarBoletaNotas_1.default)({ res, registros: notasRecord, year, nivel });
+                else if (nivel === 'primaria') {
+                    const notas = yield Notas_1.default.getNotasByAlumnoId({ alumnoId, nivel, year });
+                    const alumnoData = yield alumno_1.Alumno.getById({ nivel, year, id: alumnoId });
+                    if (!alumnoData)
+                        throw new Error('no se encontró al alumno');
+                    const { grado, seccion } = alumnoData;
+                    const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, year, grado, seccion });
+                    const tutor = yield empleado_1.default.findTutorByGradoSeccion({ grado, seccion, nivel, year });
+                    const currentPeriodo = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
+                    const pdfDocument = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });
+                    pdfDocument.pipe(res);
+                    (0, generateLibretasPrimaria_1.default)({
+                        notas,
+                        nivel,
+                        year,
+                        grado,
+                        seccion,
+                        doc: pdfDocument,
+                        tutor: tutor.nombreCompleto,
+                        cursosSalon: cursosSalon.cursos,
+                        periodo: currentPeriodo === null || currentPeriodo === void 0 ? void 0 : currentPeriodo.periodo,
+                    });
+                    pdfDocument.end();
+                }
             }
             catch (err) {
                 (0, errors_1.errorResponseHandler)(res, err);

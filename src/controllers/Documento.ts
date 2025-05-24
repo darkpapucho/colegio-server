@@ -14,6 +14,11 @@ import { RegistroNota } from '../types/documents'
 
 import generarBoletasDeNotasPdf, { createStudentZipInMemory } from '../utils/generarBoletaNotas/generarBoletaNotas'
 import { SalonProfesor } from '../types/user'
+import generateLibretaPrimariaPDF from '../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria'
+import Notas from '../models/Notas'
+import Cursos from '../models/Cursos'
+import Empleado from '../models/empleado'
+import Calendario from '../models/Calendario'
 
 export default class DocumentoControllers {
   static async fetchNotasByCursos(req: Request, res: Response) {
@@ -38,11 +43,38 @@ export default class DocumentoControllers {
       const { alumnoId } = req.query
 
       assertIsString(alumnoId)
-      const notasRecord = await Documento.getRecordNotasAlumno({ nivel, year, alumnoId })
-      if (!notasRecord) {
-        throw new Error('No se encontró el record de notas del alumno')
+
+      if (nivel === 'inicial') {
+        const notasRecord = await Documento.getRecordNotasAlumno({ nivel, year, alumnoId })
+        if (!notasRecord) {
+          throw new Error('No se encontró el record de notas del alumno')
+        }
+        generarBoletasDeNotasPdf({ res, registros: notasRecord, year, nivel })
+      } else if (nivel === 'primaria') {
+        const notas = await Notas.getNotasByAlumnoId({ alumnoId, nivel, year })
+        const alumnoData = await Alumno.getById({ nivel, year, id: alumnoId })
+        if (!alumnoData) throw new Error('no se encontró al alumno')
+        const { grado, seccion } = alumnoData
+        const cursosSalon = await Cursos.getCursosSalon({ nivel, year, grado, seccion })
+        const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
+        const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
+
+        const pdfDocument = new PdfDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })
+        pdfDocument.pipe(res)
+
+        generateLibretaPrimariaPDF({
+          notas,
+          nivel,
+          year,
+          grado,
+          seccion,
+          doc: pdfDocument,
+          tutor: tutor.nombreCompleto,
+          cursosSalon: cursosSalon!.cursos,
+          periodo: currentPeriodo?.periodo,
+        })
+        pdfDocument.end()
       }
-      generarBoletasDeNotasPdf({ res, registros: notasRecord, year, nivel })
     } catch (err) {
       errorResponseHandler(res, err)
     }

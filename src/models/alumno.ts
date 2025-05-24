@@ -51,7 +51,10 @@ export class Alumno {
         const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false }
         pensiones.push(record)
       }
-      const pensionesResponse = await mongoClient.db().collection(`pensiones${nivel}${year}`).insertOne({ numPensionesPagadas: 0, alumnoId: matriculaResult.insertedId, pensiones }, { session })
+      const pensionesResponse = await mongoClient
+        .db()
+        .collection(`pensiones${nivel}${year}`)
+        .insertOne({ numPensionesPagadas: 0, alumnoId: matriculaResult.insertedId, pensiones }, { session })
       if (!pensionesResponse.acknowledged || !pensionesResponse.insertedId) {
         await session.abortTransaction()
         await session.endSession()
@@ -94,21 +97,57 @@ export class Alumno {
     })
   }
 
-  static async increaseInasistenciaJustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }: { quantity: number; nivel: Nivel; year: Year; periodo: Periodo; alumnoId: string }) {
+  static async increaseInasistenciaJustificadaAlumno({
+    nivel,
+    year,
+    alumnoId,
+    periodo,
+    quantity,
+  }: {
+    quantity: number
+    nivel: Nivel
+    year: Year
+    periodo: Periodo
+    alumnoId: string
+  }) {
     const response = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)
       .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`inasistencias.justificadas.${convertPeriodoKeyToIndex(periodo)}`]: quantity } })
     return response
   }
-  static async increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }: { quantity: number; nivel: Nivel; year: Year; alumnoId: string; periodo: Periodo }) {
+  static async increaseInasistenciaInjustificadaAlumno({
+    nivel,
+    year,
+    alumnoId,
+    periodo,
+    quantity,
+  }: {
+    quantity: number
+    nivel: Nivel
+    year: Year
+    alumnoId: string
+    periodo: Periodo
+  }) {
     const response = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)
       .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: quantity } })
     return response
   }
-  static async increaseTardanzaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity }: { quantity: number; nivel: Nivel; year: Year; alumnoId: string; periodo: Periodo }) {
+  static async increaseTardanzaInjustificadaAlumno({
+    nivel,
+    year,
+    alumnoId,
+    periodo,
+    quantity,
+  }: {
+    quantity: number
+    nivel: Nivel
+    year: Year
+    alumnoId: string
+    periodo: Periodo
+  }) {
     const response = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)
@@ -139,7 +178,19 @@ export class Alumno {
   //     }
   //   })
   // }
-  static async fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula }: { estadoMatricula?: EstadoMatricula; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+  static async fetchAlumnosIdsByGradoSeccion({
+    nivel,
+    year,
+    grado,
+    seccion,
+    estadoMatricula,
+  }: {
+    estadoMatricula?: EstadoMatricula
+    nivel: Nivel
+    year: Year
+    grado: Grado
+    seccion: Seccion
+  }) {
     const cursor = await mongoClient
       .db()
       .collection(`matriculados${nivel}${year}`)
@@ -161,7 +212,15 @@ export class Alumno {
     return response.acknowledged
   }
   //busca alumnos con estado de matricula no "TRASLADADO"
-  static async buscarAlumno({ nombreCompleto, collectionName, estadosMatricula }: { nombreCompleto: string; collectionName: string; estadosMatricula: EstadoMatricula[] }): Promise<WithId<AMatriculadoNoId>[]> {
+  static async buscarAlumno({
+    nombreCompleto,
+    collectionName,
+    estadosMatricula,
+  }: {
+    nombreCompleto: string
+    collectionName: string
+    estadosMatricula: EstadoMatricula[]
+  }): Promise<WithId<AMatriculadoNoId>[]> {
     let alumnos: WithId<AMatriculadoNoId>[] = []
     const cursor = mongoClient
       .db()
@@ -291,7 +350,19 @@ export class Alumno {
     await session.endSession()
   }
 
-  static async getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }: { estadosMatricula?: EstadoMatricula[]; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }): Promise<WithId<AMatriculado>[]> {
+  static async getByGradoSeccion({
+    nivel,
+    year,
+    grado,
+    seccion,
+    estadosMatricula,
+  }: {
+    estadosMatricula?: EstadoMatricula[]
+    nivel: Nivel
+    year: Year
+    grado: Grado
+    seccion: Seccion
+  }): Promise<WithId<AMatriculado>[]> {
     return new Promise(async (resolve) => {
       let alumnos: WithId<AMatriculado>[] = []
 
@@ -326,5 +397,12 @@ export class Alumno {
   static async fetchAlumnoByCodigoEstudiante({ nivel, year, codigoEstudiante }: { nivel: Nivel; year: Year; codigoEstudiante: string }) {
     const alumno = await mongoClient.db().collection<AMatriculadoNoId>(`matriculados${nivel}${year}`).findOne({ codigoEstudiante })
     return alumno
+  }
+  static async getById({ nivel, year, id }: { nivel: Nivel; year: Year; id: string }) {
+    const response = await mongoClient
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .findOne<AMatriculado>({ _id: new ObjectId(id) })
+    return response
   }
 }

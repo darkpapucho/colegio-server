@@ -19,6 +19,52 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 class Notas {
+    static getNotasByAlumnoId({ nivel, year, alumnoId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const cursor = yield db_1.mongoClient
+                .db()
+                .collection(`notas${nivel}${year}`)
+                .aggregate([
+                { $match: { alumnoId: new mongodb_1.ObjectId(alumnoId) } },
+                {
+                    $lookup: {
+                        from: `matriculados${nivel}${year}`,
+                        localField: 'alumnoId',
+                        foreignField: '_id',
+                        as: 'estudiante',
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        alumnoId: 1,
+                        tardanzas: 1,
+                        inasistencias: 1,
+                        conclusionesDescriptivas: 1,
+                        cursos: 1,
+                        conducta: 1,
+                        conductaPPFF: 1,
+                        estudiante: { $arrayElemAt: ['$estudiante', 0] },
+                    },
+                },
+                {
+                    $project: {
+                        alumnoId: 1,
+                        tardanzas: 1,
+                        inasistencias: 1,
+                        conclusionesDescriptivas: 1,
+                        cursos: 1,
+                        conducta: 1,
+                        conductaPPFF: 1,
+                        alumno: '$estudiante.nombreCompleto',
+                        estadoMatricula: '$estudiante.estadoMatricula',
+                    },
+                },
+            ])
+                .toArray();
+            return cursor[0];
+        });
+    }
     static updateCursosFieldsByAlumnosId({ 
     //actualiza los campos de los cursos a evaluar por salon en notas$[nivel}${year}
     alumnosId, cursosKey, session, nivel, year, }) {
@@ -77,6 +123,7 @@ class Notas {
             return result;
         });
     }
+    //fetch las notas de un salon de acuerdo a la lista de cursos del profesor
     static getNotasByGradoSeccionFromCursosProfesor({ nivel, year, grado, seccion, estadosMatricula, isTutor, cursosQuery, }) {
         var _a, e_2, _b, _c, _d, e_3, _e, _f;
         return __awaiter(this, void 0, void 0, function* () {
