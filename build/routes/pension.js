@@ -8,6 +8,8 @@ const express_1 = require("express");
 const verifyCredentials_1 = require("../middleware/verifyCredentials");
 const pension_1 = __importDefault(require("../controllers/pension"));
 exports.pensionRouter = (0, express_1.Router)();
+exports.pensionRouter.post('/set-last-update-date', verifyCredentials_1.verifyCredentials, pension_1.default.setLastUpdateDate);
+exports.pensionRouter.get('/get-last-update-date', verifyCredentials_1.verifyCredentials, pension_1.default.getLastUpdateDate);
 exports.pensionRouter.post('/get-lista-by-grado-seccion', verifyCredentials_1.verifyCredentials, pension_1.default.getListGradoSeccion);
 exports.pensionRouter.post('/pagar-pension-alumnoid-mes', verifyCredentials_1.verifyCredentials, pension_1.default.pagarPensionByAlumnoIdAndMonth);
 exports.pensionRouter.post('/update-monto-pagar-pensiones', verifyCredentials_1.verifyCredentials, pension_1.default.updateMontoPagarPension);

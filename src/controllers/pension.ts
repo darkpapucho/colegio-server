@@ -11,6 +11,28 @@ import { PensionRecord } from '../types/pensiones'
 import { Salon } from '../types/salones'
 
 export default class PensionController {
+  static async getLastUpdateDate(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const response = await Pension.getLastUpdateDate({ nivel, year })
+      if (!response?.date) {
+        throw new Error('Unable to find a last update date')
+      }
+      res.send(responseOk(response.date))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async setLastUpdateDate(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { date } = req.body
+      await Pension.setLastUpdateDate({ date, nivel, year })
+      res.send(responseOk(null))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async generatetPensionesTablePdfByGradoSeccion(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -46,7 +68,9 @@ export default class PensionController {
       } else {
         const list = await Pension.getListByGradoSeccion({ nivel, year, grado, seccion })
         //parse the data:
-        const data = list.map((record) => ({ nombreCompleto: record.estudiante.nombreCompleto, pensiones: record.pensiones })).sort((prev, curr) => (prev.nombreCompleto > curr.nombreCompleto ? 1 : -1))
+        const data = list
+          .map((record) => ({ nombreCompleto: record.estudiante.nombreCompleto, pensiones: record.pensiones }))
+          .sort((prev, curr) => (prev.nombreCompleto > curr.nombreCompleto ? 1 : -1))
         //write PDF
         document.addPage()
         generatePensionTablePdf(document, data, { nivel, grado, seccion, semestre: 1 })

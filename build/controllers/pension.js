@@ -19,6 +19,34 @@ const responses_1 = require("../utils/responses");
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const pensionTablePdf_1 = require("../utils/pensionTablePdf");
 class PensionController {
+    static getLastUpdateDate(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const response = yield pension_1.default.getLastUpdateDate({ nivel, year });
+                if (!(response === null || response === void 0 ? void 0 : response.date)) {
+                    throw new Error('Unable to find a last update date');
+                }
+                res.send((0, responses_1.responseOk)(response.date));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static setLastUpdateDate(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { date } = req.body;
+                yield pension_1.default.setLastUpdateDate({ date, nivel, year });
+                res.send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static generatetPensionesTablePdfByGradoSeccion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -54,7 +82,9 @@ class PensionController {
                 else {
                     const list = yield pension_1.default.getListByGradoSeccion({ nivel, year, grado, seccion });
                     //parse the data:
-                    const data = list.map((record) => ({ nombreCompleto: record.estudiante.nombreCompleto, pensiones: record.pensiones })).sort((prev, curr) => (prev.nombreCompleto > curr.nombreCompleto ? 1 : -1));
+                    const data = list
+                        .map((record) => ({ nombreCompleto: record.estudiante.nombreCompleto, pensiones: record.pensiones }))
+                        .sort((prev, curr) => (prev.nombreCompleto > curr.nombreCompleto ? 1 : -1));
                     //write PDF
                     document.addPage();
                     (0, pensionTablePdf_1.generatePensionTablePdf)(document, data, { nivel, grado, seccion, semestre: 1 });

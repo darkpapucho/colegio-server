@@ -20,6 +20,21 @@ const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const asistencia_1 = require("../types/asistencia");
 class Pension {
+    static getLastUpdateDate({ year, nivel }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection('pensionesLastUpdateDate')
+                .findOne({ nivel, year }, { projection: { date: true, _id: false } });
+            return response;
+        });
+    }
+    static setLastUpdateDate({ date, year, nivel }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient.db().collection('pensionesLastUpdateDate').updateOne({ nivel, year }, { $set: { date } }, { upsert: true });
+            return response;
+        });
+    }
     static getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate }) {
         var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
@@ -30,7 +45,12 @@ class Pension {
                 .collection(`pensiones${nivel}${year}`)
                 .aggregate([
                 { $match: {} },
-                { $project: { alumnoId: 1, pensiones: { $filter: { input: '$pensiones', as: 'pensiones', cond: { $and: [{ $gte: ['$$pensiones.fecha', initDate] }, { $lte: ['$$pensiones.fecha', endDate] }] } } } } },
+                {
+                    $project: {
+                        alumnoId: 1,
+                        pensiones: { $filter: { input: '$pensiones', as: 'pensiones', cond: { $and: [{ $gte: ['$$pensiones.fecha', initDate] }, { $lte: ['$$pensiones.fecha', endDate] }] } } },
+                    },
+                },
                 { $match: { 'pensiones.0': { $exists: true } } },
                 { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
                 { $project: { pensiones: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
@@ -56,7 +76,7 @@ class Pension {
             return result;
         });
     }
-    static getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas }) {
+    static getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas, }) {
         var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
@@ -89,7 +109,17 @@ class Pension {
                     $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' },
                 },
                 { $lookup: { from: `anotacionesRelevantes${nivel}${year}`, localField: 'alumnoId', foreignField: 'alumnoId', as: 'comentario' } },
-                { $project: { comentario: { $arrayElemAt: ['$comentario', 0] }, numPensionesPagadas: 1, _id: 0, alumnoId: 1, pensiones: 1, numeroPensionesAtrasadas: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
+                {
+                    $project: {
+                        comentario: { $arrayElemAt: ['$comentario', 0] },
+                        numPensionesPagadas: 1,
+                        _id: 0,
+                        alumnoId: 1,
+                        pensiones: 1,
+                        numeroPensionesAtrasadas: 1,
+                        estudiante: { $arrayElemAt: ['$estudiante', 0] },
+                    },
+                },
                 { $sort: { 'estudiante.grado': 1, 'estudiante.seccion': 1 } },
             ]);
             const result = [];
@@ -143,7 +173,7 @@ class Pension {
             return response;
         });
     }
-    static getListByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula }) {
+    static getListByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, }) {
         var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const response = db_1.mongoClient
@@ -152,7 +182,13 @@ class Pension {
                 .aggregate([
                 { $lookup: { from: `matriculados${nivel}${year}`, foreignField: '_id', localField: 'alumnoId', as: 'estudiante' } },
                 { $project: { _id: 0, alumnoId: 1, pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
-                { $match: { 'estudiante.grado': grado, 'estudiante.seccion': seccion, 'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } } },
+                {
+                    $match: {
+                        'estudiante.grado': grado,
+                        'estudiante.seccion': seccion,
+                        'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+                    },
+                },
                 { $sort: { 'estudiante.nombreCompleto': 1 } },
             ]);
             const result = [];
