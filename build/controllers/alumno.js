@@ -54,6 +54,7 @@ class AlumnoControllers {
                 const { asistenciaList } = req.body;
                 const list = asistenciaList.list;
                 const periodo = (0, convertDateToPeriodo_1.default)(new Date());
+                console.log({ periodo });
                 const dayId = asistenciaList.dayId;
                 //check enabled status from calendario dayId
                 const response = yield Calendario_1.default.checkSalonDayStatus({ nivel, year, dayId: asistenciaList.dayId });

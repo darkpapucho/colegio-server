@@ -11,13 +11,15 @@ import {
 } from '../vars/periodosDates'
 
 export default function convertDateToPeriodo(date: Date): Periodo {
-  if (date.getTime() >= new Date(primerPeriodoStart).getTime() && date.getTime() <= new Date(primerPeriodoEnd).getTime()) {
+  const dateTime = date.getTime()
+
+  if (dateTime >= new Date(primerPeriodoStart).getTime() && dateTime <= new Date(primerPeriodoEnd).getTime()) {
     return 'primerPeriodo'
-  } else if (date.getTime() >= new Date(segundoPeriodoStart).getTime() && date.getTime() <= new Date(segundoPeriodoEnd).getTime()) {
+  } else if (dateTime >= new Date(segundoPeriodoStart).getTime() && dateTime <= new Date(segundoPeriodoEnd).getTime()) {
     return 'segundoPeriodo'
-  } else if (date >= new Date(tercerPeriodoStart) && date <= new Date(tercerPeriodoEnd)) {
+  } else if (dateTime >= new Date(tercerPeriodoStart).getTime() && dateTime <= new Date(tercerPeriodoEnd).getTime()) {
     return 'tercerPeriodo'
-  } else if (date >= new Date(cuartoPeriodoStart) && date <= new Date(cuartoPeriodoEnd)) {
+  } else if (dateTime >= new Date(cuartoPeriodoStart).getTime() && dateTime <= new Date(cuartoPeriodoEnd).getTime()) {
     return 'cuartoPeriodo'
   } else {
     return 'primerPeriodo'

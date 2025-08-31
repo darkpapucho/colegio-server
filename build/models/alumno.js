@@ -145,6 +145,7 @@ class Alumno {
     }
     static increaseInasistenciaInjustificadaAlumno({ nivel, year, alumnoId, periodo, quantity, }) {
         return __awaiter(this, void 0, void 0, function* () {
+            // console.log({ quantity, nivel, year, alumnoId, periodo })
             const response = yield db_1.mongoClient
                 .db()
                 .collection(`notas${nivel}${year}`)

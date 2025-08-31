@@ -129,6 +129,7 @@ export class Alumno {
     alumnoId: string
     periodo: Periodo
   }) {
+    // console.log({ quantity, nivel, year, alumnoId, periodo })
     const response = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)

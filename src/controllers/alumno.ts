@@ -38,14 +38,17 @@ export class AlumnoControllers {
       const { asistenciaList } = req.body
       const list = asistenciaList.list as { alumnoId: string; asistencia: AsistenciaValue }[]
       const periodo = convertDateToPeriodo(new Date())
+      console.log({ periodo })
       const dayId = asistenciaList.dayId as string
       //check enabled status from calendario dayId
       const response = await Calendario.checkSalonDayStatus({ nivel, year, dayId: asistenciaList.dayId })
 
       if (!response) throw new Error(ErrorMessages.OPERATION_NOT_COMPLETED)
+
       if (response.status === 'disabled') {
         return res.send(responseError('La asistencia para este día no se encuentra habilitada.'))
       }
+
       //for each element in the list
       list.forEach(async (record) => {
         //solo procesamos F y A
