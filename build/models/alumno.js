@@ -179,30 +179,6 @@ class Alumno {
             return response;
         });
     }
-    // static async updateAsistenciaList({ nivel, year, asistenciaList }: { nivel: Nivel; year: Year; asistenciaList: AsistenciaList }) {
-    //   const { list, dayId, periodo } = asistenciaList
-    //   console.log({ list, dayId, periodo })
-    //   const asistenciasCollection = mongoClient.db().collection(`asistencias${nivel}${year}`)
-    //   list.forEach(async (record) => {
-    //     //only process F and A values, ingore T because they dont have to be addressed here.
-    //     if (record.asistencia === 'F') {
-    //       //increase inasistencias.injustificadas by 1 in "notas collection"
-    //       const key = `inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`
-    //       await mongoClient
-    //         .db()
-    //         .collection(`notas${nivel}${year}`)
-    //         .updateOne({ alumnoId: new ObjectId(record.alumnoId) }, { $inc: { [key]: 1 } })
-    //     }
-    //     /////
-    //     if (record.asistencia !== 'T') {
-    //       await asistenciasCollection.updateOne(
-    //         { alumnoId: new ObjectId(record.alumnoId) },
-    //         { $set: { 'records.$[element].asistencia': record.asistencia } },
-    //         { arrayFilters: [{ 'element.dayId': new ObjectId(dayId) }] },
-    //       )
-    //     }
-    //   })
-    // }
     static fetchAlumnosIdsByGradoSeccion({ nivel, year, grado, seccion, estadoMatricula, }) {
         var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {

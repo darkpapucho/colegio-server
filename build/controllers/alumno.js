@@ -248,10 +248,11 @@ class AlumnoControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { grado, seccion } = req.query;
+                const { grado, seccion, estados } = req.query;
+                const estadosMatricula = estados === null || estados === void 0 ? void 0 : estados.split('-');
                 (0, global_1.assertGrado)(grado);
                 (0, global_1.assertSeccion)(seccion);
-                const matriculados = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, nivel, year });
+                const matriculados = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula });
                 res.status(200).send((0, responses_1.responseOk)(matriculados));
             }
             catch (err) {

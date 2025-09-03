@@ -5,7 +5,7 @@ import { responseError, responseOk } from '../utils/responses'
 import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
-import { Nivel, VALID_GRADOS, Year } from '../types/enums'
+import { EstadoMatricula, Nivel, VALID_GRADOS, Year } from '../types/enums'
 import { AMatriculado, AMatriculadoNoId, AsistenciaValue, NuevoAlumno, PartialAlumno } from '../types/alumno'
 import { ObjectId, WithId } from 'mongodb'
 import Calendario from '../models/Calendario'
@@ -212,11 +212,14 @@ export class AlumnoControllers {
   static async fetchMatriculados(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { grado, seccion } = req.query
+      const { grado, seccion, estados } = req.query
+
+      const estadosMatricula = (estados as string)?.split('-') as EstadoMatricula[]
+
       assertGrado(grado)
       assertSeccion(seccion)
 
-      const matriculados = await Alumno.getByGradoSeccion({ grado, seccion, nivel, year })
+      const matriculados = await Alumno.getByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula })
       res.status(200).send(responseOk(matriculados))
     } catch (err) {
       errorResponseHandler(res, err)
