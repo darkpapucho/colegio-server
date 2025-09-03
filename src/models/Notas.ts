@@ -294,4 +294,31 @@ export default class Notas {
       )
     return response
   }
+  static async insertNewMatriculaRecord({
+    nivel,
+    year,
+    alumnoId,
+    notas,
+    session,
+  }: {
+    alumnoId: ObjectId
+    notas: Record<string, [number, number, number, number]>
+    session?: ClientSession
+    nivel: Nivel
+    year: Year
+  }) {
+    const response = await mongoClient
+      .db()
+      .collection(`notas${nivel}${year}`)
+      .insertOne({
+        alumnoId,
+        cursos: notas,
+        tardanzas: { justificadas: [0, 0, 0, 0], injustificadas: [0, 0, 0, 0] },
+        inasistencias: { justificadas: [0, 0, 0, 0], injustificadas: [0, 0, 0, 0] },
+        conclusionesDescriptivas: ['', '', '', ''],
+        conducta: [0, 0, 0, 0],
+        conductaPPFF: [0, 0, 0, 0],
+      })
+    return response
+  }
 }

@@ -281,5 +281,22 @@ class Notas {
             return response;
         });
     }
+    static insertNewMatriculaRecord({ nivel, year, alumnoId, notas, session, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`notas${nivel}${year}`)
+                .insertOne({
+                alumnoId,
+                cursos: notas,
+                tardanzas: { justificadas: [0, 0, 0, 0], injustificadas: [0, 0, 0, 0] },
+                inasistencias: { justificadas: [0, 0, 0, 0], injustificadas: [0, 0, 0, 0] },
+                conclusionesDescriptivas: ['', '', '', ''],
+                conducta: [0, 0, 0, 0],
+                conductaPPFF: [0, 0, 0, 0],
+            });
+            return response;
+        });
+    }
 }
 exports.default = Notas;

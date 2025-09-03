@@ -34,7 +34,12 @@ class CalendarioControllers {
                 const alumnosList = yield alumno_1.Alumno.getByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula });
                 const alumnosIds = alumnosList.map((record) => new mongodb_1.ObjectId(record._id));
                 const attendanceList = yield Calendario_1.default.getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds });
-                const calendarioDays = yield Calendario_1.default.getCalendarioDaysRange({ nivel, year, startDate: new Date((0, periodosDates_1.getPeriodoStartDate)(periodo)), endDate: new Date((0, periodosDates_1.getPeriodoEndDate)(periodo)) });
+                const calendarioDays = yield Calendario_1.default.getCalendarioDaysRange({
+                    nivel,
+                    year,
+                    startDate: new Date((0, periodosDates_1.getPeriodoStartDate)(periodo)),
+                    endDate: new Date((0, periodosDates_1.getPeriodoEndDate)(periodo)),
+                });
                 const pdfDocument = new pdfkit_1.default({
                     layout: 'landscape',
                     size: 'A4',
@@ -292,6 +297,7 @@ class CalendarioControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const days = yield Calendario_1.default.fetchCalendario({ nivel, year });
+                console.log({ days });
                 res.status(200).send((0, responses_1.responseOk)(days));
             }
             catch (error) {

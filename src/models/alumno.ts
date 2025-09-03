@@ -8,6 +8,9 @@ import { Month } from '../types/asistencia'
 import Calendario from './Calendario'
 import { parseMonthNameToMonthNumber1to12 } from '../vars/periodosDates'
 import { PensionRecord } from '../types/pensiones'
+import Notas from './Notas'
+import Cursos from './Cursos'
+import { CURSO_SALON } from '../types/cursos'
 
 export class Alumno {
   static async ProcesoNuevoMatricula({ nivel, year, alumno }: { nivel: Nivel; year: Year; alumno: NuevoAlumno }) {
@@ -59,6 +62,22 @@ export class Alumno {
         await session.abortTransaction()
         await session.endSession()
         return false
+      }
+      //insertar notas:
+      //fetch cursos:
+      const cursos = await Cursos.getCursosSalon({ nivel, year, grado: alumno.grado, seccion: alumno.seccion })
+
+      if (cursos?.cursos && cursos?.cursos.length > 0 && nivel == 'primaria') {
+        const parsedCursos = cursos.cursos.reduce((obj: Record<string, [number, number, number, number]>, curso: CURSO_SALON) => {
+          obj[curso.key] = [0, 0, 0, 0]
+          return obj
+        }, {} as Record<string, [number, number, number, number]>)
+        const notasResponse = await Notas.insertNewMatriculaRecord({ alumnoId: matriculaResult.insertedId, notas: parsedCursos, session, nivel, year })
+        if (!notasResponse.acknowledged || !notasResponse.insertedId) {
+          await session.abortTransaction()
+          await session.endSession()
+          return false
+        }
       }
       await session.commitTransaction()
       await session.endSession()

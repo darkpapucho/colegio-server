@@ -6,7 +6,7 @@ import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
 import { Nivel, VALID_GRADOS, Year } from '../types/enums'
-import { AMatriculado, AMatriculadoNoId, AsistenciaValue, PartialAlumno } from '../types/alumno'
+import { AMatriculado, AMatriculadoNoId, AsistenciaValue, NuevoAlumno, PartialAlumno } from '../types/alumno'
 import { ObjectId, WithId } from 'mongodb'
 import Calendario from '../models/Calendario'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
@@ -226,7 +226,7 @@ export class AlumnoControllers {
   static async nuevaMatricula(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { alumno } = req.body
+      const { alumno }: { alumno: NuevoAlumno } = req.body
 
       assertIsNuevoAlumno(alumno)
 

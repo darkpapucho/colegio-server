@@ -20,11 +20,17 @@ export default class CalendarioControllers {
   static async generatePDFAttendanceListByGradoSeccionPeriodo(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { grado, seccion, periodo, estadosMatricula, withData }: { grado: Grado; seccion: Seccion; periodo: Periodo; estadosMatricula: EstadoMatricula[]; withData: boolean } = req.body
+      const { grado, seccion, periodo, estadosMatricula, withData }: { grado: Grado; seccion: Seccion; periodo: Periodo; estadosMatricula: EstadoMatricula[]; withData: boolean } =
+        req.body
       const alumnosList = await Alumno.getByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula })
       const alumnosIds = alumnosList.map((record) => new ObjectId(record._id))
       const attendanceList = await Calendario.getAsistenciaRecordPeriodo({ periodo, nivel, year, alumnosIds })
-      const calendarioDays = await Calendario.getCalendarioDaysRange({ nivel, year, startDate: new Date(getPeriodoStartDate(periodo)), endDate: new Date(getPeriodoEndDate(periodo)) })
+      const calendarioDays = await Calendario.getCalendarioDaysRange({
+        nivel,
+        year,
+        startDate: new Date(getPeriodoStartDate(periodo)),
+        endDate: new Date(getPeriodoEndDate(periodo)),
+      })
 
       const pdfDocument = new PDFDocument({
         layout: 'landscape',
@@ -253,6 +259,7 @@ export default class CalendarioControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const days = await Calendario.fetchCalendario({ nivel, year })
+      console.log({ days })
       res.status(200).send(responseOk(days))
     } catch (error) {
       errorResponseHandler(res, error)

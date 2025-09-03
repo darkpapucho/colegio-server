@@ -37,6 +37,8 @@ const enums_1 = require("../error/enums");
 const utils_1 = require("../utils/generarBoletaNotas/utils/utils");
 const Calendario_1 = __importDefault(require("./Calendario"));
 const periodosDates_1 = require("../vars/periodosDates");
+const Notas_1 = __importDefault(require("./Notas"));
+const Cursos_1 = __importDefault(require("./Cursos"));
 class Alumno {
     static ProcesoNuevoMatricula({ nivel, year, alumno }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -83,6 +85,21 @@ class Alumno {
                     yield session.abortTransaction();
                     yield session.endSession();
                     return false;
+                }
+                //insertar notas:
+                //fetch cursos:
+                const cursos = yield Cursos_1.default.getCursosSalon({ nivel, year, grado: alumno.grado, seccion: alumno.seccion });
+                if ((cursos === null || cursos === void 0 ? void 0 : cursos.cursos) && (cursos === null || cursos === void 0 ? void 0 : cursos.cursos.length) > 0 && nivel == 'primaria') {
+                    const parsedCursos = cursos.cursos.reduce((obj, curso) => {
+                        obj[curso.key] = [0, 0, 0, 0];
+                        return obj;
+                    }, {});
+                    const notasResponse = yield Notas_1.default.insertNewMatriculaRecord({ alumnoId: matriculaResult.insertedId, notas: parsedCursos, session, nivel, year });
+                    if (!notasResponse.acknowledged || !notasResponse.insertedId) {
+                        yield session.abortTransaction();
+                        yield session.endSession();
+                        return false;
+                    }
                 }
                 yield session.commitTransaction();
                 yield session.endSession();
