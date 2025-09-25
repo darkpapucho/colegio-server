@@ -38,7 +38,7 @@ export class AlumnoControllers {
       const { asistenciaList } = req.body
       const list = asistenciaList.list as { alumnoId: string; asistencia: AsistenciaValue }[]
       const periodo = convertDateToPeriodo(new Date())
-      console.log({ periodo })
+
       const dayId = asistenciaList.dayId as string
       //check enabled status from calendario dayId
       const response = await Calendario.checkSalonDayStatus({ nivel, year, dayId: asistenciaList.dayId })
@@ -145,6 +145,7 @@ export class AlumnoControllers {
       const { _id, fechaRetiro } = req.body
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const collectionName = `matriculados${nivel}${year}`
+
       const modifiedCount = await Alumno.retirarAlumno({ _id: new ObjectId(_id), fechaRetiro, collectionName })
       res.send(responseOk({ modifiedCount }))
     } catch (error) {
