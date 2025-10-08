@@ -1,7 +1,8 @@
 "use strict";
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cors = void 0;
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGIN.split(',') || ['http://localhost:3000', 'http://localhost:3050'];
+const ALLOWED_ORIGINS = ((_a = process.env.ALLOWED_ORIGIN) === null || _a === void 0 ? void 0 : _a.split(',')) || ['http://localhost:3000', 'http://localhost:3050'];
 const cors = (req, res, next) => {
     const origin = req.get('origin'); //extract origin from the headers
     //const route = req.url

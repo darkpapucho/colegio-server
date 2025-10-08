@@ -119,8 +119,7 @@ class NotasController {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { registro } = req.body;
-                const response = yield Notas_1.default.updateRecordNotasPrimaria({ nivel, year, registro });
-                console.log(response.getRawResponse());
+                yield Notas_1.default.updateRecordNotasPrimaria({ nivel, year, registro });
                 res.send((0, responses_1.responseOk)(null));
             }
             catch (err) {

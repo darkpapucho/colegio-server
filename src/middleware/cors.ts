@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGIN!.split(',') || ['http://localhost:3000', 'http://localhost:3050']
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGIN?.split(',') || ['http://localhost:3000', 'http://localhost:3050']
 
 export const cors = (req: Request, res: Response, next: NextFunction) => {
   const origin = req.get('origin') //extract origin from the headers

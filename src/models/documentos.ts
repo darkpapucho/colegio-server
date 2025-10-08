@@ -221,7 +221,7 @@ export default class Documento {
     for await (const doc of cursor) {
       registros.push(doc)
     }
-    console.log(registros)
+
     return registros
   }
 

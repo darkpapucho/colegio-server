@@ -259,7 +259,7 @@ export default class CalendarioControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const days = await Calendario.fetchCalendario({ nivel, year })
-      console.log({ days })
+
       res.status(200).send(responseOk(days))
     } catch (error) {
       errorResponseHandler(res, error)

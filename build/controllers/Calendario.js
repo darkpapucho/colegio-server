@@ -297,7 +297,6 @@ class CalendarioControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const days = yield Calendario_1.default.fetchCalendario({ nivel, year });
-                console.log({ days });
                 res.status(200).send((0, responses_1.responseOk)(days));
             }
             catch (error) {

@@ -105,8 +105,8 @@ export default class NotasController {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { registro } = req.body
 
-      const response = await Notas.updateRecordNotasPrimaria({ nivel, year, registro })
-      console.log(response.getRawResponse())
+      await Notas.updateRecordNotasPrimaria({ nivel, year, registro })
+
       res.send(responseOk(null))
     } catch (err) {
       errorResponseHandler(res, err)

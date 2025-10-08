@@ -274,7 +274,6 @@ class Documento {
                 }
                 finally { if (e_4) throw e_4.error; }
             }
-            console.log(registros);
             return registros;
         });
     }
