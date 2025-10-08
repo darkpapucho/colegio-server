@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { config } from 'dotenv'
-config()
+
 const ALLOWED_ORIGINS = process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN!.split(',') : ['http://localhost:3000', 'http://localhost:3050']
 
 export const cors = (req: Request, res: Response, next: NextFunction) => {
