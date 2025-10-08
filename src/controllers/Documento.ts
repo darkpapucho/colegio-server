@@ -82,13 +82,13 @@ export default class DocumentoControllers {
 
   static async generateLibretasByGradoSeccion(req: Request, res: Response) {
     try {
-      const { grado, seccion, estadosMatricula, zipped } = req.body
-
       const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { grado, seccion, estadosMatricula, zipped, excluirAtrasados } = req.body
+
       assertGrado(grado)
       assertSeccion(seccion)
 
-      const registros = await Documento.getRegistrosByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula })
+      const registros = await Documento.getRegistrosByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula, excluirAtrasados })
 
       //creacion de la libreta
 

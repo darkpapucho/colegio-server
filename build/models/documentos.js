@@ -201,34 +201,80 @@ class Documento {
             return registros;
         });
     }
-    static getRegistrosByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, }) {
+    static getRegistrosByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados = false, }) {
+        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const notasCollection = `notas${nivel}${year}`;
             const alumnosCollection = `matriculados${nivel}${year}`;
-            const cursor = db_1.mongoClient
-                .db()
-                .collection(notasCollection)
-                .aggregate([
-                {
-                    $lookup: {
-                        from: alumnosCollection,
-                        localField: 'alumnoId',
-                        foreignField: '_id',
-                        as: 'estudiante',
+            const pensionesCollection = `pensiones${nivel}${year}`;
+            const currentMes = new Date().getMonth();
+            let cursor;
+            if (excluirAtrasados) {
+                cursor = db_1.mongoClient
+                    .db()
+                    .collection(notasCollection)
+                    .aggregate([
+                    { $lookup: { from: pensionesCollection, localField: 'alumnoId', foreignField: 'alumnoId', as: 'recordPensiones' } },
+                    { $set: { recordPensiones: '$recordPensiones.pensiones' } },
+                    { $set: { recordPensiones: { $arrayElemAt: ['$recordPensiones', 0] } } },
+                    {
+                        $addFields: {
+                            pensiones: { $filter: { input: '$recordPensiones', cond: { $lt: ['$$this.mes', currentMes] } } },
+                            pensionesPagadas: { $filter: { input: '$recordPensiones', cond: { $and: [{ $lt: ['$$this.mes', currentMes] }, { $eq: ['$$this.pagado', true] }] } } },
+                        },
                     },
-                },
-                {
-                    $match: {
-                        'estudiante.grado': grado,
-                        'estudiante.seccion': seccion,
-                        'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+                    { $match: { $expr: { $eq: [{ $size: '$pensiones' }, { $size: '$pensionesPagadas' }] } } },
+                    { $match: { $expr: { $eq: [{ $size: '$pensiones' }, { $size: '$pensionesPagadas' }] } } },
+                    { $unset: ['pensiones', 'pensionesPagadas', 'recordPensiones'] },
+                    { $lookup: { from: alumnosCollection, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+                    {
+                        $match: {
+                            'estudiante.grado': grado,
+                            'estudiante.seccion': seccion,
+                            'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+                        },
                     },
-                },
-            ]);
+                ]);
+            }
+            else {
+                cursor = db_1.mongoClient
+                    .db()
+                    .collection(notasCollection)
+                    .aggregate([
+                    {
+                        $lookup: {
+                            from: alumnosCollection,
+                            localField: 'alumnoId',
+                            foreignField: '_id',
+                            as: 'estudiante',
+                        },
+                    },
+                    {
+                        $match: {
+                            'estudiante.grado': grado,
+                            'estudiante.seccion': seccion,
+                            'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+                        },
+                    },
+                ]);
+            }
             let registros = [];
-            yield cursor.forEach((element) => {
-                registros.push(element);
-            });
+            try {
+                for (var _d = true, cursor_4 = __asyncValues(cursor), cursor_4_1; cursor_4_1 = yield cursor_4.next(), _a = cursor_4_1.done, !_a; _d = true) {
+                    _c = cursor_4_1.value;
+                    _d = false;
+                    const doc = _c;
+                    registros.push(doc);
+                }
+            }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = cursor_4.return)) yield _b.call(cursor_4);
+                }
+                finally { if (e_4) throw e_4.error; }
+            }
+            console.log(registros);
             return registros;
         });
     }
@@ -244,7 +290,7 @@ class Documento {
         });
     }
     static fetchRegistroNotasBySalon({ nivel, year, alumnosIds }) {
-        var _a, e_4, _b, _c;
+        var _a, e_5, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const notasCollection = `notas${nivel}${year}`;
             const alumnosCollection = `matriculados${nivel}${year}`;
@@ -297,12 +343,12 @@ class Documento {
                     registroNotas.push(registro);
                 }
             }
-            catch (e_4_1) { e_4 = { error: e_4_1 }; }
+            catch (e_5_1) { e_5 = { error: e_5_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = registrosCursos_1.return)) yield _b.call(registrosCursos_1);
                 }
-                finally { if (e_4) throw e_4.error; }
+                finally { if (e_5) throw e_5.error; }
             }
             // await notasCursor.forEach((registro) => {
             //   registroNotas.push(registro)

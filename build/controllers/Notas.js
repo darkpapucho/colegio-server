@@ -60,10 +60,10 @@ class NotasController {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 if (nivel !== 'primaria')
                     throw new Error('Esta ruta solo aplica al nivel primaria');
-                const { grado, seccion, zipped, estadosMatricula } = req.body;
+                const { grado, seccion, zipped, estadosMatricula, excluirAtrasados, } = req.body;
                 // console.log({ nivel, year, zipped })
                 const tutor = yield empleado_1.default.findTutorByGradoSeccion({ grado, seccion, nivel, year });
-                const registro = yield Notas_1.default.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula });
+                const registro = yield Notas_1.default.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados });
                 const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, grado, seccion, year });
                 const currentPeriodo = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
                 if (cursosSalon == null || !currentPeriodo || !currentPeriodo)

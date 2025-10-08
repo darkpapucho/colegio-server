@@ -1,4 +1,4 @@
-import { ClientSession, ObjectId } from 'mongodb'
+import { AggregationCursor, ClientSession, ObjectId } from 'mongodb'
 
 import { mongoClient } from '../db'
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
@@ -77,38 +77,83 @@ export default class Notas {
     year,
     grado,
     seccion,
-    estadosMatricula,
+    estadosMatricula = ['DEFINITIVA', 'EN PROCESO'],
+    excluirAtrasados = false,
   }: {
     estadosMatricula?: EstadoMatricula[]
     nivel: Nivel
     year: Year
     grado: Grado
     seccion: Seccion
+    excluirAtrasados?: boolean
   }) {
-    const cursor = mongoClient
-      .db()
-      .collection(`matriculados${nivel}${year}`)
-      .aggregate<RecordNotas>([
-        { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA', 'EN PROCESO'] } } },
-        { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
-        { $lookup: { from: `notas${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
-        { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },
-        {
-          $project: {
-            _id: 0,
-            alumno: 1,
-            estadoMatricula: 1,
-            alumnoId: '$record.alumnoId',
-            tardanzas: '$record.tardanzas',
-            inasistencias: '$record.inasistencias',
-            conclusionesDescriptivas: '$record.conclusionesDescriptivas',
-            cursos: '$record.cursos',
-            conducta: '$record.conducta',
-            conductaPPFF: '$record.conductaPPFF',
+    let cursor: AggregationCursor<RecordNotas>
+    const matriculadosCollection = `matriculados${nivel}${year}`
+    const pensionesCollection = `pensiones${nivel}${year}`
+    const notasCollection = `notas${nivel}${year}`
+    const currentMes = new Date().getMonth()
+
+    if (excluirAtrasados) {
+      cursor = mongoClient
+        .db()
+        .collection(matriculadosCollection)
+        .aggregate([
+          { $match: { grado, seccion, estadoMatricula: { $in: [...estadosMatricula] } } },
+          { $project: { _id: 1, estadoMatricula: 1, alumno: '$nombreCompleto' } },
+          { $lookup: { from: pensionesCollection, localField: '_id', foreignField: 'alumnoId', as: 'recordPensiones' } },
+          { $set: { recordPensiones: { $arrayElemAt: ['$recordPensiones', 0] } } },
+          { $set: { pensiones: '$recordPensiones.pensiones' } },
+          {
+            $addFields: {
+              pensionesToEval: { $filter: { input: '$pensiones', cond: { $lt: ['$$this.mes', currentMes] } } },
+              pensionesPagadas: { $filter: { input: '$pensiones', cond: { $and: [{ $lt: ['$$this.mes', currentMes] }, { $eq: ['$$this.pagado', true] }] } } },
+            },
           },
-        },
-        { $sort: { alumno: 1 } },
-      ])
+          { $match: { $expr: { $eq: [{ $size: '$pensionesToEval' }, { $size: '$pensionesPagadas' }] } } },
+          { $unset: ['recordPensiones', 'pensiones', 'pensionesToEval', 'pensionesPagadas'] },
+          { $lookup: { from: notasCollection, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
+          { $project: { estadoMatricula: 1, alumno: 1, record: { $arrayElemAt: ['$record', 0] } } },
+          {
+            $project: {
+              _id: 0,
+              alumnoId: '$record.alumnoId',
+              alumno: 1,
+              estadoMatricula: 1,
+              tardanzas: '$record.tardanzas',
+              inasistencias: '$record.inasistencias',
+              conclusionesDescriptivas: '$record.conclusionesDescriptivas',
+              cursos: '$record.cursos',
+              conducta: '$record.conducta',
+              conductaPPFF: '$record.conductaPPFF',
+            },
+          },
+        ])
+    } else {
+      cursor = mongoClient
+        .db()
+        .collection(matriculadosCollection)
+        .aggregate<RecordNotas>([
+          { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula } } },
+          { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
+          { $lookup: { from: notasCollection, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
+          { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },
+          {
+            $project: {
+              _id: 0,
+              alumno: 1,
+              estadoMatricula: 1,
+              alumnoId: '$record.alumnoId',
+              tardanzas: '$record.tardanzas',
+              inasistencias: '$record.inasistencias',
+              conclusionesDescriptivas: '$record.conclusionesDescriptivas',
+              cursos: '$record.cursos',
+              conducta: '$record.conducta',
+              conductaPPFF: '$record.conductaPPFF',
+            },
+          },
+          { $sort: { alumno: 1 } },
+        ])
+    }
     const result: RecordNotas[] = []
     for await (const doc of cursor) {
       result.push(doc)

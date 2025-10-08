@@ -45,10 +45,16 @@ export default class NotasController {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       if (nivel !== 'primaria') throw new Error('Esta ruta solo aplica al nivel primaria')
-      const { grado, seccion, zipped, estadosMatricula }: { grado: Grado; seccion: Seccion; all: boolean; zipped: boolean; estadosMatricula: EstadoMatricula[] } = req.body
+      const {
+        grado,
+        seccion,
+        zipped,
+        estadosMatricula,
+        excluirAtrasados,
+      }: { excluirAtrasados: boolean; grado: Grado; seccion: Seccion; all: boolean; zipped: boolean; estadosMatricula: EstadoMatricula[] } = req.body
       // console.log({ nivel, year, zipped })
       const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
-      const registro = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula })
+      const registro = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados })
       const cursosSalon = await Cursos.getCursosSalon({ nivel, grado, seccion, year })
       const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
       if (cursosSalon == null || !currentPeriodo || !currentPeriodo) throw new Error('error parsing data')

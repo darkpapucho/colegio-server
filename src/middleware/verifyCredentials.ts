@@ -8,6 +8,7 @@ import { ObjectId } from 'mongodb'
 
 export const verifyCredentials = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.get('Token')
+
   try {
     const { nivel } = extractNivelYearFromHeaders(req)
     assert(token != undefined, ErrorMessages.INVALID_REQUEST)

@@ -114,11 +114,11 @@ class DocumentoControllers {
     static generateLibretasByGradoSeccion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { grado, seccion, estadosMatricula, zipped } = req.body;
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion, estadosMatricula, zipped, excluirAtrasados } = req.body;
                 (0, global_1.assertGrado)(grado);
                 (0, global_1.assertSeccion)(seccion);
-                const registros = yield documentos_1.default.getRegistrosByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula });
+                const registros = yield documentos_1.default.getRegistrosByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula, excluirAtrasados });
                 //creacion de la libreta
                 //zip archive
                 if (zipped) {

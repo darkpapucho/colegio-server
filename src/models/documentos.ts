@@ -1,4 +1,4 @@
-import { ObjectId, WithId } from 'mongodb'
+import { AggregationCursor, ObjectId, WithId } from 'mongodb'
 import { mongoClient } from '../db'
 
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
@@ -154,39 +154,74 @@ export default class Documento {
     grado,
     seccion,
     estadosMatricula,
+    excluirAtrasados = false,
   }: {
     estadosMatricula?: EstadoMatricula[]
     nivel: Nivel
     year: Year
     grado: Grado
     seccion: Seccion
+    excluirAtrasados?: boolean
   }) {
     const notasCollection = `notas${nivel}${year}`
     const alumnosCollection = `matriculados${nivel}${year}`
-    const cursor = mongoClient
-      .db()
-      .collection(notasCollection)
-      .aggregate<ExtendedRegistroNota>([
-        {
-          $lookup: {
-            from: alumnosCollection,
-            localField: 'alumnoId',
-            foreignField: '_id',
-            as: 'estudiante',
+    const pensionesCollection = `pensiones${nivel}${year}`
+    const currentMes = new Date().getMonth()
+
+    let cursor: AggregationCursor<ExtendedRegistroNota>
+    if (excluirAtrasados) {
+      cursor = mongoClient
+        .db()
+        .collection(notasCollection)
+        .aggregate<ExtendedRegistroNota>([
+          { $lookup: { from: pensionesCollection, localField: 'alumnoId', foreignField: 'alumnoId', as: 'recordPensiones' } },
+          { $set: { recordPensiones: '$recordPensiones.pensiones' } },
+          { $set: { recordPensiones: { $arrayElemAt: ['$recordPensiones', 0] } } },
+          {
+            $addFields: {
+              pensiones: { $filter: { input: '$recordPensiones', cond: { $lt: ['$$this.mes', currentMes] } } },
+              pensionesPagadas: { $filter: { input: '$recordPensiones', cond: { $and: [{ $lt: ['$$this.mes', currentMes] }, { $eq: ['$$this.pagado', true] }] } } },
+            },
           },
-        },
-        {
-          $match: {
-            'estudiante.grado': grado,
-            'estudiante.seccion': seccion,
-            'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+          { $match: { $expr: { $eq: [{ $size: '$pensiones' }, { $size: '$pensionesPagadas' }] } } },
+          { $match: { $expr: { $eq: [{ $size: '$pensiones' }, { $size: '$pensionesPagadas' }] } } },
+          { $unset: ['pensiones', 'pensionesPagadas', 'recordPensiones'] },
+          { $lookup: { from: alumnosCollection, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
+          {
+            $match: {
+              'estudiante.grado': grado,
+              'estudiante.seccion': seccion,
+              'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+            },
           },
-        },
-      ])
+        ])
+    } else {
+      cursor = mongoClient
+        .db()
+        .collection(notasCollection)
+        .aggregate<ExtendedRegistroNota>([
+          {
+            $lookup: {
+              from: alumnosCollection,
+              localField: 'alumnoId',
+              foreignField: '_id',
+              as: 'estudiante',
+            },
+          },
+          {
+            $match: {
+              'estudiante.grado': grado,
+              'estudiante.seccion': seccion,
+              'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+            },
+          },
+        ])
+    }
     let registros: ExtendedRegistroNota[] = []
-    await cursor.forEach((element) => {
-      registros.push(element)
-    })
+    for await (const doc of cursor) {
+      registros.push(doc)
+    }
+    console.log(registros)
     return registros
   }
 
