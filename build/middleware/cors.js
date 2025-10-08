@@ -1,14 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cors = void 0;
-const ENV_ORIGINS = process.env.ALLOWED_ORIGIN;
-const MODE = process.env.NODE_ENV;
-const ALLOWED_ORIGINS = process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN.split(',') : ['http://localhost:3000', 'http://localhost:3050'];
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGIN.split(',') || ['http://localhost:3000', 'http://localhost:3050'];
 const cors = (req, res, next) => {
-    console.log({ ENV_ORIGINS, MODE });
     const origin = req.get('origin'); //extract origin from the headers
     //const route = req.url
-    console.log({ ALLOWED_ORIGINS, origin });
     if (origin && ALLOWED_ORIGINS.some((element) => element === origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Methods', ['PUT', 'POST', 'DELETE', 'GET', 'PATCH', 'OPTIONS']);
