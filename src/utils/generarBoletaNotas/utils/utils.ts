@@ -288,7 +288,9 @@ export function tablaNotasPromedios({ document, cursos, nivel, grado }: { docume
     let count = 0
     for (let curso in cursos) {
       const promedios = calcularPromedioCompetencia(cursos[curso])
+
       const promedioAnual = calcularPromedioGeneralCurso(promedios)
+
       document.text(promedioAnual, 495, 230 + ESPACIOS_ENTRE_CURSOS_PRIMARIA[curso], { width: 55, align: 'center' })
       document.text(promedioAnual, 465, 230 + ESPACIOS_ENTRE_CURSOS_PRIMARIA[curso], { width: 30, align: 'center' })
       const rows = promedios.length

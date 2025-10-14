@@ -149,6 +149,7 @@ export function addNotas({ doc, cursosSalon, notas, periodo }: { periodo: Period
     })
     //notas
     const values = notas.cursos[curso.key]
+
     values.forEach((value, ix) => {
       drawCell(doc, {
         begin: { x: BEGIN_X + NOMBRE_CURSO_WIDTH + NOTA_CELL_WIDTH * 2 * ix, y: BEGIN_Y + HEADERS_HEIGHT + NOTA_CELL_HEIGHT * (index + 1) },
@@ -431,8 +432,18 @@ export function convertNumberToLetra(nota: number) {
   }
 }
 
-function calcularPromedioNotas(notas: [number, number, number, number], periodo: Periodo | undefined) {
-  const divisor = periodo ? convertPeriodoKeyToIndex(periodo) + 1 : 1
+function calcularPromedioNotas(notas: [number, number, number, number], periodo?: Periodo | undefined) {
+  let divisor = 0
+  if (periodo) {
+    divisor = periodo ? convertPeriodoKeyToIndex(periodo) + 1 : 1
+  } else {
+    divisor = notas.reduce((acc, row) => {
+      if (row != 0) {
+        acc += 1
+      }
+      return acc
+    }, 0)
+  }
   const promedio = Math.round(notas.reduce((acc, value) => acc + value, 0) / divisor)
   return promedio
 }

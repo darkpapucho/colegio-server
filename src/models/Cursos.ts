@@ -27,6 +27,7 @@ export default class Cursos {
       .db()
       .collection(`cursos${nivel}${year}`)
       .findOne<{ cursos: CURSO_SALON[] }>({ grado, seccion }, { projection: { cursos: 1, _id: 0 } })
+
     return response
   }
 }

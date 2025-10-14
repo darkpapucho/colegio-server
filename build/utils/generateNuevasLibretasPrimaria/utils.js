@@ -407,7 +407,18 @@ function convertNumberToLetra(nota) {
 }
 exports.convertNumberToLetra = convertNumberToLetra;
 function calcularPromedioNotas(notas, periodo) {
-    const divisor = periodo ? (0, utils_1.convertPeriodoKeyToIndex)(periodo) + 1 : 1;
+    let divisor = 0;
+    if (periodo) {
+        divisor = periodo ? (0, utils_1.convertPeriodoKeyToIndex)(periodo) + 1 : 1;
+    }
+    else {
+        divisor = notas.reduce((acc, row) => {
+            if (row != 0) {
+                acc += 1;
+            }
+            return acc;
+        }, 0);
+    }
     const promedio = Math.round(notas.reduce((acc, value) => acc + value, 0) / divisor);
     return promedio;
 }

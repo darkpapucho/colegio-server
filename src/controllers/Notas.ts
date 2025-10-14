@@ -8,7 +8,6 @@ import Cursos from '../models/Cursos'
 import Empleado from '../models/empleado'
 import PdfDocument from 'pdfkit'
 import generateLibretaPrimariaPDF from '../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria'
-import Calendario from '../models/Calendario'
 import { RecordNotas } from '../types/notas'
 import { CURSO_SALON } from '../types/cursos'
 
@@ -56,10 +55,11 @@ export default class NotasController {
       const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
       const registro = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados })
       const cursosSalon = await Cursos.getCursosSalon({ nivel, grado, seccion, year })
-      const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
-      if (cursosSalon == null || !currentPeriodo || !currentPeriodo) throw new Error('error parsing data')
+      //const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
+
+      if (cursosSalon == null) throw new Error('error parsing data')
       if (zipped) {
-        await zipLibretasPrimaria({ res, tutor: tutor.nombreCompleto, nivel, grado, seccion, year, registro, cursosSalon: cursosSalon.cursos, periodo: currentPeriodo.periodo })
+        await zipLibretasPrimaria({ res, tutor: tutor.nombreCompleto, nivel, grado, seccion, year, registro, cursosSalon: cursosSalon.cursos, periodo: undefined })
       } else {
         const pdfDocument = new PdfDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })
         pdfDocument.pipe(res)
@@ -73,7 +73,7 @@ export default class NotasController {
             doc: pdfDocument,
             tutor: tutor.nombreCompleto,
             cursosSalon: cursosSalon!.cursos,
-            periodo: currentPeriodo?.periodo,
+            periodo: undefined,
           })
         })
 

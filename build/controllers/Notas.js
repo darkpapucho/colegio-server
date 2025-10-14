@@ -20,7 +20,6 @@ const Cursos_1 = __importDefault(require("../models/Cursos"));
 const empleado_1 = __importDefault(require("../models/empleado"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const generateLibretasPrimaria_1 = __importDefault(require("../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria"));
-const Calendario_1 = __importDefault(require("../models/Calendario"));
 const archiver_1 = require("../utils/generateNuevasLibretasPrimaria/archiver");
 class NotasController {
     static getNotasByGradoSeccionProfesor(req, res) {
@@ -65,11 +64,11 @@ class NotasController {
                 const tutor = yield empleado_1.default.findTutorByGradoSeccion({ grado, seccion, nivel, year });
                 const registro = yield Notas_1.default.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados });
                 const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, grado, seccion, year });
-                const currentPeriodo = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
-                if (cursosSalon == null || !currentPeriodo || !currentPeriodo)
+                //const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
+                if (cursosSalon == null)
                     throw new Error('error parsing data');
                 if (zipped) {
-                    yield (0, archiver_1.zipLibretasPrimaria)({ res, tutor: tutor.nombreCompleto, nivel, grado, seccion, year, registro, cursosSalon: cursosSalon.cursos, periodo: currentPeriodo.periodo });
+                    yield (0, archiver_1.zipLibretasPrimaria)({ res, tutor: tutor.nombreCompleto, nivel, grado, seccion, year, registro, cursosSalon: cursosSalon.cursos, periodo: undefined });
                 }
                 else {
                     const pdfDocument = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });
@@ -84,7 +83,7 @@ class NotasController {
                             doc: pdfDocument,
                             tutor: tutor.nombreCompleto,
                             cursosSalon: cursosSalon.cursos,
-                            periodo: currentPeriodo === null || currentPeriodo === void 0 ? void 0 : currentPeriodo.periodo,
+                            periodo: undefined,
                         });
                     });
                     pdfDocument.end();
