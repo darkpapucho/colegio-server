@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 4000
 const app = express()
 app.use(express.json())
 app.use(cors)
-
+app.get('/', (req, res) => res.send('hello world!!!'))
 app.use('/user', userRouter)
 app.use('/alumno', alumnoRouter)
 app.use('/documento', documentoRouter)

@@ -20,6 +20,7 @@ const PORT = process.env.PORT || 4000;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(cors_1.cors);
+app.get('/', (req, res) => res.send('hello world!!!'));
 app.use('/user', user_1.userRouter);
 app.use('/alumno', alumno_1.alumnoRouter);
 app.use('/documento', documento_1.documentoRouter);

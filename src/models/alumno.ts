@@ -353,12 +353,14 @@ export class Alumno {
     grado,
     seccion,
     estadosMatricula,
+    projection,
   }: {
     estadosMatricula?: EstadoMatricula[]
     nivel: Nivel
     year: Year
     grado: Grado
     seccion: Seccion
+    projection?: { [key: string]: 1 | 0 }
   }): Promise<WithId<AMatriculado>[]> {
     return new Promise(async (resolve) => {
       let alumnos: WithId<AMatriculado>[] = []
@@ -366,7 +368,7 @@ export class Alumno {
       const cursor = mongoClient
         .db()
         .collection<AMatriculado>(`matriculados${nivel}${year}`)
-        .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } })
+        .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } }, { projection: projection || {} })
       for await (const doc of cursor) {
         alumnos.push(doc)
       }

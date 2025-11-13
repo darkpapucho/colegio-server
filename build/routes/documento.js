@@ -15,3 +15,4 @@ exports.documentoRouter.post('/generar-boletas-notas-grado-seccion', verifyCrede
 exports.documentoRouter.get('/generar-boleta-nota-individual', verifyCredentials_1.verifyCredentials, Documento_1.default.generateLibretaIndividual);
 exports.documentoRouter.post('/get-notas-by-cursos', verifyCredentials_1.verifyCredentials, Documento_1.default.fetchNotasByCursos);
 exports.documentoRouter.post('/update-registro-notas-profesor', verifyCredentials_1.verifyCredentials, Documento_1.default.updateRegistroNotasProfesor);
+exports.documentoRouter.post('/generateCSVAlumnosListByGradoSeccion', verifyCredentials_1.verifyCredentials, Documento_1.default.generateCSVAlumnosListByGradoSeccion);

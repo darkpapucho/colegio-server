@@ -1,7 +1,19 @@
 export const VALID_NOTAS = ['A', 'B', 'C', 'AD'] as const
 export type Nota = (typeof VALID_NOTAS)[number]
 //grados destino
-export const VALID_GRADOS_DESTINO = ['Grupo 3 años', 'Grupo 4 años', 'Grupo 5 años', 'PRIMERO PRIMARIA', 'PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO', 'QUINTO', 'SEXTO', 'PRIMERO SECUNDARIA'] as const
+export const VALID_GRADOS_DESTINO = [
+  'Grupo 3 años',
+  'Grupo 4 años',
+  'Grupo 5 años',
+  'PRIMERO PRIMARIA',
+  'PRIMERO',
+  'SEGUNDO',
+  'TERCERO',
+  'CUARTO',
+  'QUINTO',
+  'SEXTO',
+  'PRIMERO SECUNDARIA',
+] as const
 export type GradoDestino = (typeof VALID_GRADOS_DESTINO)[number]
 // estados matricula
 export const ESTADOS_MATRICULA = ['DEFINITIVA', 'PENDIENTE', 'TRASLADADO', 'EN PROCESO'] as const

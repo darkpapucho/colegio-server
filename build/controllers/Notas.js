@@ -21,7 +21,33 @@ const empleado_1 = __importDefault(require("../models/empleado"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const generateLibretasPrimaria_1 = __importDefault(require("../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria"));
 const archiver_1 = require("../utils/generateNuevasLibretasPrimaria/archiver");
+const calcularPonderadoAlumno_1 = require("../utils/calcularPonderadoAlumno");
+const json_2_csv_1 = require("json-2-csv");
 class NotasController {
+    static generarInformeRendimiento(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion } = req.body;
+                const notas = yield Notas_1.default.getNotasByGradoSeccion({ nivel, year, grado, seccion });
+                const result = [];
+                notas.forEach((row) => {
+                    const academico = (0, calcularPonderadoAlumno_1.calcularPonderado)(row.cursos);
+                    const conducta = (0, calcularPonderadoAlumno_1.calcularPromedioCurso)(row.conducta);
+                    const ponderado = +((academico + conducta) / 2).toFixed(2);
+                    result.push({ alumno: row.alumno, academico, conducta, ponderado });
+                });
+                const options = { emptyFieldValue: '--', fieldTitleMap: { id: 'N°', alumno: 'ALUMNO', academico: 'AC', ponderado: 'PO', conducta: 'CX' } };
+                const csv = (0, json_2_csv_1.json2csv)(result.sort((prev, curr) => (prev.ponderado < curr.ponderado ? 1 : -1)).map((row, index) => (Object.assign({ id: index + 1 }, row))), options);
+                res.setHeader('Content-Type', 'text/csv');
+                res.setHeader('Content-Disposition', `attachment; filename=${grado}-${seccion}.csv`);
+                res.send((0, responses_1.responseOk)(csv));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static getNotasByGradoSeccionProfesor(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

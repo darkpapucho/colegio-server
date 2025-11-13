@@ -351,7 +351,7 @@ class Alumno {
             yield session.endSession();
         });
     }
-    static getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, }) {
+    static getByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, projection, }) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                 var _a, e_5, _b, _c;
@@ -359,7 +359,7 @@ class Alumno {
                 const cursor = db_1.mongoClient
                     .db()
                     .collection(`matriculados${nivel}${year}`)
-                    .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } });
+                    .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } }, { projection: projection || {} });
                 try {
                     for (var _d = true, cursor_5 = __asyncValues(cursor), cursor_5_1; cursor_5_1 = yield cursor_5.next(), _a = cursor_5_1.done, !_a; _d = true) {
                         _c = cursor_5_1.value;

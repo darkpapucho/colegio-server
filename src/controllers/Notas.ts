@@ -10,10 +10,38 @@ import PdfDocument from 'pdfkit'
 import generateLibretaPrimariaPDF from '../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria'
 import { RecordNotas } from '../types/notas'
 import { CURSO_SALON } from '../types/cursos'
-
 import { zipLibretasPrimaria } from '../utils/generateNuevasLibretasPrimaria/archiver'
+import { calcularPonderado, calcularPromedioCurso } from '../utils/calcularPonderadoAlumno'
+import { json2csv, Json2CsvOptions } from 'json-2-csv'
 
 export default class NotasController {
+  static async generarInformeRendimiento(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { grado, seccion }: { grado: Grado; seccion: Seccion } = req.body
+
+      const notas = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion })
+      const result: { alumno: string; academico: number; conducta: number; ponderado: number }[] = []
+      notas.forEach((row) => {
+        const academico = calcularPonderado(row.cursos)
+        const conducta = calcularPromedioCurso(row.conducta)
+        const ponderado = +((academico + conducta) / 2).toFixed(2)
+        result.push({ alumno: row.alumno, academico, conducta, ponderado })
+      })
+
+      const options: Json2CsvOptions = { emptyFieldValue: '--', fieldTitleMap: { id: 'N°', alumno: 'ALUMNO', academico: 'AC', ponderado: 'PO', conducta: 'CX' } }
+      const csv = json2csv(
+        result.sort((prev, curr) => (prev.ponderado < curr.ponderado ? 1 : -1)).map((row, index) => ({ id: index + 1, ...row })),
+        options,
+      )
+      res.setHeader('Content-Type', 'text/csv')
+      res.setHeader('Content-Disposition', `attachment; filename=${grado}-${seccion}.csv`)
+      res.send(responseOk(csv))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+
   static async getNotasByGradoSeccionProfesor(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

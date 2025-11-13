@@ -7,11 +7,10 @@ import PdfDocument from 'pdfkit'
 import fs from 'fs'
 import { errorResponseHandler } from '../error/errors'
 import { Alumno } from '../models/alumno'
-// import { generadorCursos } from '../utils/generateCursosByGradoSeccion'
 import { responseOk } from '../utils/responses'
 import { ObjectId } from 'mongodb'
 import { RegistroNota } from '../types/documents'
-
+import { json2csv, Json2CsvOptions } from 'json-2-csv'
 import generarBoletasDeNotasPdf, { createStudentZipInMemory } from '../utils/generarBoletaNotas/generarBoletaNotas'
 import { SalonProfesor } from '../types/user'
 import generateLibretaPrimariaPDF from '../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria'
@@ -19,8 +18,50 @@ import Notas from '../models/Notas'
 import Cursos from '../models/Cursos'
 import Empleado from '../models/empleado'
 import Calendario from '../models/Calendario'
+import { EstadoMatricula, Grado, Seccion } from '../types/enums'
+import { convertToLocalDatePeru } from '../utils/convertISODateToLocalDatePeru'
 
 export default class DocumentoControllers {
+  static async generateCSVAlumnosListByGradoSeccion(req: Request, res: Response) {
+    const { nivel, year } = extractNivelYearFromHeaders(req)
+    const { grado, seccion, estadosMatricula }: { grado: Grado; seccion: Seccion; estadosMatricula: EstadoMatricula[] } = req.body
+    const withTrasladados = estadosMatricula.some((row) => row == 'TRASLADADO')
+    const projection: { [key: string]: 1 | 0 } = { _id: 0, nombreCompleto: 1, dni: 1, grado: 1, seccion: 1, estadoMatricula: 1, fechaMatricula: 1 }
+    if (withTrasladados) projection['fechaRetiro'] = 1
+    try {
+      const alumnos = (
+        await Alumno.getByGradoSeccion({
+          nivel,
+          year,
+          grado,
+          seccion,
+          estadosMatricula,
+          projection,
+        })
+      )
+        .sort((prev, curr) => (prev.nombreCompleto > curr.nombreCompleto ? 1 : -1))
+        .map((row, index) => {
+          const { grado, seccion, ...rest } = row
+          const formated = { id: index + 1, ...rest, salon: grado + ' ' + seccion, fechaMatricula: convertToLocalDatePeru(row.fechaMatricula) }
+          if (withTrasladados) formated['fechaRetiro'] = convertToLocalDatePeru(row.fechaRetiro)
+          return formated
+        })
+      //.map((row) => ({ alumno: row.nombreCompleto }))
+
+      const options: Json2CsvOptions = {
+        emptyFieldValue: '--',
+
+        fieldTitleMap: { id: 'N°', nombreCompleto: 'ALUMNO', dni: 'DNI', salon: 'SALÓN', estadoMatricula: 'ESTADO', fechaMatricula: 'INGRESO' },
+      }
+      if (withTrasladados) options.fieldTitleMap!['fechaTraslado'] = 'TRASLADO'
+      const csv = json2csv(alumnos, options)
+      res.setHeader('Content-Type', 'text/csv')
+      res.setHeader('Content-Disposition', `attachment; filename=${grado}-${seccion}.csv`)
+      res.send(responseOk(csv))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async fetchNotasByCursos(req: Request, res: Response) {
     const { nivel, year } = extractNivelYearFromHeaders(req)
     const salon = req.body.salon as SalonProfesor

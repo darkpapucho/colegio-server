@@ -31,6 +31,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -43,16 +54,59 @@ const pdfkit_1 = __importDefault(require("pdfkit"));
 const fs_1 = __importDefault(require("fs"));
 const errors_1 = require("../error/errors");
 const alumno_1 = require("../models/alumno");
-// import { generadorCursos } from '../utils/generateCursosByGradoSeccion'
 const responses_1 = require("../utils/responses");
 const mongodb_1 = require("mongodb");
+const json_2_csv_1 = require("json-2-csv");
 const generarBoletaNotas_1 = __importStar(require("../utils/generarBoletaNotas/generarBoletaNotas"));
 const generateLibretasPrimaria_1 = __importDefault(require("../utils/generateNuevasLibretasPrimaria/generateLibretasPrimaria"));
 const Notas_1 = __importDefault(require("../models/Notas"));
 const Cursos_1 = __importDefault(require("../models/Cursos"));
 const empleado_1 = __importDefault(require("../models/empleado"));
 const Calendario_1 = __importDefault(require("../models/Calendario"));
+const convertISODateToLocalDatePeru_1 = require("../utils/convertISODateToLocalDatePeru");
 class DocumentoControllers {
+    static generateCSVAlumnosListByGradoSeccion(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+            const { grado, seccion, estadosMatricula } = req.body;
+            const withTrasladados = estadosMatricula.some((row) => row == 'TRASLADADO');
+            const projection = { _id: 0, nombreCompleto: 1, dni: 1, grado: 1, seccion: 1, estadoMatricula: 1, fechaMatricula: 1 };
+            if (withTrasladados)
+                projection['fechaRetiro'] = 1;
+            try {
+                const alumnos = (yield alumno_1.Alumno.getByGradoSeccion({
+                    nivel,
+                    year,
+                    grado,
+                    seccion,
+                    estadosMatricula,
+                    projection,
+                }))
+                    .sort((prev, curr) => (prev.nombreCompleto > curr.nombreCompleto ? 1 : -1))
+                    .map((row, index) => {
+                    const { grado, seccion } = row, rest = __rest(row, ["grado", "seccion"]);
+                    const formated = Object.assign(Object.assign({ id: index + 1 }, rest), { salon: grado + ' ' + seccion, fechaMatricula: (0, convertISODateToLocalDatePeru_1.convertToLocalDatePeru)(row.fechaMatricula) });
+                    if (withTrasladados)
+                        formated['fechaRetiro'] = (0, convertISODateToLocalDatePeru_1.convertToLocalDatePeru)(row.fechaRetiro);
+                    return formated;
+                });
+                //.map((row) => ({ alumno: row.nombreCompleto }))
+                const options = {
+                    emptyFieldValue: '--',
+                    fieldTitleMap: { id: 'N°', nombreCompleto: 'ALUMNO', dni: 'DNI', salon: 'SALÓN', estadoMatricula: 'ESTADO', fechaMatricula: 'INGRESO' },
+                };
+                if (withTrasladados)
+                    options.fieldTitleMap['fechaTraslado'] = 'TRASLADO';
+                const csv = (0, json_2_csv_1.json2csv)(alumnos, options);
+                res.setHeader('Content-Type', 'text/csv');
+                res.setHeader('Content-Disposition', `attachment; filename=${grado}-${seccion}.csv`);
+                res.send((0, responses_1.responseOk)(csv));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static fetchNotasByCursos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);

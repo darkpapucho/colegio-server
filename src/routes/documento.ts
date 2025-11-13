@@ -9,3 +9,4 @@ documentoRouter.post('/generar-boletas-notas-grado-seccion', verifyCredentials, 
 documentoRouter.get('/generar-boleta-nota-individual', verifyCredentials, DocumentoControllers.generateLibretaIndividual)
 documentoRouter.post('/get-notas-by-cursos', verifyCredentials, DocumentoControllers.fetchNotasByCursos)
 documentoRouter.post('/update-registro-notas-profesor', verifyCredentials, DocumentoControllers.updateRegistroNotasProfesor)
+documentoRouter.post('/generateCSVAlumnosListByGradoSeccion', verifyCredentials, DocumentoControllers.generateCSVAlumnosListByGradoSeccion)
