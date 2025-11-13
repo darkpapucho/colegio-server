@@ -23,8 +23,10 @@ const generateLibretasPrimaria_1 = __importDefault(require("../utils/generateNue
 const archiver_1 = require("../utils/generateNuevasLibretasPrimaria/archiver");
 const calcularPonderadoAlumno_1 = require("../utils/calcularPonderadoAlumno");
 const json_2_csv_1 = require("json-2-csv");
+const generarInformeRendimientoPDF_1 = require("../utils/generarInformeRendimientoPDF");
+//import { generareInformeRendimientoAcademicoPDF } from '../utils/generarInformeRendimientoPDF'
 class NotasController {
-    static generarInformeRendimiento(req, res) {
+    static generarInformeRendimientoPDF(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
@@ -34,8 +36,37 @@ class NotasController {
                 notas.forEach((row) => {
                     const academico = (0, calcularPonderadoAlumno_1.calcularPonderado)(row.cursos);
                     const conducta = (0, calcularPonderadoAlumno_1.calcularPromedioCurso)(row.conducta);
-                    const ponderado = +((academico + conducta) / 2).toFixed(2);
-                    result.push({ alumno: row.alumno, academico, conducta, ponderado });
+                    const ponderado = ((academico + conducta) / 2).toFixed(2);
+                    result.push({ alumno: row.alumno, academico: academico.toFixed(2), conducta: conducta.toFixed(2), ponderado });
+                });
+                const reporte = new pdfkit_1.default({
+                    layout: 'portrait',
+                    size: 'A4',
+                    font: 'Courier',
+                    margins: { top: 30, left: 30, right: 20, bottom: 30 },
+                    autoFirstPage: false,
+                });
+                reporte.pipe(res);
+                (0, generarInformeRendimientoPDF_1.generateInformeRendimientoAcademicoPDF)(reporte, grado, seccion, result.sort((prev, curr) => (prev.ponderado < curr.ponderado ? 1 : -1)));
+                reporte.end();
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static generarInformeRendimientoCSV(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion } = req.body;
+                const notas = yield Notas_1.default.getNotasByGradoSeccion({ nivel, year, grado, seccion });
+                const result = [];
+                notas.forEach((row) => {
+                    const academico = (0, calcularPonderadoAlumno_1.calcularPonderado)(row.cursos);
+                    const conducta = (0, calcularPonderadoAlumno_1.calcularPromedioCurso)(row.conducta);
+                    const ponderado = ((academico + conducta) / 2).toFixed(2);
+                    result.push({ alumno: row.alumno, academico: academico.toFixed(2), conducta: conducta.toFixed(2), ponderado });
                 });
                 const options = { emptyFieldValue: '--', fieldTitleMap: { id: 'N°', alumno: 'ALUMNO', academico: 'AC', ponderado: 'PO', conducta: 'CX' } };
                 const csv = (0, json_2_csv_1.json2csv)(result.sort((prev, curr) => (prev.ponderado < curr.ponderado ? 1 : -1)).map((row, index) => (Object.assign({ id: index + 1 }, row))), options);

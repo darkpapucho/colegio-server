@@ -13,20 +13,54 @@ import { CURSO_SALON } from '../types/cursos'
 import { zipLibretasPrimaria } from '../utils/generateNuevasLibretasPrimaria/archiver'
 import { calcularPonderado, calcularPromedioCurso } from '../utils/calcularPonderadoAlumno'
 import { json2csv, Json2CsvOptions } from 'json-2-csv'
+import { generateInformeRendimientoAcademicoPDF } from '../utils/generarInformeRendimientoPDF'
+//import { generareInformeRendimientoAcademicoPDF } from '../utils/generarInformeRendimientoPDF'
 
 export default class NotasController {
-  static async generarInformeRendimiento(req: Request, res: Response) {
+  static async generarInformeRendimientoPDF(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { grado, seccion } = req.body
+      const notas = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion })
+      const result: { alumno: string; academico: string; conducta: string; ponderado: string }[] = []
+      notas.forEach((row) => {
+        const academico = calcularPonderado(row.cursos)
+        const conducta = calcularPromedioCurso(row.conducta)
+        const ponderado = ((academico + conducta) / 2).toFixed(2)
+        result.push({ alumno: row.alumno, academico: academico.toFixed(2), conducta: conducta.toFixed(2), ponderado })
+      })
+
+      const reporte = new PdfDocument({
+        layout: 'portrait',
+        size: 'A4',
+        font: 'Courier',
+        margins: { top: 30, left: 30, right: 20, bottom: 30 },
+        autoFirstPage: false,
+      })
+      reporte.pipe(res)
+      generateInformeRendimientoAcademicoPDF(
+        reporte,
+        grado,
+        seccion,
+        result.sort((prev, curr) => (prev.ponderado < curr.ponderado ? 1 : -1)),
+      )
+      reporte.end()
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async generarInformeRendimientoCSV(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { grado, seccion }: { grado: Grado; seccion: Seccion } = req.body
 
       const notas = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion })
-      const result: { alumno: string; academico: number; conducta: number; ponderado: number }[] = []
+      const result: { alumno: string; academico: string; conducta: string; ponderado: string }[] = []
       notas.forEach((row) => {
         const academico = calcularPonderado(row.cursos)
         const conducta = calcularPromedioCurso(row.conducta)
-        const ponderado = +((academico + conducta) / 2).toFixed(2)
-        result.push({ alumno: row.alumno, academico, conducta, ponderado })
+        const ponderado = ((academico + conducta) / 2).toFixed(2)
+        result.push({ alumno: row.alumno, academico: academico.toFixed(2), conducta: conducta.toFixed(2), ponderado })
       })
 
       const options: Json2CsvOptions = { emptyFieldValue: '--', fieldTitleMap: { id: 'N°', alumno: 'ALUMNO', academico: 'AC', ponderado: 'PO', conducta: 'CX' } }

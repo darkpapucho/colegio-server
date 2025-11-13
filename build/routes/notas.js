@@ -13,4 +13,5 @@ exports.notasRouter.post('/get-notas-by-grado-seccion-profesor', verifyCredentia
 exports.notasRouter.post('/update-record-notas-primaria', verifyCredentials_1.verifyCredentials, Notas_1.default.updateRecordNotasPrimaria);
 exports.notasRouter.post('/generate-libretas-primaria-grado-seccion', verifyCredentials_1.verifyCredentials, Notas_1.default.generateLibretasPrimaria);
 exports.notasRouter.post('/update-record-notas-primaria-by-teacher', verifyCredentials_1.verifyCredentials, Notas_1.default.updateRecordNotasByTeacher);
-exports.notasRouter.post('/generar-informe-rendimiento', verifyCredentials_1.verifyCredentials, Notas_1.default.generarInformeRendimiento);
+exports.notasRouter.post('/generar-informe-rendimiento-csv', verifyCredentials_1.verifyCredentials, Notas_1.default.generarInformeRendimientoCSV);
+exports.notasRouter.post('/generar-informe-rendimiento-pdf', verifyCredentials_1.verifyCredentials, Notas_1.default.generarInformeRendimientoPDF);

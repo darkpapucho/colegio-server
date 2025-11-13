@@ -9,4 +9,5 @@ notasRouter.post('/get-notas-by-grado-seccion-profesor', verifyCredentials, Nota
 notasRouter.post('/update-record-notas-primaria', verifyCredentials, NotasController.updateRecordNotasPrimaria)
 notasRouter.post('/generate-libretas-primaria-grado-seccion', verifyCredentials, NotasController.generateLibretasPrimaria)
 notasRouter.post('/update-record-notas-primaria-by-teacher', verifyCredentials, NotasController.updateRecordNotasByTeacher)
-notasRouter.post('/generar-informe-rendimiento', verifyCredentials, NotasController.generarInformeRendimiento)
+notasRouter.post('/generar-informe-rendimiento-csv', verifyCredentials, NotasController.generarInformeRendimientoCSV)
+notasRouter.post('/generar-informe-rendimiento-pdf', verifyCredentials, NotasController.generarInformeRendimientoPDF)
