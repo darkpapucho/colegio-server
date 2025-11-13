@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.showOnly2Names = void 0;
 function showOnly2Names(nombreCompleto) {
-    const [apellidos, nombres] = nombreCompleto.split(', ');
-    const splitNames = nombres.split(' ');
+    const [apellidos, nombres] = nombreCompleto.trim().split(',');
+    const splitNames = nombres.trim().split(' ');
     if (splitNames.length > 2) {
         return apellidos + ', ' + splitNames[0] + ' ' + splitNames[1];
     }

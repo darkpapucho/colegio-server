@@ -7,7 +7,7 @@ function calcularPonderado(cursos) {
         promedios.push(calcularPromedioCurso(cursos[curso]));
     }
     // promedios.push(calcularPromedioCurso(conducta))
-    const ponderado = +(promedios.reduce((acc, curr) => acc + curr, 0) / promedios.length).toFixed(2);
+    const ponderado = +(promedios.reduce((acc, curr) => acc + curr, 0) / promedios.length);
     return ponderado;
 }
 exports.calcularPonderado = calcularPonderado;
@@ -20,6 +20,6 @@ function calcularPromedioCurso(notas) {
     }, 0);
     if (!numPeriodos)
         return 0;
-    return +((notas[0] + notas[1] + notas[2] + notas[3]) / numPeriodos).toFixed(2);
+    return +((notas[0] + notas[1] + notas[2] + notas[3]) / numPeriodos);
 }
 exports.calcularPromedioCurso = calcularPromedioCurso;

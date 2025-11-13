@@ -100,13 +100,13 @@ export function generateInformeRendimientoAcademicoPDF(
     })
   })
   //leyenda:
-  document.font('Courier-Bold').fontSize(10)
+  document.font('Courier-Bold')
   drawCell(document, {
     begin: { x: begin.x, y: begin.y + (resultados.length + 1.5) * cellHeight },
     height: cellHeight,
     width: notaCellWidth,
     content: 'AC',
-    options: { textVerticalOffSet: textVerticalOffSet + 2, align: 'center', fillColor: '#d9d9d9' },
+    options: { textVerticalOffSet: textVerticalOffSet + 2, align: 'center', fillColor: '#d9d9d9', fontSize: 10 },
   })
   document.font('Courier')
   drawCell(document, {
@@ -114,7 +114,7 @@ export function generateInformeRendimientoAcademicoPDF(
     height: cellHeight,
     width: notaCellWidth * 4,
     content: 'Promedio académico',
-    options: { textVerticalOffSet: textVerticalOffSet + 2, paddingX: 8 },
+    options: { textVerticalOffSet: textVerticalOffSet + 2, paddingX: 8, fontSize: 10 },
   })
   document.font('Courier-Bold')
   drawCell(document, {
@@ -122,7 +122,7 @@ export function generateInformeRendimientoAcademicoPDF(
     height: cellHeight,
     width: notaCellWidth,
     content: 'CX',
-    options: { textVerticalOffSet: textVerticalOffSet + 2, align: 'center', fillColor: '#d9d9d9' },
+    options: { textVerticalOffSet: textVerticalOffSet + 2, align: 'center', fillColor: '#d9d9d9', fontSize: 10 },
   })
   document.font('Courier')
   drawCell(document, {
@@ -130,7 +130,7 @@ export function generateInformeRendimientoAcademicoPDF(
     height: cellHeight,
     width: notaCellWidth * 4,
     content: 'Promedio conducta',
-    options: { textVerticalOffSet: textVerticalOffSet + 2, paddingX: 8 },
+    options: { textVerticalOffSet: textVerticalOffSet + 2, paddingX: 8, fontSize: 10 },
   })
   document.font('Courier-Bold')
   drawCell(document, {
@@ -138,7 +138,7 @@ export function generateInformeRendimientoAcademicoPDF(
     height: cellHeight,
     width: notaCellWidth,
     content: 'PO',
-    options: { textVerticalOffSet: textVerticalOffSet + 2, align: 'center', fillColor: '#d9d9d9' },
+    options: { textVerticalOffSet: textVerticalOffSet + 2, align: 'center', fillColor: '#d9d9d9', fontSize: 10 },
   })
   document.font('Courier')
   drawCell(document, {
@@ -146,7 +146,7 @@ export function generateInformeRendimientoAcademicoPDF(
     height: cellHeight,
     width: notaCellWidth * 4,
     content: 'Promedio ponderado',
-    options: { textVerticalOffSet: textVerticalOffSet + 2, paddingX: 8 },
+    options: { textVerticalOffSet: textVerticalOffSet + 2, paddingX: 8, fontSize: 10 },
   })
 
   //fecha

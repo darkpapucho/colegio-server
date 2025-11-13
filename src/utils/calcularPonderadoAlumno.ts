@@ -4,7 +4,7 @@ export function calcularPonderado(cursos: { [curso: string]: [number, number, nu
     promedios.push(calcularPromedioCurso(cursos[curso]))
   }
   // promedios.push(calcularPromedioCurso(conducta))
-  const ponderado = +(promedios.reduce((acc, curr) => acc + curr, 0) / promedios.length).toFixed(2)
+  const ponderado = +(promedios.reduce((acc, curr) => acc + curr, 0) / promedios.length)
   return ponderado
 }
 
@@ -16,5 +16,5 @@ export function calcularPromedioCurso(notas: [number, number, number, number]): 
     return acc
   }, 0)
   if (!numPeriodos) return 0
-  return +((notas[0] + notas[1] + notas[2] + notas[3]) / numPeriodos).toFixed(2)
+  return +((notas[0] + notas[1] + notas[2] + notas[3]) / numPeriodos)
 }
