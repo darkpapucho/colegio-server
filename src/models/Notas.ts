@@ -1,5 +1,4 @@
 import { AggregationCursor, ClientSession, ObjectId } from 'mongodb'
-
 import { mongoClient } from '../db'
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { QueryProfesor, QueryTutor, RecordNotas } from '../types/notas'

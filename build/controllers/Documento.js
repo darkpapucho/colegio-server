@@ -62,7 +62,6 @@ const generateLibretasPrimaria_1 = __importDefault(require("../utils/generateNue
 const Notas_1 = __importDefault(require("../models/Notas"));
 const Cursos_1 = __importDefault(require("../models/Cursos"));
 const empleado_1 = __importDefault(require("../models/empleado"));
-const Calendario_1 = __importDefault(require("../models/Calendario"));
 const convertISODateToLocalDatePeru_1 = require("../utils/convertISODateToLocalDatePeru");
 class DocumentoControllers {
     static generateCSVAlumnosListByGradoSeccion(req, res) {
@@ -143,7 +142,7 @@ class DocumentoControllers {
                     const { grado, seccion } = alumnoData;
                     const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, year, grado, seccion });
                     const tutor = yield empleado_1.default.findTutorByGradoSeccion({ grado, seccion, nivel, year });
-                    const currentPeriodo = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
+                    // const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
                     const pdfDocument = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });
                     pdfDocument.pipe(res);
                     (0, generateLibretasPrimaria_1.default)({
@@ -155,7 +154,7 @@ class DocumentoControllers {
                         doc: pdfDocument,
                         tutor: tutor.nombreCompleto,
                         cursosSalon: cursosSalon.cursos,
-                        periodo: currentPeriodo === null || currentPeriodo === void 0 ? void 0 : currentPeriodo.periodo,
+                        periodo: undefined,
                     });
                     pdfDocument.end();
                 }

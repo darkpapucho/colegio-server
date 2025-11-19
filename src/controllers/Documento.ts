@@ -17,7 +17,7 @@ import generateLibretaPrimariaPDF from '../utils/generateNuevasLibretasPrimaria/
 import Notas from '../models/Notas'
 import Cursos from '../models/Cursos'
 import Empleado from '../models/empleado'
-import Calendario from '../models/Calendario'
+// import Calendario from '../models/Calendario'
 import { EstadoMatricula, Grado, Seccion } from '../types/enums'
 import { convertToLocalDatePeru } from '../utils/convertISODateToLocalDatePeru'
 
@@ -98,7 +98,7 @@ export default class DocumentoControllers {
         const { grado, seccion } = alumnoData
         const cursosSalon = await Cursos.getCursosSalon({ nivel, year, grado, seccion })
         const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
-        const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
+        // const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
 
         const pdfDocument = new PdfDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })
         pdfDocument.pipe(res)
@@ -112,7 +112,7 @@ export default class DocumentoControllers {
           doc: pdfDocument,
           tutor: tutor.nombreCompleto,
           cursosSalon: cursosSalon!.cursos,
-          periodo: currentPeriodo?.periodo,
+          periodo: undefined,
         })
         pdfDocument.end()
       }
