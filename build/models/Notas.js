@@ -18,6 +18,7 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
+const getCurrentPeriodo_1 = require("../utils/getCurrentPeriodo");
 class Notas {
     static getNotasByAlumnoId({ nivel, year, alumnoId }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -84,7 +85,8 @@ class Notas {
             const matriculadosCollection = `matriculados${nivel}${year}`;
             const pensionesCollection = `pensiones${nivel}${year}`;
             const notasCollection = `notas${nivel}${year}`;
-            const currentMes = new Date().getMonth();
+            //evaluar en que periodo nos encontramos
+            const monthToEvaluate = (0, getCurrentPeriodo_1.getLastMonthToEvaluatePensiones)(); // less than this month
             if (excluirAtrasados) {
                 cursor = db_1.mongoClient
                     .db()
@@ -97,8 +99,8 @@ class Notas {
                     { $set: { pensiones: '$recordPensiones.pensiones' } },
                     {
                         $addFields: {
-                            pensionesToEval: { $filter: { input: '$pensiones', cond: { $lt: ['$$this.mes', currentMes] } } },
-                            pensionesPagadas: { $filter: { input: '$pensiones', cond: { $and: [{ $lt: ['$$this.mes', currentMes] }, { $eq: ['$$this.pagado', true] }] } } },
+                            pensionesToEval: { $filter: { input: '$pensiones', cond: { $lt: ['$$this.mes', monthToEvaluate] } } },
+                            pensionesPagadas: { $filter: { input: '$pensiones', cond: { $and: [{ $lt: ['$$this.mes', monthToEvaluate] }, { $eq: ['$$this.pagado', true] }] } } },
                         },
                     },
                     { $match: { $expr: { $eq: [{ $size: '$pensionesToEval' }, { $size: '$pensionesPagadas' }] } } },

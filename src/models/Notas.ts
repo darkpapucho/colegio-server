@@ -3,6 +3,7 @@ import { mongoClient } from '../db'
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { QueryProfesor, QueryTutor, RecordNotas } from '../types/notas'
 import { CURSO_SALON } from '../types/cursos'
+import { getLastMonthToEvaluatePensiones } from '../utils/getCurrentPeriodo'
 export default class Notas {
   static async getNotasByAlumnoId({ nivel, year, alumnoId }: { nivel: Nivel; year: Year; alumnoId: string }) {
     const cursor = await mongoClient
@@ -90,7 +91,8 @@ export default class Notas {
     const matriculadosCollection = `matriculados${nivel}${year}`
     const pensionesCollection = `pensiones${nivel}${year}`
     const notasCollection = `notas${nivel}${year}`
-    const currentMes = new Date().getMonth()
+    //evaluar en que periodo nos encontramos
+    const monthToEvaluate = getLastMonthToEvaluatePensiones() // less than this month
 
     if (excluirAtrasados) {
       cursor = mongoClient
@@ -104,8 +106,8 @@ export default class Notas {
           { $set: { pensiones: '$recordPensiones.pensiones' } },
           {
             $addFields: {
-              pensionesToEval: { $filter: { input: '$pensiones', cond: { $lt: ['$$this.mes', currentMes] } } },
-              pensionesPagadas: { $filter: { input: '$pensiones', cond: { $and: [{ $lt: ['$$this.mes', currentMes] }, { $eq: ['$$this.pagado', true] }] } } },
+              pensionesToEval: { $filter: { input: '$pensiones', cond: { $lt: ['$$this.mes', monthToEvaluate] } } },
+              pensionesPagadas: { $filter: { input: '$pensiones', cond: { $and: [{ $lt: ['$$this.mes', monthToEvaluate] }, { $eq: ['$$this.pagado', true] }] } } },
             },
           },
           { $match: { $expr: { $eq: [{ $size: '$pensionesToEval' }, { $size: '$pensionesPagadas' }] } } },
