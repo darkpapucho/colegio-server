@@ -10,6 +10,6 @@ export function getLastMonthToEvaluatePensiones(): number {
   } else if (currentDate >= new Date(cuartoPeriodoStart) && currentDate < new Date(cuartoPeriodoEnd)) {
     return 9
   } else {
-    return 11
+    return 12
   }
 }

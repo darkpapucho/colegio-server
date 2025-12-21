@@ -15,7 +15,7 @@ function getLastMonthToEvaluatePensiones() {
         return 9;
     }
     else {
-        return 11;
+        return 12;
     }
 }
 exports.getLastMonthToEvaluatePensiones = getLastMonthToEvaluatePensiones;
