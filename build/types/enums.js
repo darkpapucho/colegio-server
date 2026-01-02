@@ -19,7 +19,7 @@ exports.VALID_GRADOS_DESTINO = [
 // estados matricula
 exports.ESTADOS_MATRICULA = ['DEFINITIVA', 'PENDIENTE', 'TRASLADADO', 'EN PROCESO'];
 //years
-exports.VALID_YEARS = ['2020', '2021', '2022', '2023', '2024', '2025'];
+exports.VALID_YEARS = ['2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027', '2028'];
 //sexo
 exports.VALID_SEXOS = ['Hombre', 'Mujer'];
 //Niveles
