@@ -14,14 +14,14 @@ function parseGradDestino(gradDest, nivel) {
 }
 const font = 'Courier';
 const fontBold = 'Courier-Bold';
-function GenerateResolucionTraslado({ numeroResolucion, document, alumno, data, nivel }) {
+function GenerateResolucionTraslado({ numeroResolucion, document, alumno, data, nivel, }) {
     const { codigoModular: coldigoModularDestino, colegioDestino, gradoDestino: gradoDest, fechaEmision } = data;
     const codigoModular = nivel === 'inicial' ? 1442391 : 1544220;
     const { nivelDestino, gradoDestino } = parseGradDestino(gradoDest, nivel);
     document.addPage();
     document.font(font);
     document.lineGap(3);
-    document.fillColor('#11009E').text('Año del Bicentenario, de la consolidación de nuestra Independencia, y de la conmemoración de las heroicas batallas de Junín y Ayacucho'.toUpperCase(), {
+    document.fillColor('#11009E').text('Año de la esperanza y el fortalecimiento de la democracia'.toUpperCase(), {
         align: 'center',
     });
     document.image('./assets/logo-transparente2.png', 75, 200, { width: 450 });
@@ -89,14 +89,17 @@ function GenerateCertificadoNoAdeudo({ document, alumno, fechaEmision, nivel }) 
         .font(font)
         .text(' SE ENCUENTRA AL DÍA EN EL PAGO DE TODAS LAS MENSUALIDADES Y QUE NO ADEUDA NINGÚN PAGO');
     document.text('\nSE EXPIDE EL PRESENTE DOCUMENTO A SOLICITUD DEL PADRE DE FAMILIA PARA LOS FINES QUE ESTIME CONVENIENTE', { align: 'justify' });
-    document.text(`\n\n\n\nVillas de Ancón, ${new Date(fechaEmision).toLocaleDateString('ES-es', { day: '2-digit', month: 'long', year: 'numeric' })}`, { align: 'right', oblique: true });
+    document.text(`\n\n\n\nVillas de Ancón, ${new Date(fechaEmision).toLocaleDateString('ES-es', { day: '2-digit', month: 'long', year: 'numeric' })}`, {
+        align: 'right',
+        oblique: true,
+    });
     document.text(`\n\n\n\n\n\n\n\nVILMA PAJUELO ESPINOZA`, { underline: true, align: 'center' });
     document.text(`DIRECTORA`, { align: 'center' });
     document.image('./assets/firma.png', 250, 530, { width: 120 });
     document.image('./assets/SELLO.png', 200, 510, { width: 100 });
 }
 exports.GenerateCertificadoNoAdeudo = GenerateCertificadoNoAdeudo;
-function GenerateCertificadoConducta({ document, nivel, alumno, añoEstudio, fechaEmision }) {
+function GenerateCertificadoConducta({ document, nivel, alumno, añoEstudio, fechaEmision, }) {
     document.addPage();
     document.lineGap(3);
     document.image('./assets/escudo-peruano-transparente.png', 70, 70, { width: 60 });
