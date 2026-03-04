@@ -67,6 +67,7 @@ class UserControllers {
                 (0, global_1.assert)(username && password && nivel && year, enums_1.ErrorMessages.INVALID_REQUEST);
                 const usersCollectionName = `users${nivel}`;
                 const empleadosCollectionName = `empleados${nivel}${year}`;
+                console.log({ usersCollectionName, empleadosCollectionName });
                 //fetch user from database
                 const userCredentials = yield user_1.User.getByUsername({ collectionName: usersCollectionName, username });
                 (0, global_1.assert)(userCredentials != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);

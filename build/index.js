@@ -16,6 +16,7 @@ const anotacionesRelevantes_1 = require("./routes/anotacionesRelevantes");
 const anuncios_1 = require("./routes/anuncios");
 const cursos_1 = require("./routes/cursos");
 const notas_1 = require("./routes/notas");
+// import { hashPassword } from './utils/hashPassword'
 const PORT = process.env.PORT || 4000;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -31,6 +32,12 @@ app.use('/anotaciones-relevantes', anotacionesRelevantes_1.anotacionesRelevantes
 app.use('/announcements', anuncios_1.anunciosRouter);
 app.use('/cursos', cursos_1.cursosRouter);
 app.use('/notas', notas_1.notasRouter);
+// app.get('/pass', async (req, res) => {
+//   const { password } = req.query
+//   console.log(password)
+//   const hashedPass = await hashPassword(password as string)
+//   res.send(hashedPass)
+// })
 // app.use('/pagos', pagosRouter)
 app.use((err, _req, res, _next) => {
     console.log('error catched');

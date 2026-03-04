@@ -11,6 +11,7 @@ import { anotacionesRelevantesRouter } from './routes/anotacionesRelevantes'
 import { anunciosRouter } from './routes/anuncios'
 import { cursosRouter } from './routes/cursos'
 import { notasRouter } from './routes/notas'
+// import { hashPassword } from './utils/hashPassword'
 
 const PORT = process.env.PORT || 4000
 const app = express()
@@ -27,6 +28,12 @@ app.use('/anotaciones-relevantes', anotacionesRelevantesRouter)
 app.use('/announcements', anunciosRouter)
 app.use('/cursos', cursosRouter)
 app.use('/notas', notasRouter)
+// app.get('/pass', async (req, res) => {
+//   const { password } = req.query
+//   console.log(password)
+//   const hashedPass = await hashPassword(password as string)
+//   res.send(hashedPass)
+// })
 // app.use('/pagos', pagosRouter)
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.log('error catched')

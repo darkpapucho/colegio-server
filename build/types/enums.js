@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CursosKeyInicial = exports.CursosLabelInicial = exports.CursosKeyPrimaria = exports.CursosLabelPrimaria = exports.SalonesPrimaria = exports.SalonesInicial = exports.GradosInicial = exports.GradosPrimaria = exports.VALID_GRADOS = exports.Secciones = exports.VALID_SECCIONES = exports.Niveles = exports.VALID_NIVELES = exports.VALID_SEXOS = exports.VALID_YEARS = exports.ESTADOS_MATRICULA = exports.VALID_GRADOS_DESTINO = exports.VALID_NOTAS = void 0;
+exports.CursosKeyInicial = exports.CursosLabelInicial = exports.CursosKeyPrimaria = exports.CursosLabelPrimaria = exports.SalonesSecundaria = exports.SalonesPrimaria = exports.SalonesInicial = exports.GradosSecundaria = exports.GradosInicial = exports.GradosPrimaria = exports.VALID_GRADOS = exports.Secciones = exports.VALID_SECCIONES = exports.Niveles = exports.VALID_NIVELES = exports.VALID_SEXOS = exports.VALID_YEARS = exports.ESTADOS_MATRICULA = exports.VALID_GRADOS_DESTINO = exports.VALID_NOTAS = void 0;
 exports.VALID_NOTAS = ['A', 'B', 'C', 'AD'];
 //grados destino
 exports.VALID_GRADOS_DESTINO = [
@@ -23,11 +23,12 @@ exports.VALID_YEARS = ['2020', '2021', '2022', '2023', '2024', '2025', '2026', '
 //sexo
 exports.VALID_SEXOS = ['Hombre', 'Mujer'];
 //Niveles
-exports.VALID_NIVELES = ['primaria', 'inicial'];
+exports.VALID_NIVELES = ['primaria', 'inicial', 'secundaria'];
 var Niveles;
 (function (Niveles) {
     Niveles["PRIMARIA"] = "primaria";
     Niveles["INICIAL"] = "inicial";
+    Niveles["SECUNDARIA"] = "secundaria";
 })(Niveles || (exports.Niveles = Niveles = {}));
 //secciones
 exports.VALID_SECCIONES = ['A', 'B', 'C'];
@@ -54,6 +55,14 @@ var GradosInicial;
     GradosInicial["Grupo4a\u00F1os"] = "Grupo 4 a\u00F1os";
     GradosInicial["Grupo5a\u00F1os"] = "Grupo 5 a\u00F1os";
 })(GradosInicial || (exports.GradosInicial = GradosInicial = {}));
+var GradosSecundaria;
+(function (GradosSecundaria) {
+    GradosSecundaria["PRIMERO"] = "PRIMERO";
+    GradosSecundaria["SEGUNDO"] = "SEGUNDO";
+    GradosSecundaria["TERCERO"] = "TERCERO";
+    GradosSecundaria["CUARTO"] = "CUARTO";
+    GradosSecundaria["QUINTO"] = "QUINTO";
+})(GradosSecundaria || (exports.GradosSecundaria = GradosSecundaria = {}));
 //SALONES
 var SalonesInicial;
 (function (SalonesInicial) {
@@ -88,6 +97,20 @@ var SalonesPrimaria;
     SalonesPrimaria["SEXTO_B"] = "SEXTO B";
     SalonesPrimaria["SEXTO_C"] = "SEXTO C";
 })(SalonesPrimaria || (exports.SalonesPrimaria = SalonesPrimaria = {}));
+var SalonesSecundaria;
+(function (SalonesSecundaria) {
+    SalonesSecundaria["PRIMERO_A"] = "PRIMERO A";
+    SalonesSecundaria["PRIMERO_B"] = "PRIMERO B";
+    SalonesSecundaria["SEGUNDO_A"] = "SEGUNDO A";
+    SalonesSecundaria["SEGUNDO_B"] = "SEGUNDO B";
+    SalonesSecundaria["TERCERO_A"] = "TERCERO A";
+    SalonesSecundaria["TERCERO_B"] = "TERCERO B";
+    SalonesSecundaria["CUARTO_A"] = "CUARTO A";
+    SalonesSecundaria["CUARTO_B"] = "CUARTO B";
+    SalonesSecundaria["QUINTO_A"] = "QUINTO A";
+    SalonesSecundaria["SEXTO_A"] = "SEXTO A";
+    SalonesSecundaria["SEXTO_B"] = "SEXTO_B";
+})(SalonesSecundaria || (exports.SalonesSecundaria = SalonesSecundaria = {}));
 //CURSOS
 var CursosLabelPrimaria;
 (function (CursosLabelPrimaria) {

@@ -27,11 +27,12 @@ export const VALID_SEXOS = ['Hombre', 'Mujer'] as const
 export type Sexo = (typeof VALID_SEXOS)[number]
 
 //Niveles
-export const VALID_NIVELES = ['primaria', 'inicial'] as const
+export const VALID_NIVELES = ['primaria', 'inicial', 'secundaria'] as const
 export type Nivel = (typeof VALID_NIVELES)[number]
 export enum Niveles {
   PRIMARIA = 'primaria',
   INICIAL = 'inicial',
+  SECUNDARIA = 'secundaria',
 }
 
 //secciones
@@ -59,7 +60,13 @@ export enum GradosInicial {
   Grupo4años = 'Grupo 4 años',
   Grupo5años = 'Grupo 5 años',
 }
-
+export enum GradosSecundaria {
+  PRIMERO = 'PRIMERO',
+  SEGUNDO = 'SEGUNDO',
+  TERCERO = 'TERCERO',
+  CUARTO = 'CUARTO',
+  QUINTO = 'QUINTO',
+}
 //SALONES
 export enum SalonesInicial {
   Grupo3años_A = 'Grupo 3 años A',
@@ -92,7 +99,19 @@ export enum SalonesPrimaria {
   SEXTO_B = 'SEXTO B',
   SEXTO_C = 'SEXTO C',
 }
-
+export enum SalonesSecundaria {
+  PRIMERO_A = 'PRIMERO A',
+  PRIMERO_B = 'PRIMERO B',
+  SEGUNDO_A = 'SEGUNDO A',
+  SEGUNDO_B = 'SEGUNDO B',
+  TERCERO_A = 'TERCERO A',
+  TERCERO_B = 'TERCERO B',
+  CUARTO_A = 'CUARTO A',
+  CUARTO_B = 'CUARTO B',
+  QUINTO_A = 'QUINTO A',
+  SEXTO_A = 'SEXTO A',
+  SEXTO_B = 'SEXTO_B',
+}
 //CURSOS
 export enum CursosLabelPrimaria {
   MATEMATICA = 'Matemática',
