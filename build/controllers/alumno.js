@@ -215,7 +215,7 @@ class AlumnoControllers {
                 if (nivel === 'inicial' && grado === 'Grupo 5 años') {
                     targetNivel = 'primaria';
                 }
-                else if (nivel === 'secundaria' && grado == 'SEXTO') {
+                else if (nivel === 'primaria' && grado == 'SEXTO') {
                     targetNivel = 'secundaria';
                 }
                 const { alumnos, fechaMatricula } = req.body;
