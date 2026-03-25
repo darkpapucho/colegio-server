@@ -39,7 +39,22 @@ var Secciones;
     Secciones["c"] = "C";
 })(Secciones || (exports.Secciones = Secciones = {}));
 //grados
-exports.VALID_GRADOS = ['Grupo 3 años', 'Grupo 4 años', 'Grupo 5 años', 'PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO', 'QUINTO', 'SEXTO'];
+exports.VALID_GRADOS = [
+    'Grupo 3 años',
+    'Grupo 4 años',
+    'Grupo 5 años',
+    'PRIMERO',
+    'SEGUNDO',
+    'TERCERO',
+    'CUARTO',
+    'QUINTO',
+    'SEXTO',
+    'PRIMERO',
+    'SEGUNDO',
+    'TERCERO',
+    'CUARTO',
+    'QUINTO',
+];
 var GradosPrimaria;
 (function (GradosPrimaria) {
     GradosPrimaria["PRIMERO"] = "PRIMERO";

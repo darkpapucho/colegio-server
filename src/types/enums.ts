@@ -45,7 +45,22 @@ export enum Secciones {
 }
 
 //grados
-export const VALID_GRADOS = ['Grupo 3 años', 'Grupo 4 años', 'Grupo 5 años', 'PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO', 'QUINTO', 'SEXTO'] as const
+export const VALID_GRADOS = [
+  'Grupo 3 años',
+  'Grupo 4 años',
+  'Grupo 5 años',
+  'PRIMERO',
+  'SEGUNDO',
+  'TERCERO',
+  'CUARTO',
+  'QUINTO',
+  'SEXTO',
+  'PRIMERO',
+  'SEGUNDO',
+  'TERCERO',
+  'CUARTO',
+  'QUINTO',
+] as const
 export type Grado = (typeof VALID_GRADOS)[number]
 export enum GradosPrimaria {
   PRIMERO = 'PRIMERO',

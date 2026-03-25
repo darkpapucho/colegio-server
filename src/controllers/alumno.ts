@@ -177,12 +177,14 @@ export class AlumnoControllers {
       if (Number(currentYear) - Number(year) !== 1) {
         throw new Error(ErrorMessages.RATIFICACION_MATRICULA_INVALID_AÑO)
       }
-      if (grado === 'SEXTO') {
-        throw new Error(ErrorMessages.RATIFICACION_MATRICULA_INVALID_GRADO)
-      }
+      // if (grado === 'SEXTO') {
+      //   throw new Error(ErrorMessages.RATIFICACION_MATRICULA_INVALID_GRADO)
+      // }
       let targetNivel: Nivel = nivel
       if (nivel === 'inicial' && grado === 'Grupo 5 años') {
         targetNivel = 'primaria'
+      } else if (nivel === 'secundaria' && grado == 'SEXTO') {
+        targetNivel = 'secundaria'
       }
       const { alumnos, fechaMatricula } = req.body
       //assert alumnos data
