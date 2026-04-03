@@ -140,7 +140,7 @@ class DocumentoControllers {
                     if (!alumnoData)
                         throw new Error('no se encontró al alumno');
                     const { grado, seccion } = alumnoData;
-                    const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, year, grado, seccion });
+                    const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, year, grado });
                     const tutor = yield empleado_1.default.findTutorByGradoSeccion({ grado, seccion, nivel, year });
                     // const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
                     const pdfDocument = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });

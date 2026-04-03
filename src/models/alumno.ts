@@ -65,13 +65,16 @@ export class Alumno {
       }
       //insertar notas:
       //fetch cursos:
-      const cursos = await Cursos.getCursosSalon({ nivel, year, grado: alumno.grado, seccion: alumno.seccion })
+      const cursos = await Cursos.getCursosSalon({ nivel, year, grado: alumno.grado })
 
       if (cursos?.cursos && cursos?.cursos.length > 0 && nivel == 'primaria') {
-        const parsedCursos = cursos.cursos.reduce((obj: Record<string, [number, number, number, number]>, curso: CURSO_SALON) => {
-          obj[curso.key] = [0, 0, 0, 0]
-          return obj
-        }, {} as Record<string, [number, number, number, number]>)
+        const parsedCursos = cursos.cursos.reduce(
+          (obj: Record<string, [number, number, number, number]>, curso: CURSO_SALON) => {
+            obj[curso.key] = [0, 0, 0, 0]
+            return obj
+          },
+          {} as Record<string, [number, number, number, number]>,
+        )
         const notasResponse = await Notas.insertNewMatriculaRecord({ alumnoId: matriculaResult.insertedId, notas: parsedCursos, session, nivel, year })
         if (!notasResponse.acknowledged || !notasResponse.insertedId) {
           await session.abortTransaction()

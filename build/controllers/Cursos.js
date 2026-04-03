@@ -20,6 +20,19 @@ const db_1 = require("../db");
 const alumno_1 = require("../models/alumno");
 const Notas_1 = __importDefault(require("../models/Notas"));
 class CursosController {
+    static getCursosByNivel(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const data = yield Cursos_1.default.getCursosByNivel({ nivel });
+                console.log({ cursos: data === null || data === void 0 ? void 0 : data.cursos });
+                res.send((0, responses_1.responseOk)(data === null || data === void 0 ? void 0 : data.cursos));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static updateCursosSalon(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -55,10 +68,10 @@ class CursosController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { grado, seccion } = req.query;
-                const response = yield Cursos_1.default.getCursosSalon({ nivel, year, grado: grado, seccion: seccion });
+                const { grado } = req.query;
+                const response = yield Cursos_1.default.getCursosSalon({ nivel, year, grado: grado });
                 if (!response)
-                    return res.send((0, responses_1.responseError)(`${grado} ${seccion} no es un salón válido`));
+                    return res.send((0, responses_1.responseError)(`${grado}  no es un salón válido`));
                 return res.send((0, responses_1.responseOk)(response));
             }
             catch (err) {

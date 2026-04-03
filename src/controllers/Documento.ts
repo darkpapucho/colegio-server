@@ -96,8 +96,9 @@ export default class DocumentoControllers {
         const alumnoData = await Alumno.getById({ nivel, year, id: alumnoId })
         if (!alumnoData) throw new Error('no se encontró al alumno')
         const { grado, seccion } = alumnoData
-        const cursosSalon = await Cursos.getCursosSalon({ nivel, year, grado, seccion })
+        const cursosSalon = await Cursos.getCursosSalon({ nivel, year, grado })
         const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
+
         // const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
 
         const pdfDocument = new PdfDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })

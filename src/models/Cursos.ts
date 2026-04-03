@@ -4,6 +4,13 @@ import { CURSO_SALON } from '../types/cursos'
 import { ClientSession } from 'mongodb'
 
 export default class Cursos {
+  static async getCursosByNivel({ nivel }: { nivel: Nivel }) {
+    const response = await mongoClient
+      .db()
+      .collection('cursos')
+      .findOne<{ cursos: CURSO_SALON[] }>({ nivel }, { projection: { _id: 0, cursos: 1 } })
+    return response
+  }
   static async updateCursosSalon({
     nivel,
     year,
@@ -22,11 +29,11 @@ export default class Cursos {
     const response = await mongoClient.db().collection(`cursos${nivel}${year}`).updateOne({ grado, seccion }, { $set: { cursos } }, { upsert: true, session })
     return response
   }
-  static async getCursosSalon({ nivel, year, grado, seccion }: { nivel: Nivel; grado: Grado; seccion: Seccion; year: Year }) {
+  static async getCursosSalon({ nivel, year, grado }: { nivel: Nivel; grado: Grado; year: Year }) {
     const response = await mongoClient
       .db()
       .collection(`cursos${nivel}${year}`)
-      .findOne<{ cursos: CURSO_SALON[] }>({ grado, seccion }, { projection: { cursos: 1, _id: 0 } })
+      .findOne<{ cursos: CURSO_SALON[] }>({ grado }, { projection: { cursos: 1, _id: 0 } })
 
     return response
   }

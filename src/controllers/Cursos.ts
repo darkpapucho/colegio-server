@@ -10,6 +10,16 @@ import { Alumno } from '../models/alumno'
 import Notas from '../models/Notas'
 
 export default class CursosController {
+  static async getCursosByNivel(req: Request, res: Response) {
+    try {
+      const { nivel } = extractNivelYearFromHeaders(req)
+      const data = await Cursos.getCursosByNivel({ nivel })
+      console.log({ cursos: data?.cursos })
+      res.send(responseOk(data?.cursos))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async updateCursosSalon(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -43,11 +53,11 @@ export default class CursosController {
   static async getCursosSalon(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { grado, seccion } = req.query
+      const { grado } = req.query
 
-      const response = await Cursos.getCursosSalon({ nivel, year, grado: grado as Grado, seccion: seccion as Seccion })
+      const response = await Cursos.getCursosSalon({ nivel, year, grado: grado as Grado })
 
-      if (!response) return res.send(responseError(`${grado} ${seccion} no es un salón válido`))
+      if (!response) return res.send(responseError(`${grado}  no es un salón válido`))
       return res.send(responseOk(response))
     } catch (err) {
       return errorResponseHandler(res, err)

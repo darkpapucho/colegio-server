@@ -116,7 +116,7 @@ export default class NotasController {
       // console.log({ nivel, year, zipped })
       const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
       const registro = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados })
-      const cursosSalon = await Cursos.getCursosSalon({ nivel, grado, seccion, year })
+      const cursosSalon = await Cursos.getCursosSalon({ nivel, grado, year })
       //const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
 
       if (cursosSalon == null) throw new Error('error parsing data')
@@ -155,7 +155,7 @@ export default class NotasController {
       // const tutor = await Empleado.findTutorByGradoSeccion({ nivel, year, grado: grado as Grado, seccion: seccion as Seccion })
 
       const registroNotas = await Notas.getNotasByGradoSeccion({ grado: grado as Grado, seccion: seccion as Seccion, nivel, year })
-      const cursosSalon = await Cursos.getCursosSalon({ grado: grado as Grado, seccion: seccion as Seccion, nivel, year })
+      const cursosSalon = await Cursos.getCursosSalon({ grado: grado as Grado, nivel, year })
 
       res.send(responseOk({ registroNotas, cursosSalon: cursosSalon?.cursos }))
     } catch (err) {
