@@ -11,6 +11,21 @@ import { convertNumberToMonthName, getPeriodoEndDate, getPeriodoStartDate } from
 import { getMonthsBetween, MONTHS_YEAR } from '../utils/calendario'
 
 export default class Calendario {
+  static async addNewRecordsToEachAlumno({
+    nivel,
+    year,
+    newRecords,
+  }: {
+    nivel: Nivel
+    year: Year
+    newRecords: { dayId: ObjectId; month: string; day: number; asistencia: string; modified: string }[]
+  }) {
+    const response = await mongoClient
+      .db()
+      .collection(`asistencias${nivel}${year}`)
+      .updateMany({}, { $addToSet: { records: { $each: newRecords } } as any })
+    return response
+  }
   static async insertManyAlumnoAsistenciaRecord({
     nivel,
     year,
@@ -39,7 +54,13 @@ export default class Calendario {
         {
           $project: {
             alumnoId: 1,
-            records: { $filter: { input: '$records', as: 'records', cond: { $and: [{ $eq: ['$$records.dayId', new ObjectId(dayId)] }, { $eq: ['$$records.asistencia', asistenciaValue] }] } } },
+            records: {
+              $filter: {
+                input: '$records',
+                as: 'records',
+                cond: { $and: [{ $eq: ['$$records.dayId', new ObjectId(dayId)] }, { $eq: ['$$records.asistencia', asistenciaValue] }] },
+              },
+            },
           },
         },
         { $match: { $expr: { $gt: [{ $size: '$records' }, 0] } } },
@@ -82,7 +103,19 @@ export default class Calendario {
     return availableDays
   }
 
-  static async insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId, session }: { session?: ClientSession; nivel: Nivel; year: Year; records: AsistenciaRecord[]; alumnoId: ObjectId }) {
+  static async insertNewMatriculaRecordAsistenciaEscolar({
+    nivel,
+    year,
+    records,
+    alumnoId,
+    session,
+  }: {
+    session?: ClientSession
+    nivel: Nivel
+    year: Year
+    records: AsistenciaRecord[]
+    alumnoId: ObjectId
+  }) {
     const result = await mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
@@ -196,7 +229,10 @@ export default class Calendario {
     const result2 = await mongoClient
       .db()
       .collection(`notas${nivel}${year}`)
-      .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: -1, [`inasistencias.justificadas.${convertPeriodoKeyToIndex(periodo)}`]: 1 } })
+      .updateOne(
+        { alumnoId: new ObjectId(alumnoId) },
+        { $inc: { [`inasistencias.injustificadas.${convertPeriodoKeyToIndex(periodo)}`]: -1, [`inasistencias.justificadas.${convertPeriodoKeyToIndex(periodo)}`]: 1 } },
+      )
 
     if (!result2.acknowledged || !result2.modifiedCount) {
       await session.abortTransaction()
@@ -290,12 +326,16 @@ export default class Calendario {
     const cursor = mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
-      .aggregate<{ _id: ObjectId; alumnoId: ObjectId; records: { dayId: ObjectId; asistencia: AsistenciaValue; day: number; month: Month; issuer: ObjectId; justificado?: boolean } }>([
-        { $match: { alumnoId: new ObjectId(alumnoId) } },
-        { $unwind: { path: '$records' } },
-        { $match: { 'records.dayId': new ObjectId(dayId) } },
-      ])
-    const results: { _id: ObjectId; alumnoId: ObjectId; records: { dayId: ObjectId; asistencia: AsistenciaValue; day: number; month: Month; issuer: ObjectId; justificado?: boolean } }[] = []
+      .aggregate<{
+        _id: ObjectId
+        alumnoId: ObjectId
+        records: { dayId: ObjectId; asistencia: AsistenciaValue; day: number; month: Month; issuer: ObjectId; justificado?: boolean }
+      }>([{ $match: { alumnoId: new ObjectId(alumnoId) } }, { $unwind: { path: '$records' } }, { $match: { 'records.dayId': new ObjectId(dayId) } }])
+    const results: {
+      _id: ObjectId
+      alumnoId: ObjectId
+      records: { dayId: ObjectId; asistencia: AsistenciaValue; day: number; month: Month; issuer: ObjectId; justificado?: boolean }
+    }[] = []
     for await (let doc of cursor) {
       results.push(doc)
     }
@@ -315,7 +355,10 @@ export default class Calendario {
     const response1 = await mongoClient
       .db()
       .collection(`asistencias${nivel}${year}`)
-      .updateOne({ alumnoId: new ObjectId(alumnoId), 'records.dayId': new ObjectId(dayId) }, { $set: { 'records.$.asistencia': 'T', 'records.$.issuer': new ObjectId(issuer), 'records.$.modified': new Date() } })
+      .updateOne(
+        { alumnoId: new ObjectId(alumnoId), 'records.dayId': new ObjectId(dayId) },
+        { $set: { 'records.$.asistencia': 'T', 'records.$.issuer': new ObjectId(issuer), 'records.$.modified': new Date() } },
+      )
 
     if (!response1.acknowledged || !response1.modifiedCount) {
       await session.abortTransaction()
@@ -366,14 +409,23 @@ export default class Calendario {
   }
 
   static async enableCalendarDays({ nivel, year, daysList }: { nivel: Nivel; year: Year; daysList: EnableDayList }) {
-    const collection = mongoClient.db().collection(`calendario${nivel}${year}`)
     const currentTime = new Date()
     const modifiedList = daysList.map((record) => {
       return { ...record, status: 'disabled', createdAt: currentTime } //removed salones:[]
     })
-    modifiedList.forEach(async (record) => {
-      await collection.updateOne({ month: record.month, day: record.day }, { $set: { ...record } }, { upsert: true })
-    })
+    // console.log({ daysList, modifiedList })
+    const response = await mongoClient
+      .db()
+      .collection(`calendario${nivel}${year}`)
+      .insertMany([...modifiedList])
+    return response
+    // modifiedList.forEach(async (record) => {
+    //   await mongoClient
+    //     .db()
+    //     .collection(`calendario${nivel}${year}`)
+    //     .updateOne({ month: record.month, day: record.day }, { $set: { ...record } }, { upsert: true })
+    // })
+    // mongoClient.db().collection(`asistencias${nivel}${year}`).updateMany()
   }
 
   static async fetchAsistenciaListByGradoSeccionDayId({
@@ -423,5 +475,9 @@ export default class Calendario {
       result.push(doc)
     }
     return result
+  }
+  static async fetchByMonthDay({ days, nivel, year }: { year: Year; days: { month: string; day: number }[]; nivel: Nivel }) {
+    const response = await mongoClient.db().collection(`calendario${nivel}${year}`).find<{ _id: ObjectId; month: string; day: number; status: string }>({ $or: days }).toArray()
+    return response
   }
 }

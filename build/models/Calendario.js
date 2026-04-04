@@ -27,6 +27,15 @@ const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPe
 const periodosDates_1 = require("../vars/periodosDates");
 const calendario_1 = require("../utils/calendario");
 class Calendario {
+    static addNewRecordsToEachAlumno({ nivel, year, newRecords, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`asistencias${nivel}${year}`)
+                .updateMany({}, { $addToSet: { records: { $each: newRecords } } });
+            return response;
+        });
+    }
     static insertManyAlumnoAsistenciaRecord({ nivel, year, recordsAsistencia, session, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
@@ -47,7 +56,13 @@ class Calendario {
                 {
                     $project: {
                         alumnoId: 1,
-                        records: { $filter: { input: '$records', as: 'records', cond: { $and: [{ $eq: ['$$records.dayId', new mongodb_1.ObjectId(dayId)] }, { $eq: ['$$records.asistencia', asistenciaValue] }] } } },
+                        records: {
+                            $filter: {
+                                input: '$records',
+                                as: 'records',
+                                cond: { $and: [{ $eq: ['$$records.dayId', new mongodb_1.ObjectId(dayId)] }, { $eq: ['$$records.asistencia', asistenciaValue] }] },
+                            },
+                        },
                     },
                 },
                 { $match: { $expr: { $gt: [{ $size: '$records' }, 0] } } },
@@ -116,7 +131,7 @@ class Calendario {
             return availableDays;
         });
     }
-    static insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId, session }) {
+    static insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, records, alumnoId, session, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = yield db_1.mongoClient
                 .db()
@@ -380,11 +395,7 @@ class Calendario {
             const cursor = db_1.mongoClient
                 .db()
                 .collection(`asistencias${nivel}${year}`)
-                .aggregate([
-                { $match: { alumnoId: new mongodb_1.ObjectId(alumnoId) } },
-                { $unwind: { path: '$records' } },
-                { $match: { 'records.dayId': new mongodb_1.ObjectId(dayId) } },
-            ]);
+                .aggregate([{ $match: { alumnoId: new mongodb_1.ObjectId(alumnoId) } }, { $unwind: { path: '$records' } }, { $match: { 'records.dayId': new mongodb_1.ObjectId(dayId) } }]);
             const results = [];
             try {
                 for (var _d = true, cursor_4 = __asyncValues(cursor), cursor_4_1; cursor_4_1 = yield cursor_4.next(), _a = cursor_4_1.done, !_a; _d = true) {
@@ -484,14 +495,23 @@ class Calendario {
     }
     static enableCalendarDays({ nivel, year, daysList }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const collection = db_1.mongoClient.db().collection(`calendario${nivel}${year}`);
             const currentTime = new Date();
             const modifiedList = daysList.map((record) => {
                 return Object.assign(Object.assign({}, record), { status: 'disabled', createdAt: currentTime }); //removed salones:[]
             });
-            modifiedList.forEach((record) => __awaiter(this, void 0, void 0, function* () {
-                yield collection.updateOne({ month: record.month, day: record.day }, { $set: Object.assign({}, record) }, { upsert: true });
-            }));
+            // console.log({ daysList, modifiedList })
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`calendario${nivel}${year}`)
+                .insertMany([...modifiedList]);
+            return response;
+            // modifiedList.forEach(async (record) => {
+            //   await mongoClient
+            //     .db()
+            //     .collection(`calendario${nivel}${year}`)
+            //     .updateOne({ month: record.month, day: record.day }, { $set: { ...record } }, { upsert: true })
+            // })
+            // mongoClient.db().collection(`asistencias${nivel}${year}`).updateMany()
         });
     }
     static fetchAsistenciaListByGradoSeccionDayId({ nivel, year, grado, seccion, dayId, estadosMatricula, }) {
@@ -540,6 +560,12 @@ class Calendario {
                 finally { if (e_9) throw e_9.error; }
             }
             return result;
+        });
+    }
+    static fetchByMonthDay({ days, nivel, year }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient.db().collection(`calendario${nivel}${year}`).find({ $or: days }).toArray();
+            return response;
         });
     }
 }

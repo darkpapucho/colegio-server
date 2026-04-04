@@ -248,8 +248,23 @@ export default class CalendarioControllers {
   static async enableCalendarDays(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { daysList } = req.body
-      await Calendario.enableCalendarDays({ nivel, year, daysList })
+      const daysList: { month: string; day: number }[] = req.body.daysList
+      if (!daysList || daysList.length == 0) {
+        throw new Error('Lista de nuevos dias no puede estar vacía.')
+      }
+      const response = await Calendario.fetchByMonthDay({ days: daysList, nivel, year })
+      const existingKeys = new Set(response.map((row) => `${row.month}_${row.day}`))
+
+      const filteredDaysList = daysList.filter((row) => !existingKeys.has(`${row.month}_${row.day}`))
+      if (filteredDaysList.length == 0) {
+        throw new Error('Todos los días ya existían en el calendario')
+      }
+      const response2 = await Calendario.enableCalendarDays({ nivel, year, daysList: filteredDaysList })
+      const insertedIds = response2.insertedIds
+      const newRecords = filteredDaysList.map((row, index) => ({ dayId: insertedIds[index], month: row.month, day: row.day, asistencia: '', modified: '' }))
+
+      await Calendario.addNewRecordsToEachAlumno({ nivel, year, newRecords })
+
       res.status(201).send(responseOk(null))
     } catch (error) {
       errorResponseHandler(res, error)

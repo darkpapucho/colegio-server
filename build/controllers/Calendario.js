@@ -283,8 +283,20 @@ class CalendarioControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { daysList } = req.body;
-                yield Calendario_1.default.enableCalendarDays({ nivel, year, daysList });
+                const daysList = req.body.daysList;
+                if (!daysList || daysList.length == 0) {
+                    throw new Error('Lista de nuevos dias no puede estar vacía.');
+                }
+                const response = yield Calendario_1.default.fetchByMonthDay({ days: daysList, nivel, year });
+                const existingKeys = new Set(response.map((row) => `${row.month}_${row.day}`));
+                const filteredDaysList = daysList.filter((row) => !existingKeys.has(`${row.month}_${row.day}`));
+                if (filteredDaysList.length == 0) {
+                    throw new Error('Todos los días ya existían en el calendario');
+                }
+                const response2 = yield Calendario_1.default.enableCalendarDays({ nivel, year, daysList: filteredDaysList });
+                const insertedIds = response2.insertedIds;
+                const newRecords = filteredDaysList.map((row, index) => ({ dayId: insertedIds[index], month: row.month, day: row.day, asistencia: '', modified: '' }));
+                yield Calendario_1.default.addNewRecordsToEachAlumno({ nivel, year, newRecords });
                 res.status(201).send((0, responses_1.responseOk)(null));
             }
             catch (error) {
