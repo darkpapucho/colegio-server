@@ -67,7 +67,7 @@ export class Alumno {
       //fetch cursos:
       const cursos = await Cursos.getCursosSalon({ nivel, year, grado: alumno.grado })
 
-      if (cursos?.cursos && cursos?.cursos.length > 0 && nivel == 'primaria') {
+      if (cursos?.cursos && cursos?.cursos.length > 0 && nivel != 'inicial') {
         const parsedCursos = cursos.cursos.reduce(
           (obj: Record<string, [number, number, number, number]>, curso: CURSO_SALON) => {
             obj[curso.key] = [0, 0, 0, 0]

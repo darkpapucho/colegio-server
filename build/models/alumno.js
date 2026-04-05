@@ -89,7 +89,7 @@ class Alumno {
                 //insertar notas:
                 //fetch cursos:
                 const cursos = yield Cursos_1.default.getCursosSalon({ nivel, year, grado: alumno.grado });
-                if ((cursos === null || cursos === void 0 ? void 0 : cursos.cursos) && (cursos === null || cursos === void 0 ? void 0 : cursos.cursos.length) > 0 && nivel == 'primaria') {
+                if ((cursos === null || cursos === void 0 ? void 0 : cursos.cursos) && (cursos === null || cursos === void 0 ? void 0 : cursos.cursos.length) > 0 && nivel != 'inicial') {
                     const parsedCursos = cursos.cursos.reduce((obj, curso) => {
                         obj[curso.key] = [0, 0, 0, 0];
                         return obj;

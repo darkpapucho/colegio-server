@@ -261,7 +261,7 @@ export class AlumnoControllers {
       // if (!result.acknowledged) {
       //   return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
       // }
-      // const lastDayFromCalendar = await Calendario.fetchLasyDayOfCalendarioEscolar({ nivel, year })
+      // const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year })
       // const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
       // //insertar asistencia records de acuerdo a la fecha de la mtricula
       // const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
