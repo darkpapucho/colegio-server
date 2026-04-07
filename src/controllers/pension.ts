@@ -9,8 +9,28 @@ import { generatePensionTablePdf } from '../utils/pensionTablePdf'
 import { Grado, Seccion } from '../types/enums'
 import { PensionRecord } from '../types/pensiones'
 import { Salon } from '../types/salones'
+import generateReciboPension from '../utils/generateReciboPension'
+import { createWriteStream } from 'fs'
 
 export default class PensionController {
+  static async requestReciboById(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { reciboId } = req.query;
+      const data = await Pension.requestReciboById({ nivel, year, reciboId: reciboId as string })
+      
+      if(!data) throw new Error("Invalid recibo, unable to retrieve data")
+      const response = await Pension.getPrecioPension({ nivel, year })
+      
+      const recibo = new PDFDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })
+      recibo.pipe(createWriteStream("files/recibo.pdf"))
+      recibo.pipe(res)
+      generateReciboPension(data, recibo, response?.costo ?? 0);
+      recibo.end();
+    }catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async getLastUpdateDate(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -146,16 +166,17 @@ export default class PensionController {
     //monto_pagado: es lo que el cliente ya había pagado anteriormente
     //monto_pagar: el total q tiene q pagar el cliente
     try {
+      
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { alumnoId, fecha, mes, monto_pagado, monto_pagar, monto_abonado, issuer } = req.body
-
+      const { alumnoId, fecha, mes, monto_pagado, monto_pagar, monto_abonado, issuer, mora } = req.body
+      
       //validación
       const saldoPagar = monto_pagar - monto_pagado
 
       if (monto_abonado > saldoPagar || (monto_abonado === 0 && monto_pagar > 0)) {
         throw new Error('Monto abonado inválido')
       }
-      const reciboId: ObjectId | null = await Pension.pagarPensionByAlumnoIdAndMonth({ issuer, nivel, year, alumnoId, fecha, mes, monto_abonado, monto_pagar, monto_pagado })
+      const reciboId: ObjectId | null = await Pension.pagarPensionByAlumnoIdAndMonth({mora, issuer, nivel, year, alumnoId, fecha, mes, monto_abonado, monto_pagar, monto_pagado })
       res.send(responseOk({ reciboId: reciboId ? reciboId : '' }))
     } catch (err) {
       errorResponseHandler(res, err)

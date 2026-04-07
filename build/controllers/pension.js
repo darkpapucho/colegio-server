@@ -18,7 +18,30 @@ const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const pensionTablePdf_1 = require("../utils/pensionTablePdf");
+const generateReciboPension_1 = __importDefault(require("../utils/generateReciboPension"));
+const fs_1 = require("fs");
 class PensionController {
+    static requestReciboById(req, res) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { reciboId } = req.query;
+                const data = yield pension_1.default.requestReciboById({ nivel, year, reciboId: reciboId });
+                if (!data)
+                    throw new Error("Invalid recibo, unable to retrieve data");
+                const response = yield pension_1.default.getPrecioPension({ nivel, year });
+                const recibo = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });
+                recibo.pipe((0, fs_1.createWriteStream)("files/recibo.pdf"));
+                recibo.pipe(res);
+                (0, generateReciboPension_1.default)(data, recibo, (_a = response === null || response === void 0 ? void 0 : response.costo) !== null && _a !== void 0 ? _a : 0);
+                recibo.end();
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static getLastUpdateDate(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -170,13 +193,13 @@ class PensionController {
             //monto_pagar: el total q tiene q pagar el cliente
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { alumnoId, fecha, mes, monto_pagado, monto_pagar, monto_abonado, issuer } = req.body;
+                const { alumnoId, fecha, mes, monto_pagado, monto_pagar, monto_abonado, issuer, mora } = req.body;
                 //validación
                 const saldoPagar = monto_pagar - monto_pagado;
                 if (monto_abonado > saldoPagar || (monto_abonado === 0 && monto_pagar > 0)) {
                     throw new Error('Monto abonado inválido');
                 }
-                const reciboId = yield pension_1.default.pagarPensionByAlumnoIdAndMonth({ issuer, nivel, year, alumnoId, fecha, mes, monto_abonado, monto_pagar, monto_pagado });
+                const reciboId = yield pension_1.default.pagarPensionByAlumnoIdAndMonth({ mora, issuer, nivel, year, alumnoId, fecha, mes, monto_abonado, monto_pagar, monto_pagado });
                 res.send((0, responses_1.responseOk)({ reciboId: reciboId ? reciboId : '' }));
             }
             catch (err) {

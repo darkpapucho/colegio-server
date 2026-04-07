@@ -20,6 +20,18 @@ const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const asistencia_1 = require("../types/asistencia");
 class Pension {
+    static getPrecioPension({ nivel, year }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient.db().collection(`pensiones${year}`).findOne({ nivel }, { projection: { costo: true, _id: false } });
+            return response;
+        });
+    }
+    static requestReciboById({ nivel, year, reciboId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient.db().collection(`recibos${year}`).aggregate([{ $match: { _id: new mongodb_1.ObjectId(reciboId), nivel } }, { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } }, { $project: { numRecibo: 1, nivel: 1, fecha: 1, operacion: 1, detalles: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } }]).next();
+            return response;
+        });
+    }
     static getLastUpdateDate({ year, nivel }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
@@ -241,7 +253,7 @@ class Pension {
             return response;
         });
     }
-    static pagarPensionByAlumnoIdAndMonth({ nivel, year, alumnoId, fecha, mes, monto_abonado, monto_pagar, monto_pagado, issuer, }) {
+    static pagarPensionByAlumnoIdAndMonth({ mora, nivel, year, alumnoId, fecha, mes, monto_abonado, monto_pagar, monto_pagado, issuer, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const pagadoCompletamente = monto_pagado + monto_abonado === monto_pagar ? true : false;
             const session = db_1.mongoClient.startSession();
@@ -267,11 +279,12 @@ class Pension {
                     nivel,
                     alumnoId: new mongodb_1.ObjectId(alumnoId),
                     fecha,
-                    operacion: nivel === 'inicial' ? 'PEI' : 'PEP',
+                    operacion: nivel === 'inicial' ? 'PEI' : nivel === 'primaria' ? 'PEP' : 'PES',
                     detalles: {
                         issuer: new mongodb_1.ObjectId(issuer),
                         descripcion: `pensión ${asistencia_1.VALID_MONTHS[mes]}`,
                         montoPagado: monto_pagado + monto_abonado,
+                        mora,
                     },
                 }, { session });
                 if (!createReciboResponse.insertedId || !createReciboResponse.acknowledged) {

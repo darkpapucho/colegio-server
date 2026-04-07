@@ -12,3 +12,4 @@ pensionRouter.post('/get-pensiones-global-report', verifyCredentials, PensionCon
 pensionRouter.post('/get-lista-by-numero-pensiones-atrasadas', verifyCredentials, PensionController.getListAlumnosByNumPensionesAtrasadas)
 pensionRouter.post('/get-record-pensiones-pagadas-by-date-range', verifyCredentials, PensionController.getRecordPensionesPagadasByDateRange)
 pensionRouter.post('/download-pension-table-grado-seccion-pdf', verifyCredentials, PensionController.generatetPensionesTablePdfByGradoSeccion)
+pensionRouter.get("/fetch-recibo-by-id", verifyCredentials, PensionController.requestReciboById)

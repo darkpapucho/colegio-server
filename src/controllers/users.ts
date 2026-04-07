@@ -57,7 +57,7 @@ export class UserControllers {
       assert(username && password && nivel && year, ErrorMessages.INVALID_REQUEST)
       const usersCollectionName = `users${nivel}`
       const empleadosCollectionName = `empleados${nivel}${year}`
-      console.log({ usersCollectionName, empleadosCollectionName })
+      
       //fetch user from database
       const userCredentials = await User.getByUsername({ collectionName: usersCollectionName, username })
       assert(userCredentials != null, ErrorMessages.INVALID_CREDENTIALS)

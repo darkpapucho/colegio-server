@@ -5,8 +5,19 @@ import { AMatriculado } from '../types/alumno'
 import { PensionRecord } from '../types/pensiones'
 import { VALID_MONTHS } from '../types/asistencia'
 import { CorrelativoType } from '../types/correlativos'
+import { ReciboData } from '../types/recibo'
+
 
 export default class Pension {
+  static async getPrecioPension({ nivel, year }: { nivel: Nivel; year: Year }) {
+    const response = await mongoClient.db().collection(`pensiones${year}`).findOne<{ costo: number }>({ nivel }, { projection: { costo: true, _id: false } })
+    return response;
+  }
+
+  static async requestReciboById({ nivel, year, reciboId }: { nivel: Nivel; year: Year; reciboId: string }) {
+    const response = await mongoClient.db().collection(`recibos${year}`).aggregate([{$match: {_id: new ObjectId(reciboId), nivel}}, {$lookup: {from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno'}}, {$project: {numRecibo: 1, nivel: 1, fecha: 1, operacion: 1, detalles: 1, alumno: {$arrayElemAt: ['$alumno', 0]}}}]).next() as ReciboData | null
+    return response
+  }
   static async getLastUpdateDate({ year, nivel }: { nivel: Nivel; year: Year }) {
     const response = await mongoClient
       .db()
@@ -181,6 +192,7 @@ export default class Pension {
   }
 
   static async pagarPensionByAlumnoIdAndMonth({
+    mora,
     nivel,
     year,
     alumnoId,
@@ -191,6 +203,7 @@ export default class Pension {
     monto_pagado,
     issuer,
   }: {
+    mora:number,
     issuer: string
     monto_pagar: number
     monto_pagado: number
@@ -205,7 +218,8 @@ export default class Pension {
     const session = mongoClient.startSession()
     session.startTransaction()
     let reciboId: ObjectId | null = null
-
+    
+    
     //si esta pagado completamente, creamos un recibo y incrementamos el correlativo de recibos
     if (pagadoCompletamente) {
       //fetch numero de recibo:
@@ -226,11 +240,13 @@ export default class Pension {
             nivel,
             alumnoId: new ObjectId(alumnoId),
             fecha,
-            operacion: nivel === 'inicial' ? 'PEI' : 'PEP',
+            operacion: nivel === 'inicial' ? 'PEI' : nivel === 'primaria' ? 'PEP' : 'PES',
             detalles: {
               issuer: new ObjectId(issuer),
               descripcion: `pensión ${VALID_MONTHS[mes]}`,
               montoPagado: monto_pagado + monto_abonado,
+              mora,
+              
             },
           },
           { session },
