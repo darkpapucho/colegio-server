@@ -155,8 +155,8 @@ class NotasController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                if (nivel !== 'primaria')
-                    throw new Error('ruta válida solo para el nivel inicial');
+                if (nivel == 'inicial')
+                    throw new Error('ruta válida solo para el nivel primaria o secundaria');
                 const { grado, seccion } = req.query;
                 if (!grado || !seccion)
                     throw new Error('grado o seccion inválido');

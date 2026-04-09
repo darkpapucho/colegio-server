@@ -25,7 +25,6 @@ class CursosController {
             try {
                 const { nivel } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const data = yield Cursos_1.default.getCursosByNivel({ nivel });
-                console.log({ cursos: data === null || data === void 0 ? void 0 : data.cursos });
                 res.send((0, responses_1.responseOk)(data === null || data === void 0 ? void 0 : data.cursos));
             }
             catch (err) {

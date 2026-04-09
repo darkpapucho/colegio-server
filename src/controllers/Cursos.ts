@@ -14,7 +14,7 @@ export default class CursosController {
     try {
       const { nivel } = extractNivelYearFromHeaders(req)
       const data = await Cursos.getCursosByNivel({ nivel })
-      console.log({ cursos: data?.cursos })
+
       res.send(responseOk(data?.cursos))
     } catch (err) {
       errorResponseHandler(res, err)
