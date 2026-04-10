@@ -79,14 +79,14 @@ export default class NotasController {
   static async getNotasByGradoSeccionProfesor(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      if (nivel !== 'primaria') throw new Error('ruta válida solo para el nivel inicial')
+      if (nivel === 'inicial') throw new Error('ruta válida solo para primaria o secundaria')
       const { grado, seccion, isTutor, cursosProfesor } = req.body
 
       if (!grado || !seccion) throw new Error('grado o seccion inválido')
       const cursosQuery: { [key: string]: 1 | 0 } = Object.fromEntries((cursosProfesor as CURSO_SALON[]).map((curso) => [curso.key, 1]))
-
+      console.log({ nivel, year, grado, seccion, isTutor, cursosProfesor, cursosQuery })
       const registroNotas = await Notas.getNotasByGradoSeccionFromCursosProfesor({ grado, seccion, isTutor, cursosQuery, nivel, year })
-
+      console.log({ registroNotas })
       res.send(responseOk(registroNotas))
     } catch (err) {
       errorResponseHandler(res, err)

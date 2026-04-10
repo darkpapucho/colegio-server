@@ -83,13 +83,15 @@ class NotasController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                if (nivel !== 'primaria')
-                    throw new Error('ruta válida solo para el nivel inicial');
+                if (nivel === 'inicial')
+                    throw new Error('ruta válida solo para primaria o secundaria');
                 const { grado, seccion, isTutor, cursosProfesor } = req.body;
                 if (!grado || !seccion)
                     throw new Error('grado o seccion inválido');
                 const cursosQuery = Object.fromEntries(cursosProfesor.map((curso) => [curso.key, 1]));
+                console.log({ nivel, year, grado, seccion, isTutor, cursosProfesor, cursosQuery });
                 const registroNotas = yield Notas_1.default.getNotasByGradoSeccionFromCursosProfesor({ grado, seccion, isTutor, cursosQuery, nivel, year });
+                console.log({ registroNotas });
                 res.send((0, responses_1.responseOk)(registroNotas));
             }
             catch (err) {
