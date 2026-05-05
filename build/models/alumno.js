@@ -40,6 +40,19 @@ const periodosDates_1 = require("../vars/periodosDates");
 const Notas_1 = __importDefault(require("./Notas"));
 const Cursos_1 = __importDefault(require("./Cursos"));
 class Alumno {
+    static agregarApoderado({ alumnoId, apoderado, nivel, year }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db().collection(`matriculados${nivel}${year}`).updateOne({ _id: new mongodb_1.ObjectId(alumnoId) }, { $push: { apoderados: apoderado } });
+            return response;
+        });
+    }
+    static editarApoderado({ alumnoId, apoderado, nivel, year }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient.db().collection(`matriculados${nivel}${year}`).updateOne({ _id: new mongodb_1.ObjectId(alumnoId), "apoderados._id": new mongodb_1.ObjectId(apoderado._id) }, { $set: { "apoderados.$": apoderado } });
+            return response;
+        });
+    }
     static ProcesoNuevoMatricula({ nivel, year, alumno }) {
         return __awaiter(this, void 0, void 0, function* () {
             const session = db_1.mongoClient.startSession();

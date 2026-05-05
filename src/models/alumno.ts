@@ -1,6 +1,6 @@
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { mongoClient } from '../db'
-import { AMatriculado, AMatriculadoNoId, AsistenciaRecord, AsistenciaValue, NuevoAlumno, PartialAlumno, Periodo } from '../types/alumno'
+import { AMatriculado, AMatriculadoNoId, Apoderado, AsistenciaRecord, AsistenciaValue, NuevoAlumno, PartialAlumno, Periodo } from '../types/alumno'
 import { ClientSession, ObjectId, WithId } from 'mongodb'
 import { ErrorMessages } from '../error/enums'
 import { convertPeriodoKeyToIndex } from '../utils/generarBoletaNotas/utils/utils'
@@ -13,6 +13,15 @@ import Cursos from './Cursos'
 import { CURSO_SALON } from '../types/cursos'
 
 export class Alumno {
+  static async agregarApoderado({ alumnoId, apoderado, nivel,year }: { alumnoId: string; apoderado: Apoderado, nivel:Nivel, year: Year }) {
+    const response = await mongoClient
+      .db().collection(`matriculados${nivel}${year}`).updateOne({ _id: new ObjectId(alumnoId) }, { $push: { apoderados: apoderado } })
+    return response
+  }
+  static async editarApoderado({ alumnoId, apoderado, nivel, year }: { alumnoId: string; apoderado: Apoderado, nivel:Nivel, year: Year }) { 
+    const response = await mongoClient.db().collection(`matriculados${nivel}${year}`).updateOne({ _id: new ObjectId(alumnoId), "apoderados._id": new ObjectId(apoderado._id) }, { $set: { "apoderados.$": apoderado } })  
+    return response
+  }
   static async ProcesoNuevoMatricula({ nivel, year, alumno }: { nivel: Nivel; year: Year; alumno: NuevoAlumno }) {
     const session = mongoClient.startSession()
     session.startTransaction()

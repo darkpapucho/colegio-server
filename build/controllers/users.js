@@ -64,17 +64,21 @@ class UserControllers {
                 //extract data from the request
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { username, password } = req.body;
+                console.log({ username, password, nivel, year });
                 (0, global_1.assert)(username && password && nivel && year, enums_1.ErrorMessages.INVALID_REQUEST);
                 const usersCollectionName = `users${nivel}`;
                 const empleadosCollectionName = `empleados${nivel}${year}`;
                 //fetch user from database
                 const userCredentials = yield user_1.User.getByUsername({ collectionName: usersCollectionName, username });
+                console.log({ userCredentials });
                 (0, global_1.assert)(userCredentials != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 //validation of the password
                 const isValidPassword = yield (0, bcrypt_1.compare)(password, userCredentials.password);
+                console.log({ isValidPassword, userCredentials });
                 (0, global_1.assert)(isValidPassword, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 //fetch user info from database
                 const userInfo = yield user_1.User.getInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id });
+                console.log({ userInfo });
                 (0, global_1.assert)(userInfo != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 const token = (0, jwt_1.signToken)({ _id: userCredentials._id.toString() });
                 // const token = signToken({ _id: 'cristhiam' })

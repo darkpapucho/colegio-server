@@ -24,6 +24,35 @@ const mongodb_1 = require("mongodb");
 const Calendario_1 = __importDefault(require("../models/Calendario"));
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 class AlumnoControllers {
+    static agregarApoderado(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId, apoderado } = req.body;
+                apoderado._id = new mongodb_1.ObjectId();
+                const response = yield alumno_1.Alumno.agregarApoderado({ alumnoId, apoderado, nivel, year });
+                console.log({ response });
+                res.send((0, responses_1.responseOk)(null));
+            }
+            catch (error) {
+                (0, errors_1.errorResponseHandler)(res, error);
+            }
+        });
+    }
+    static editarApoderado(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId, apoderado } = req.body;
+                const response = yield alumno_1.Alumno.editarApoderado({ alumnoId, apoderado, nivel, year });
+                console.log({ response });
+                res.send((0, responses_1.responseOk)(null));
+            }
+            catch (error) {
+                (0, errors_1.errorResponseHandler)(res, error);
+            }
+        });
+    }
     static fetchAsistenciaList(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

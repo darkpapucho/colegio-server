@@ -53,19 +53,22 @@ export class UserControllers {
       //extract data from the request
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { username, password } = req.body
-
+      console.log({username, password, nivel, year})
       assert(username && password && nivel && year, ErrorMessages.INVALID_REQUEST)
       const usersCollectionName = `users${nivel}`
       const empleadosCollectionName = `empleados${nivel}${year}`
       
       //fetch user from database
       const userCredentials = await User.getByUsername({ collectionName: usersCollectionName, username })
+      console.log({userCredentials})
       assert(userCredentials != null, ErrorMessages.INVALID_CREDENTIALS)
       //validation of the password
       const isValidPassword = await compare(password, userCredentials.password)
+      console.log({isValidPassword, userCredentials})
       assert(isValidPassword, ErrorMessages.INVALID_CREDENTIALS)
       //fetch user info from database
       const userInfo = await User.getInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id })
+      console.log({userInfo})
       assert(userInfo != null, ErrorMessages.INVALID_CREDENTIALS)
       const token = signToken({ _id: userCredentials._id.toString() })
       // const token = signToken({ _id: 'cristhiam' })
