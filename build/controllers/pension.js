@@ -21,6 +21,37 @@ const pensionTablePdf_1 = require("../utils/pensionTablePdf");
 const generateReciboPension_1 = __importDefault(require("../utils/generateReciboPension"));
 const fs_1 = require("fs");
 class PensionController {
+    static cobrarPension(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId, detalle, fecha } = req.body;
+                const response = yield pension_1.default.cobrarPension({ nivel, year, alumnoId, detalle, fecha });
+                if (response.modifiedCount === 0) {
+                    res.send((0, responses_1.responseOk)(false));
+                }
+                else {
+                    res.send((0, responses_1.responseOk)(true));
+                }
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static getRetrasadosList(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { grado, seccion } = req.body;
+                const response = yield pension_1.default.getRetrasadosList({ nivel, year, grado, seccion });
+                res.send((0, responses_1.responseOk)(response));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static requestReciboById(req, res) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -29,10 +60,10 @@ class PensionController {
                 const { reciboId } = req.query;
                 const data = yield pension_1.default.requestReciboById({ nivel, year, reciboId: reciboId });
                 if (!data)
-                    throw new Error("Invalid recibo, unable to retrieve data");
+                    throw new Error('Invalid recibo, unable to retrieve data');
                 const response = yield pension_1.default.getPrecioPension({ nivel, year });
                 const recibo = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });
-                recibo.pipe((0, fs_1.createWriteStream)("files/recibo.pdf"));
+                recibo.pipe((0, fs_1.createWriteStream)('files/recibo.pdf'));
                 recibo.pipe(res);
                 (0, generateReciboPension_1.default)(data, recibo, (_a = response === null || response === void 0 ? void 0 : response.costo) !== null && _a !== void 0 ? _a : 0);
                 recibo.end();

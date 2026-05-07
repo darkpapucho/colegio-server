@@ -17,4 +17,6 @@ exports.pensionRouter.post('/get-pensiones-global-report', verifyCredentials_1.v
 exports.pensionRouter.post('/get-lista-by-numero-pensiones-atrasadas', verifyCredentials_1.verifyCredentials, pension_1.default.getListAlumnosByNumPensionesAtrasadas);
 exports.pensionRouter.post('/get-record-pensiones-pagadas-by-date-range', verifyCredentials_1.verifyCredentials, pension_1.default.getRecordPensionesPagadasByDateRange);
 exports.pensionRouter.post('/download-pension-table-grado-seccion-pdf', verifyCredentials_1.verifyCredentials, pension_1.default.generatetPensionesTablePdfByGradoSeccion);
-exports.pensionRouter.get("/fetch-recibo-by-id", verifyCredentials_1.verifyCredentials, pension_1.default.requestReciboById);
+exports.pensionRouter.get('/fetch-recibo-by-id', verifyCredentials_1.verifyCredentials, pension_1.default.requestReciboById);
+exports.pensionRouter.post('/fetch-atrasados-list', verifyCredentials_1.verifyCredentials, pension_1.default.getRetrasadosList);
+exports.pensionRouter.post('/cobrar-pension', verifyCredentials_1.verifyCredentials, pension_1.default.cobrarPension);

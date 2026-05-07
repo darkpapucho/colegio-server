@@ -89,9 +89,7 @@ class NotasController {
                 if (!grado || !seccion)
                     throw new Error('grado o seccion inválido');
                 const cursosQuery = Object.fromEntries(cursosProfesor.map((curso) => [curso.key, 1]));
-                console.log({ nivel, year, grado, seccion, isTutor, cursosProfesor, cursosQuery });
                 const registroNotas = yield Notas_1.default.getNotasByGradoSeccionFromCursosProfesor({ grado, seccion, isTutor, cursosQuery, nivel, year });
-                console.log({ registroNotas });
                 res.send((0, responses_1.responseOk)(registroNotas));
             }
             catch (err) {

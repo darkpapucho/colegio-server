@@ -6,35 +6,33 @@ import { errorResponseHandler } from '../error/errors'
 import { ErrorMessages } from '../error/enums'
 import { assertIsAMatriculado, assertIsNuevoAlumno } from '../utils/validators'
 import { EstadoMatricula, Nivel, VALID_GRADOS, Year } from '../types/enums'
-import { AMatriculado, AMatriculadoNoId,  AsistenciaValue, NuevoAlumno, PartialAlumno } from '../types/alumno'
+import { AMatriculado, AMatriculadoNoId, AsistenciaValue, NuevoAlumno, PartialAlumno } from '../types/alumno'
 import { ObjectId, WithId } from 'mongodb'
 import Calendario from '../models/Calendario'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 
 export class AlumnoControllers {
-
   static async agregarApoderado(req: Request, res: Response) {
     try {
-      const { nivel, year } = extractNivelYearFromHeaders(req);
-      const { alumnoId, apoderado }:{alumnoId:string, apoderado:any} = req.body;
-      apoderado._id = new ObjectId();
-      const response = await Alumno.agregarApoderado({ alumnoId, apoderado, nivel,year})
-      console.log({response})
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { alumnoId, apoderado }: { alumnoId: string; apoderado: any } = req.body
+      apoderado._id = new ObjectId()
+      await Alumno.agregarApoderado({ alumnoId, apoderado, nivel, year })
+
       res.send(responseOk(null))
     } catch (error) {
       errorResponseHandler(res, error)
-    } 
+    }
   }
   static async editarApoderado(req: Request, res: Response) {
     try {
-      const { nivel, year } = extractNivelYearFromHeaders(req);
-      const { alumnoId, apoderado }:{alumnoId:string, apoderado:any} = req.body;
-      const response = await Alumno.editarApoderado({ alumnoId, apoderado, nivel, year })
-      console.log({response})
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { alumnoId, apoderado }: { alumnoId: string; apoderado: any } = req.body
+      await Alumno.editarApoderado({ alumnoId, apoderado, nivel, year })
       res.send(responseOk(null))
     } catch (error) {
       errorResponseHandler(res, error)
-    } 
+    }
   }
   static async fetchAsistenciaList(req: Request, res: Response) {
     try {

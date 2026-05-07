@@ -7,15 +7,96 @@ import { VALID_MONTHS } from '../types/asistencia'
 import { CorrelativoType } from '../types/correlativos'
 import { ReciboData } from '../types/recibo'
 
-
 export default class Pension {
+  static async cobrarPension({ alumnoId, detalle, fecha, nivel, year }: { alumnoId: string; detalle: any; fecha: string; nivel: Nivel; year: Year }) {
+    const response = await mongoClient
+      .db()
+      .collection(`pensiones${nivel}${year}`)
+      .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $set: { ultimoCobro: { detalle, fecha } } })
+    return response
+  }
+  static async getRetrasadosList({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+    const currentMonth = new Date().getMonth()
+    const response = mongoClient
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .aggregate([
+        { $match: { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA'] } } },
+        {
+          $lookup: {
+            from: 'pensionesprimaria2026',
+            localField: '_id',
+            foreignField: 'alumnoId',
+            as: 'pensionInfo',
+          },
+        },
+        {
+          $unwind: '$pensionInfo',
+        },
+        // {
+        //   $addFields: {
+        //     mesActual: { $month: new Date() }, // Toma el mes actual automáticamente
+        //     anioActual: { $year: new Date() },
+        //   },
+        // },
+        {
+          $addFields: {
+            mesesAtraso: {
+              $filter: {
+                input: '$pensionInfo.pensiones',
+                as: 'pension',
+                cond: {
+                  $and: [{ $gte: ['$$pension.mes', 2] }, { $lt: ['$$pension.mes', currentMonth] }, { $eq: ['$$pension.pagado', false] }],
+                },
+              },
+            },
+          },
+        },
+        {
+          $match: {
+            $expr: { $gt: [{ $size: '$mesesAtraso' }, 0] },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            nombreCompleto: 1,
+            grado: 1,
+            seccion: 1,
+            dni: 1,
+            apoderados: 1,
+            codigoEstudiante: 1,
+            mesesAtrasoDetalle: '$mesesAtraso',
+            totalMesesAtraso: { $size: '$mesesAtraso' },
+            pensionesPagadas: '$pensionInfo.numPensionesPagadas',
+            ultimoCobro: '$pensionInfo.ultimoCobro',
+          },
+        },
+      ])
+    const result: any[] = []
+    for await (const doc of response) {
+      result.push(doc)
+    }
+    return result
+  }
   static async getPrecioPension({ nivel, year }: { nivel: Nivel; year: Year }) {
-    const response = await mongoClient.db().collection(`pensiones${year}`).findOne<{ costo: number }>({ nivel }, { projection: { costo: true, _id: false } })
-    return response;
+    const response = await mongoClient
+      .db()
+      .collection(`pensiones${year}`)
+      .findOne<{ costo: number }>({ nivel }, { projection: { costo: true, _id: false } })
+    return response
   }
 
   static async requestReciboById({ nivel, year, reciboId }: { nivel: Nivel; year: Year; reciboId: string }) {
-    const response = await mongoClient.db().collection(`recibos${year}`).aggregate([{$match: {_id: new ObjectId(reciboId), nivel}}, {$lookup: {from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno'}}, {$project: {numRecibo: 1, nivel: 1, fecha: 1, operacion: 1, detalles: 1, alumno: {$arrayElemAt: ['$alumno', 0]}}}]).next() as ReciboData | null
+    const response = (await mongoClient
+      .db()
+      .collection(`recibos${year}`)
+      .aggregate([
+        { $match: { _id: new ObjectId(reciboId), nivel } },
+        { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
+        { $project: { numRecibo: 1, nivel: 1, fecha: 1, operacion: 1, detalles: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
+      ])
+      .next()) as ReciboData | null
     return response
   }
   static async getLastUpdateDate({ year, nivel }: { nivel: Nivel; year: Year }) {
@@ -203,7 +284,7 @@ export default class Pension {
     monto_pagado,
     issuer,
   }: {
-    mora:number,
+    mora: number
     issuer: string
     monto_pagar: number
     monto_pagado: number
@@ -218,8 +299,7 @@ export default class Pension {
     const session = mongoClient.startSession()
     session.startTransaction()
     let reciboId: ObjectId | null = null
-    
-    
+
     //si esta pagado completamente, creamos un recibo y incrementamos el correlativo de recibos
     if (pagadoCompletamente) {
       //fetch numero de recibo:
@@ -246,7 +326,6 @@ export default class Pension {
               descripcion: `pensión ${VALID_MONTHS[mes]}`,
               montoPagado: monto_pagado + monto_abonado,
               mora,
-              
             },
           },
           { session },
