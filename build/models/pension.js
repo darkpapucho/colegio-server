@@ -40,7 +40,7 @@ class Pension {
                 { $match: { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA'] } } },
                 {
                     $lookup: {
-                        from: 'pensionesprimaria2026',
+                        from: `pensiones${nivel}${year}`,
                         localField: '_id',
                         foreignField: 'alumnoId',
                         as: 'pensionInfo',

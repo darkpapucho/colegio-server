@@ -17,6 +17,7 @@ export default class Pension {
   }
   static async getRetrasadosList({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
     const currentMonth = new Date().getMonth()
+
     const response = mongoClient
       .db()
       .collection(`matriculados${nivel}${year}`)
@@ -24,7 +25,7 @@ export default class Pension {
         { $match: { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA'] } } },
         {
           $lookup: {
-            from: 'pensionesprimaria2026',
+            from: `pensiones${nivel}${year}`,
             localField: '_id',
             foreignField: 'alumnoId',
             as: 'pensionInfo',
