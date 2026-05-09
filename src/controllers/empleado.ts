@@ -125,7 +125,7 @@ export default class EmpleadoControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { issuer, ...profesorData } = req.body //assert data:ProfesorData
-        
+
       //CHECK THAT NO USER EXIST WITH USERNAME = PROFESOR.DNI
       const user = await User.getByUsername({ collectionName: `users${nivel}`, username: '' + profesorData.dni })
       if (user !== null) throw new Error(ErrorMessages.USER_ALREADY_EXISTS)
@@ -139,7 +139,7 @@ export default class EmpleadoControllers {
         throw new Error('Error creando nuevo profesor')
       }
       const newProfesor = { ...profesorData, userId: response.insertedId.toString(), rol: 'profesor' }
-      assertIsProfesorData(profesorData)
+      assertIsProfesorData(profesorData, nivel)
       //agregamos el campo anuncios a la hora de crear al profesor
       newProfesor['anuncios'] = []
       newProfesor['horario'] = []

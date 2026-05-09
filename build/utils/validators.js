@@ -35,6 +35,15 @@ const nuevoAlumnoSchema = zod_1.z.object({
         return isValid;
     }),
 });
+const profesorInicialDataSchema = zod_1.z.object({
+    // userId: z.string(),
+    // rol: z.string(),
+    nombres: zod_1.z.string().min(3).max(30),
+    apellidos: zod_1.z.string().min(3).max(30),
+    dni: zod_1.z.string().length(8),
+    telefono: zod_1.z.number().optional(),
+    correo: zod_1.z.string().min(10).email().optional(),
+});
 const profesorDataSchema = zod_1.z.object({
     // userId: z.string(),
     // rol: z.string(),
@@ -112,8 +121,14 @@ function assertIsEmitirDocumentsData(data) {
     return;
 }
 exports.assertIsEmitirDocumentsData = assertIsEmitirDocumentsData;
-function assertIsProfesorData(data) {
-    const result = profesorDataSchema.safeParse(data);
+function assertIsProfesorData(data, nivel) {
+    let result;
+    if (nivel === 'inicial') {
+        result = profesorInicialDataSchema.safeParse(data);
+    }
+    else {
+        result = profesorDataSchema.safeParse(data);
+    }
     if (!result.success) {
         throw new Error(enums_2.ErrorMessages.INVALID_REQUEST);
     }

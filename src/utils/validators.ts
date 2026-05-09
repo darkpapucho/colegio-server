@@ -1,5 +1,5 @@
-import { z } from 'zod'
-import { ESTADOS_MATRICULA, VALID_GRADOS, VALID_GRADOS_DESTINO, VALID_SECCIONES, VALID_SEXOS } from '../types/enums'
+import { SafeParseReturnType, z } from 'zod'
+import { ESTADOS_MATRICULA, Nivel, VALID_GRADOS, VALID_GRADOS_DESTINO, VALID_SECCIONES, VALID_SEXOS } from '../types/enums'
 import { AMatriculado, NuevoAlumno } from '../types/alumno'
 import { ErrorMessages } from '../error/enums'
 import { EmitirDocumentosData } from '../types/documents'
@@ -34,6 +34,16 @@ const nuevoAlumnoSchema = z.object({
       return isValid
     }),
 })
+const profesorInicialDataSchema = z.object({
+  // userId: z.string(),
+  // rol: z.string(),
+  nombres: z.string().min(3).max(30),
+  apellidos: z.string().min(3).max(30),
+  dni: z.string().length(8),
+  telefono: z.number().optional(),
+  correo: z.string().min(10).email().optional(),
+})
+
 const profesorDataSchema = z.object({
   // userId: z.string(),
   // rol: z.string(),
@@ -116,8 +126,13 @@ export function assertIsEmitirDocumentsData(data: any): asserts data is EmitirDo
   return
 }
 
-export function assertIsProfesorData(data: any): asserts data is ProfesorData {
-  const result = profesorDataSchema.safeParse(data)
+export function assertIsProfesorData(data: any, nivel: Nivel): asserts data is ProfesorData {
+  let result: SafeParseReturnType<any, any>
+  if (nivel === 'inicial') {
+    result = profesorInicialDataSchema.safeParse(data)
+  } else {
+    result = profesorDataSchema.safeParse(data)
+  }
   if (!result.success) {
     throw new Error(ErrorMessages.INVALID_REQUEST)
   }

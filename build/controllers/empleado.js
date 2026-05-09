@@ -184,7 +184,7 @@ class EmpleadoControllers {
                     throw new Error('Error creando nuevo profesor');
                 }
                 const newProfesor = Object.assign(Object.assign({}, profesorData), { userId: response.insertedId.toString(), rol: 'profesor' });
-                (0, validators_1.assertIsProfesorData)(profesorData);
+                (0, validators_1.assertIsProfesorData)(profesorData, nivel);
                 //agregamos el campo anuncios a la hora de crear al profesor
                 newProfesor['anuncios'] = [];
                 newProfesor['horario'] = [];
