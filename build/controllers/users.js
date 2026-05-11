@@ -42,6 +42,7 @@ class UserControllers {
                 const { username, password, nivel, year } = req.body;
                 const usersCollectionName = `users${nivel}`;
                 const empleadosCollectionName = `empleados${nivel}${year}`;
+                console.log({ username, password, nivel, year });
                 const userCredentials = yield user_1.User.getByUsername({ collectionName: usersCollectionName, username });
                 (0, global_1.assert)(userCredentials != null, enums_1.ErrorMessages.INVALID_CREDENTIALS);
                 //validation of the password:

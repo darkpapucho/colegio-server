@@ -20,6 +20,104 @@ const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const asistencia_1 = require("../types/asistencia");
 class Pension {
+    static calcularPensionesPorCobrar({ nivel, year }) {
+        var _a, e_1, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const currentMonth = new Date().getMonth();
+            const response = db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .aggregate([
+                {
+                    $match: {
+                        estadoMatricula: 'DEFINITIVA',
+                    },
+                },
+                {
+                    $lookup: {
+                        from: `pensiones${nivel}${year}`,
+                        localField: '_id',
+                        foreignField: 'alumnoId',
+                        as: 'pensionData',
+                    },
+                },
+                {
+                    $unwind: '$pensionData',
+                },
+                {
+                    $addFields: {
+                        mesesDeuda: {
+                            $size: {
+                                $filter: {
+                                    input: '$pensionData.pensiones',
+                                    as: 'pension',
+                                    cond: {
+                                        $and: [{ $lt: ['$$pension.mes', currentMonth] }, { $eq: ['$$pension.pagado', false] }],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                {
+                    $match: {
+                        mesesDeuda: { $gt: 0 }, // Solo alumnos con deuda
+                    },
+                },
+                {
+                    $group: {
+                        _id: '$mesesDeuda',
+                        cantidadAlumnos: { $sum: 1 },
+                        montoTotalPorCobrar: {
+                            $sum: {
+                                $reduce: {
+                                    input: {
+                                        $filter: {
+                                            input: '$pensionData.pensiones',
+                                            as: 'p',
+                                            cond: {
+                                                $and: [{ $lt: ['$$p.mes', currentMonth] }, { $eq: ['$$p.pagado', false] }],
+                                            },
+                                        },
+                                    },
+                                    initialValue: 0,
+                                    in: { $add: ['$$value', '$$this.monto_pagar'] },
+                                },
+                            },
+                        },
+                    },
+                },
+                {
+                    $sort: { _id: 1 }, // Ordenar por número de meses
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        mesesDeuda: '$_id',
+                        cantidadAlumnos: 1,
+                        montoTotalPorCobrar: 1,
+                    },
+                },
+            ]);
+            const result = [];
+            try {
+                for (var _d = true, response_1 = __asyncValues(response), response_1_1; response_1_1 = yield response_1.next(), _a = response_1_1.done, !_a; _d = true) {
+                    _c = response_1_1.value;
+                    _d = false;
+                    const doc = _c;
+                    result.push(doc);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = response_1.return)) yield _b.call(response_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            return result;
+        });
+    }
     static cobrarPension({ alumnoId, detalle, fecha, nivel, year }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
@@ -30,7 +128,7 @@ class Pension {
         });
     }
     static getRetrasadosList({ nivel, year, grado, seccion }) {
-        var _a, e_1, _b, _c;
+        var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const currentMonth = new Date().getMonth();
             const response = db_1.mongoClient
@@ -91,19 +189,19 @@ class Pension {
             ]);
             const result = [];
             try {
-                for (var _d = true, response_1 = __asyncValues(response), response_1_1; response_1_1 = yield response_1.next(), _a = response_1_1.done, !_a; _d = true) {
-                    _c = response_1_1.value;
+                for (var _d = true, response_2 = __asyncValues(response), response_2_1; response_2_1 = yield response_2.next(), _a = response_2_1.done, !_a; _d = true) {
+                    _c = response_2_1.value;
                     _d = false;
                     const doc = _c;
                     result.push(doc);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = response_1.return)) yield _b.call(response_1);
+                    if (!_d && !_a && (_b = response_2.return)) yield _b.call(response_2);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
             return result;
         });
@@ -147,7 +245,7 @@ class Pension {
         });
     }
     static getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate }) {
-        var _a, e_2, _b, _c;
+        var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             initDate = initDate + 'T00:00';
             endDate = endDate + 'T23:59';
@@ -170,25 +268,25 @@ class Pension {
             ]);
             const result = [];
             try {
-                for (var _d = true, response_2 = __asyncValues(response), response_2_1; response_2_1 = yield response_2.next(), _a = response_2_1.done, !_a; _d = true) {
-                    _c = response_2_1.value;
+                for (var _d = true, response_3 = __asyncValues(response), response_3_1; response_3_1 = yield response_3.next(), _a = response_3_1.done, !_a; _d = true) {
+                    _c = response_3_1.value;
                     _d = false;
                     const doc = _c;
                     result.push(doc);
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = response_2.return)) yield _b.call(response_2);
+                    if (!_d && !_a && (_b = response_3.return)) yield _b.call(response_3);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return result;
         });
     }
     static getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas, }) {
-        var _a, e_3, _b, _c;
+        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -242,18 +340,18 @@ class Pension {
                     result.push(doc);
                 }
             }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
                 }
-                finally { if (e_3) throw e_3.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             return result;
         });
     }
     static getPensionesGlobalReport({ nivel, year }) {
-        var _a, e_4, _b, _c;
+        var _a, e_5, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient.db().collection(`pensiones${nivel}${year}`).find({});
             const list = [];
@@ -265,12 +363,12 @@ class Pension {
                     list.push(doc);
                 }
             }
-            catch (e_4_1) { e_4 = { error: e_4_1 }; }
+            catch (e_5_1) { e_5 = { error: e_5_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
                 }
-                finally { if (e_4) throw e_4.error; }
+                finally { if (e_5) throw e_5.error; }
             }
             return list;
         });
@@ -285,7 +383,7 @@ class Pension {
         });
     }
     static getListByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, }) {
-        var _a, e_5, _b, _c;
+        var _a, e_6, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const response = db_1.mongoClient
                 .db()
@@ -304,25 +402,25 @@ class Pension {
             ]);
             const result = [];
             try {
-                for (var _d = true, response_3 = __asyncValues(response), response_3_1; response_3_1 = yield response_3.next(), _a = response_3_1.done, !_a; _d = true) {
-                    _c = response_3_1.value;
+                for (var _d = true, response_4 = __asyncValues(response), response_4_1; response_4_1 = yield response_4.next(), _a = response_4_1.done, !_a; _d = true) {
+                    _c = response_4_1.value;
                     _d = false;
                     const doc = _c;
                     result.push(doc);
                 }
             }
-            catch (e_5_1) { e_5 = { error: e_5_1 }; }
+            catch (e_6_1) { e_6 = { error: e_6_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = response_3.return)) yield _b.call(response_3);
+                    if (!_d && !_a && (_b = response_4.return)) yield _b.call(response_4);
                 }
-                finally { if (e_5) throw e_5.error; }
+                finally { if (e_6) throw e_6.error; }
             }
             return result;
         });
     }
     static getListByNivel({ nivel, year, estadosMatricula, session }) {
-        var _a, e_6, _b, _c;
+        var _a, e_7, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -342,12 +440,12 @@ class Pension {
                     response.push(doc);
                 }
             }
-            catch (e_6_1) { e_6 = { error: e_6_1 }; }
+            catch (e_7_1) { e_7 = { error: e_7_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
                 }
-                finally { if (e_6) throw e_6.error; }
+                finally { if (e_7) throw e_7.error; }
             }
             return response;
         });

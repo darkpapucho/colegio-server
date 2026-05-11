@@ -8,6 +8,89 @@ import { CorrelativoType } from '../types/correlativos'
 import { ReciboData } from '../types/recibo'
 
 export default class Pension {
+  static async calcularPensionesPorCobrar({ nivel, year }: { nivel: Nivel; year: Year }) {
+    const currentMonth = new Date().getMonth()
+    const response = mongoClient
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .aggregate([
+        {
+          $match: {
+            estadoMatricula: 'DEFINITIVA',
+          },
+        },
+        {
+          $lookup: {
+            from: `pensiones${nivel}${year}`,
+            localField: '_id',
+            foreignField: 'alumnoId',
+            as: 'pensionData',
+          },
+        },
+        {
+          $unwind: '$pensionData',
+        },
+        {
+          $addFields: {
+            mesesDeuda: {
+              $size: {
+                $filter: {
+                  input: '$pensionData.pensiones',
+                  as: 'pension',
+                  cond: {
+                    $and: [{ $lt: ['$$pension.mes', currentMonth] }, { $eq: ['$$pension.pagado', false] }],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $match: {
+            mesesDeuda: { $gt: 0 }, // Solo alumnos con deuda
+          },
+        },
+        {
+          $group: {
+            _id: '$mesesDeuda',
+            cantidadAlumnos: { $sum: 1 },
+            montoTotalPorCobrar: {
+              $sum: {
+                $reduce: {
+                  input: {
+                    $filter: {
+                      input: '$pensionData.pensiones',
+                      as: 'p',
+                      cond: {
+                        $and: [{ $lt: ['$$p.mes', currentMonth] }, { $eq: ['$$p.pagado', false] }],
+                      },
+                    },
+                  },
+                  initialValue: 0,
+                  in: { $add: ['$$value', '$$this.monto_pagar'] },
+                },
+              },
+            },
+          },
+        },
+        {
+          $sort: { _id: 1 }, // Ordenar por número de meses
+        },
+        {
+          $project: {
+            _id: 0,
+            mesesDeuda: '$_id',
+            cantidadAlumnos: 1,
+            montoTotalPorCobrar: 1,
+          },
+        },
+      ])
+    const result = []
+    for await (const doc of response) {
+      result.push(doc)
+    }
+    return result
+  }
   static async cobrarPension({ alumnoId, detalle, fecha, nivel, year }: { alumnoId: string; detalle: any; fecha: string; nivel: Nivel; year: Year }) {
     const response = await mongoClient
       .db()
