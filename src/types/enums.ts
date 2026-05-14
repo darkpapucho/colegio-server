@@ -16,7 +16,7 @@ export const VALID_GRADOS_DESTINO = [
 ] as const
 export type GradoDestino = (typeof VALID_GRADOS_DESTINO)[number]
 // estados matricula
-export const ESTADOS_MATRICULA = ['DEFINITIVA', 'PENDIENTE', 'TRASLADADO', 'EN PROCESO'] as const
+export const ESTADOS_MATRICULA = ['DEFINITIVA', 'TRASLADADO', 'RETIRADO', 'SUSPENDIDO'] as const
 export type EstadoMatricula = (typeof ESTADOS_MATRICULA)[number]
 //years
 export const VALID_YEARS = ['2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027', '2028'] as const

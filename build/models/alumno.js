@@ -43,13 +43,18 @@ class Alumno {
     static agregarApoderado({ alumnoId, apoderado, nivel, year }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
-                .db().collection(`matriculados${nivel}${year}`).updateOne({ _id: new mongodb_1.ObjectId(alumnoId) }, { $push: { apoderados: apoderado } });
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .updateOne({ _id: new mongodb_1.ObjectId(alumnoId) }, { $push: { apoderados: apoderado } });
             return response;
         });
     }
     static editarApoderado({ alumnoId, apoderado, nivel, year }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield db_1.mongoClient.db().collection(`matriculados${nivel}${year}`).updateOne({ _id: new mongodb_1.ObjectId(alumnoId), "apoderados._id": new mongodb_1.ObjectId(apoderado._id) }, { $set: { "apoderados.$": apoderado } });
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .updateOne({ _id: new mongodb_1.ObjectId(alumnoId), 'apoderados._id': new mongodb_1.ObjectId(apoderado._id) }, { $set: { 'apoderados.$': apoderado } });
             return response;
         });
     }
@@ -136,7 +141,7 @@ class Alumno {
                     .db()
                     .collection(matriculadosCollection)
                     .aggregate([
-                    { $match: { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO'] } } },
+                    { $match: { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA'] } } },
                     { $lookup: { from: asistenciasCollection, localField: '_id', foreignField: 'alumnoId', as: 'asistencia' } },
                     { $project: { nombreCompleto: 1, _id: 0, recordAsistencia: { $arrayElemAt: ['$asistencia', 0] } } },
                     { $project: { nombreCompleto: 1, alumnoId: '$recordAsistencia.alumnoId', records: `$recordAsistencia.records` } },
@@ -198,7 +203,7 @@ class Alumno {
             const cursor = yield db_1.mongoClient
                 .db()
                 .collection(`matriculados${nivel}${year}`)
-                .distinct('_id', { grado, seccion, estadoMatricula: { $in: estadoMatricula ? [...estadoMatricula] : ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE'] } });
+                .distinct('_id', { grado, seccion, estadoMatricula: { $in: estadoMatricula ? [...estadoMatricula] : ['DEFINITIVA'] } });
             const records = [];
             try {
                 for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
@@ -372,7 +377,7 @@ class Alumno {
                 const cursor = db_1.mongoClient
                     .db()
                     .collection(`matriculados${nivel}${year}`)
-                    .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } }, { projection: projection || {} });
+                    .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA'] } }, { projection: projection || {} });
                 try {
                     for (var _d = true, cursor_5 = __asyncValues(cursor), cursor_5_1; cursor_5_1 = yield cursor_5.next(), _a = cursor_5_1.done, !_a; _d = true) {
                         _c = cursor_5_1.value;

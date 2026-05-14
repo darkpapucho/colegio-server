@@ -77,7 +77,7 @@ export default class Notas {
     year,
     grado,
     seccion,
-    estadosMatricula = ['DEFINITIVA', 'EN PROCESO'],
+    estadosMatricula = ['DEFINITIVA'],
     excluirAtrasados = false,
   }: {
     estadosMatricula?: EstadoMatricula[]
@@ -185,7 +185,7 @@ export default class Notas {
         .db()
         .collection(`matriculados${nivel}${year}`)
         .aggregate<RecordNotas>([
-          { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA', 'EN PROCESO'] } } },
+          { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA'] } } },
           { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
           { $lookup: { from: `notas${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
           { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },
@@ -229,7 +229,7 @@ export default class Notas {
         .db()
         .collection(`matriculados${nivel}${year}`)
         .aggregate<RecordNotas>([
-          { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA', 'EN PROCESO'] } } },
+          { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA'] } } },
           { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
           { $lookup: { from: `notas${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
           { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },

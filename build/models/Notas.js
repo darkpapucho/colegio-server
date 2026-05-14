@@ -78,7 +78,7 @@ class Notas {
             return response;
         });
     }
-    static getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula = ['DEFINITIVA', 'EN PROCESO'], excluirAtrasados = false, }) {
+    static getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula = ['DEFINITIVA'], excluirAtrasados = false, }) {
         var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             let cursor;
@@ -177,7 +177,7 @@ class Notas {
                     .db()
                     .collection(`matriculados${nivel}${year}`)
                     .aggregate([
-                    { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA', 'EN PROCESO'] } } },
+                    { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA'] } } },
                     { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
                     { $lookup: { from: `notas${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
                     { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },
@@ -232,7 +232,7 @@ class Notas {
                     .db()
                     .collection(`matriculados${nivel}${year}`)
                     .aggregate([
-                    { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA', 'EN PROCESO'] } } },
+                    { $match: { grado, seccion, estadoMatricula: { $in: estadosMatricula ? estadosMatricula : ['DEFINITIVA'] } } },
                     { $project: { alumno: '$nombreCompleto', _id: 1, estadoMatricula: 1 } },
                     { $lookup: { from: `notas${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'record' } },
                     { $project: { alumno: 1, estadoMatricula: 1, record: { $arrayElemAt: ['$record', 0] } } },

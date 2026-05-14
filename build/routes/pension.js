@@ -21,3 +21,4 @@ exports.pensionRouter.get('/fetch-recibo-by-id', verifyCredentials_1.verifyCrede
 exports.pensionRouter.post('/fetch-atrasados-list', verifyCredentials_1.verifyCredentials, pension_1.default.getRetrasadosList);
 exports.pensionRouter.post('/cobrar-pension', verifyCredentials_1.verifyCredentials, pension_1.default.cobrarPension);
 exports.pensionRouter.get('/calcular-pensiones-por-cobrar', verifyCredentials_1.verifyCredentials, pension_1.default.calcularPensionesPorCobrar);
+exports.pensionRouter.get('/get-alumnos-riesgo-suspension', verifyCredentials_1.verifyCredentials, pension_1.default.getAlumnosEnRiesgoDeSuspension);

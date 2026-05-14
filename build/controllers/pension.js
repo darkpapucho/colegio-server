@@ -21,6 +21,18 @@ const pensionTablePdf_1 = require("../utils/pensionTablePdf");
 const generateReciboPension_1 = __importDefault(require("../utils/generateReciboPension"));
 const fs_1 = require("fs");
 class PensionController {
+    static getAlumnosEnRiesgoDeSuspension(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const response = yield pension_1.default.getAlumnosEnRiesgoDeSuspension({ nivel, year });
+                res.send((0, responses_1.responseOk)(response));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static calcularPensionesPorCobrar(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

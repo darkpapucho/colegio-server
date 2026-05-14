@@ -13,13 +13,18 @@ import Cursos from './Cursos'
 import { CURSO_SALON } from '../types/cursos'
 
 export class Alumno {
-  static async agregarApoderado({ alumnoId, apoderado, nivel,year }: { alumnoId: string; apoderado: Apoderado, nivel:Nivel, year: Year }) {
+  static async agregarApoderado({ alumnoId, apoderado, nivel, year }: { alumnoId: string; apoderado: Apoderado; nivel: Nivel; year: Year }) {
     const response = await mongoClient
-      .db().collection(`matriculados${nivel}${year}`).updateOne({ _id: new ObjectId(alumnoId) }, { $push: { apoderados: apoderado } })
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .updateOne({ _id: new ObjectId(alumnoId) }, { $push: { apoderados: apoderado } })
     return response
   }
-  static async editarApoderado({ alumnoId, apoderado, nivel, year }: { alumnoId: string; apoderado: Apoderado, nivel:Nivel, year: Year }) { 
-    const response = await mongoClient.db().collection(`matriculados${nivel}${year}`).updateOne({ _id: new ObjectId(alumnoId), "apoderados._id": new ObjectId(apoderado._id) }, { $set: { "apoderados.$": apoderado } })  
+  static async editarApoderado({ alumnoId, apoderado, nivel, year }: { alumnoId: string; apoderado: Apoderado; nivel: Nivel; year: Year }) {
+    const response = await mongoClient
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .updateOne({ _id: new ObjectId(alumnoId), 'apoderados._id': new ObjectId(apoderado._id) }, { $set: { 'apoderados.$': apoderado } })
     return response
   }
   static async ProcesoNuevoMatricula({ nivel, year, alumno }: { nivel: Nivel; year: Year; alumno: NuevoAlumno }) {
@@ -110,7 +115,7 @@ export class Alumno {
         .db()
         .collection(matriculadosCollection)
         .aggregate<{ nombreCompleto: string; alumnoId: ObjectId; asistencia: AsistenciaValue }>([
-          { $match: { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA', 'EN PROCESO'] } } },
+          { $match: { grado, seccion, estadoMatricula: { $in: ['DEFINITIVA'] } } },
           { $lookup: { from: asistenciasCollection, localField: '_id', foreignField: 'alumnoId', as: 'asistencia' } },
           { $project: { nombreCompleto: 1, _id: 0, recordAsistencia: { $arrayElemAt: ['$asistencia', 0] } } },
           { $project: { nombreCompleto: 1, alumnoId: '$recordAsistencia.alumnoId', records: `$recordAsistencia.records` } },
@@ -203,7 +208,7 @@ export class Alumno {
     const cursor = await mongoClient
       .db()
       .collection(`matriculados${nivel}${year}`)
-      .distinct('_id', { grado, seccion, estadoMatricula: { $in: estadoMatricula ? [...estadoMatricula] : ['DEFINITIVA', 'EN PROCESO', 'PENDIENTE'] } })
+      .distinct('_id', { grado, seccion, estadoMatricula: { $in: estadoMatricula ? [...estadoMatricula] : ['DEFINITIVA'] } })
     const records = []
     for await (const doc of cursor) {
       records.push(doc)
@@ -380,7 +385,7 @@ export class Alumno {
       const cursor = mongoClient
         .db()
         .collection<AMatriculado>(`matriculados${nivel}${year}`)
-        .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } }, { projection: projection || {} })
+        .find({ grado, seccion, estadoMatricula: { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA'] } }, { projection: projection || {} })
       for await (const doc of cursor) {
         alumnos.push(doc)
       }

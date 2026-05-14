@@ -17,7 +17,7 @@ type NuevoApoderado = {
 
 type Apoderado = NuevoApoderado & { _id: string }
 
-type EstadoMatricula = 'DEFINITIVA' | 'EN PROCESO' | 'PENDIENTE' | 'TRASLADADO'
+type EstadoMatricula = 'DEFINITIVA' | 'SUSPENDIDO' | 'RETIRADO' | 'TRASLADADO'
 
 export interface AMatriculado {
   _id: string | ObjectId
@@ -71,13 +71,12 @@ export type AsistenciaRecord = {
   asistencia: AsistenciaValue
 }
 
-
 export type Apoderado = {
-  _id:string|ObjectId,
+  _id: string | ObjectId
   nombres: string
   apellidos: string
-  dni:string,
-  telefono:string,
-  correo:string ,
-  relacion:"MADRE" | "PADRE" | "APODERADO"
+  dni: string
+  telefono: string
+  correo: string
+  relacion: 'MADRE' | 'PADRE' | 'APODERADO'
 }

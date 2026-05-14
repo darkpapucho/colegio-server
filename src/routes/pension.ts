@@ -16,3 +16,4 @@ pensionRouter.get('/fetch-recibo-by-id', verifyCredentials, PensionController.re
 pensionRouter.post('/fetch-atrasados-list', verifyCredentials, PensionController.getRetrasadosList)
 pensionRouter.post('/cobrar-pension', verifyCredentials, PensionController.cobrarPension)
 pensionRouter.get('/calcular-pensiones-por-cobrar', verifyCredentials, PensionController.calcularPensionesPorCobrar)
+pensionRouter.get('/get-alumnos-riesgo-suspension', verifyCredentials, PensionController.getAlumnosEnRiesgoDeSuspension)

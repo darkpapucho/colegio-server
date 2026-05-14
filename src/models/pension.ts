@@ -8,6 +8,73 @@ import { CorrelativoType } from '../types/correlativos'
 import { ReciboData } from '../types/recibo'
 
 export default class Pension {
+  static async getAlumnosEnRiesgoDeSuspension({ nivel, year }: { nivel: Nivel; year: Year }) {
+    const currentMonth = new Date().getMonth()
+    const numDePensionesAtrasadasAntesDeSuspension = 2
+    const response = mongoClient
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .aggregate([
+        {
+          $match: { estadoMatricula: 'DEFINITIVA' },
+        },
+        {
+          $lookup: {
+            from: `pensiones${nivel}${year}`,
+            localField: '_id',
+            foreignField: 'alumnoId',
+            as: 'pensiones',
+          },
+        },
+        { $unwind: '$pensiones' },
+        {
+          $addFields: {
+            numPensionesAtrasadas: {
+              $size: {
+                $filter: {
+                  input: '$pensiones.pensiones',
+                  as: 'pension',
+                  cond: {
+                    $and: [{ $gte: ['$$pension.mes', 1] }, { $lt: ['$$pension.mes', currentMonth] }, { $eq: ['$$pension.pagado', false] }],
+                  },
+                },
+              },
+            },
+          },
+        },
+        { $match: { numPensionesAtrasadas: { $gte: numDePensionesAtrasadasAntesDeSuspension } } },
+        {
+          $addFields: {
+            pensionesAtrasadas: {
+              $filter: {
+                input: '$pensiones.pensiones',
+                as: 'p',
+                cond: {
+                  $and: [{ $lt: ['$$p.mes', currentMonth] }, { $eq: ['$$p.pagado', false] }],
+                },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            nombreCompleto: 1,
+            grado: 1,
+            seccion: 1,
+            pensiones: '$pensionesAtrasadas',
+            apoderados: 1,
+            ultimoCobro: '$pensiones.ultimoCobro',
+            numPensionesAtrasadas: 1,
+          },
+        },
+      ])
+    const result = []
+    for await (const doc of response) {
+      result.push(doc)
+    }
+    return result
+  }
   static async calcularPensionesPorCobrar({ nivel, year }: { nivel: Nivel; year: Year }) {
     const currentMonth = new Date().getMonth()
     const response = mongoClient
@@ -50,6 +117,7 @@ export default class Pension {
             mesesDeuda: { $gt: 0 }, // Solo alumnos con deuda
           },
         },
+
         {
           $group: {
             _id: '$mesesDeuda',
@@ -322,7 +390,7 @@ export default class Pension {
           $match: {
             'estudiante.grado': grado,
             'estudiante.seccion': seccion,
-            'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+            'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA'] },
           },
         },
         { $sort: { 'estudiante.nombreCompleto': 1 } },
@@ -344,7 +412,7 @@ export default class Pension {
         [
           { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'estudiante' } },
           { $project: { pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
-          { $match: { 'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] } } },
+          { $match: { 'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA'] } } },
           { $project: { nombreCompleto: '$estudiante.nombreCompleto', grado: '$estudiante.grado', seccion: '$estudiante.seccion', pensiones: 1 } },
         ],
         { session },

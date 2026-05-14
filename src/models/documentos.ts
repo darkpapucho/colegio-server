@@ -191,7 +191,7 @@ export default class Documento {
             $match: {
               'estudiante.grado': grado,
               'estudiante.seccion': seccion,
-              'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+              'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA'] },
             },
           },
         ])
@@ -212,7 +212,7 @@ export default class Documento {
             $match: {
               'estudiante.grado': grado,
               'estudiante.seccion': seccion,
-              'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA', 'EN PROCESO'] },
+              'estudiante.estadoMatricula': { $in: estadosMatricula ? [...estadosMatricula] : ['DEFINITIVA'] },
             },
           },
         ])
