@@ -13,6 +13,24 @@ import generateReciboPension from '../utils/generateReciboPension'
 import { createWriteStream } from 'fs'
 
 export default class PensionController {
+  static async getHistorialRecaudaciones(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const result = await Pension.getHistorialRecaudaciones({ nivel, year })
+      res.send(responseOk(result))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async getRecaudacionMesActual(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const data = await Pension.getRecaudacionMesActual({ nivel, year })
+      res.send(responseOk(data))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async getAlumnosEnRiesgoDeSuspension(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

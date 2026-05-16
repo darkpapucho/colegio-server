@@ -20,6 +20,101 @@ const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const asistencia_1 = require("../types/asistencia");
 class Pension {
+    static getHistorialRecaudaciones({ nivel, year }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const currentMonth = new Date().getMonth();
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .aggregate([
+                { $match: { estadoMatricula: 'DEFINITIVA' } },
+                { $lookup: { from: `pensiones${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'pensiones' } },
+                { $unwind: '$pensiones' },
+                {
+                    $addFields: {
+                        data: {
+                            $filter: {
+                                input: '$pensiones.pensiones',
+                                as: 'p',
+                                cond: {
+                                    $lte: ['$$p.mes', currentMonth],
+                                },
+                            },
+                        },
+                    },
+                },
+                {
+                    $unwind: '$data',
+                },
+                { $project: { data: 1 } },
+                {
+                    $group: {
+                        _id: '$data.mes',
+                        total: { $sum: '$data.monto_pagar' },
+                        recaudado: { $sum: '$data.monto_pagado' },
+                        pendiente: { $sum: { $subtract: ['$data.monto_pagar', '$data.monto_pagado'] } },
+                        // porcentaje: { $cond: [{ $eq: ['$data.monto_pagar', 0] }, 0, { $avg: { $multiply: [{ $divide: ['$data.monto_pagado', '$data.monto_pagar'] }, 100] } }] },
+                    },
+                },
+                {
+                    $addFields: {
+                        porcentaje: {
+                            $cond: [{ $eq: ['$total', 0] }, 0, { $multiply: [100, { $divide: ['$recaudado', '$total'] }] }],
+                        },
+                    },
+                },
+                { $sort: { _id: 1 } },
+            ])
+                .toArray();
+            return response;
+        });
+    }
+    static getRecaudacionMesActual({ nivel, year }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const currentMonth = new Date().getMonth();
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`alumnos${nivel}${year}`)
+                .aggregate([
+                {
+                    $match: {
+                        estadoMatricula: 'DEFINITIVA',
+                    },
+                },
+                {
+                    $lookup: {
+                        from: `pensiones${nivel}${year}`,
+                        localField: '_id',
+                        foreignField: 'alumnoId',
+                        as: 'pensiones',
+                    },
+                },
+                {
+                    $addFields: {
+                        currentMonth: {
+                            $filter: {
+                                input: '$pensiones.pensiones',
+                                as: 'p',
+                                cond: { $eq: ['$$p.mes', currentMonth] },
+                            },
+                        },
+                    },
+                },
+                {
+                    $unwind: '$currentMonth',
+                },
+                {
+                    $group: {
+                        _id: null,
+                        total: { $sum: '$currentMonth.monto_pagar' },
+                        recaudado: { $sum: '$currenthMonth.monto_pagado' },
+                    },
+                },
+            ])
+                .toArray();
+            return response[0];
+        });
+    }
     static getAlumnosEnRiesgoDeSuspension({ nivel, year }) {
         var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {

@@ -17,3 +17,5 @@ pensionRouter.post('/fetch-atrasados-list', verifyCredentials, PensionController
 pensionRouter.post('/cobrar-pension', verifyCredentials, PensionController.cobrarPension)
 pensionRouter.get('/calcular-pensiones-por-cobrar', verifyCredentials, PensionController.calcularPensionesPorCobrar)
 pensionRouter.get('/get-alumnos-riesgo-suspension', verifyCredentials, PensionController.getAlumnosEnRiesgoDeSuspension)
+pensionRouter.get('/get-recaudacion-mes-actual', verifyCredentials, PensionController.getRecaudacionMesActual)
+pensionRouter.get('/get-historial-recaudaciones', verifyCredentials, PensionController.getHistorialRecaudaciones)

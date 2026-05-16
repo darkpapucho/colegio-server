@@ -8,6 +8,99 @@ import { CorrelativoType } from '../types/correlativos'
 import { ReciboData } from '../types/recibo'
 
 export default class Pension {
+  static async getHistorialRecaudaciones({ nivel, year }: { nivel: Nivel; year: Year }) {
+    const currentMonth = new Date().getMonth()
+    const response = await mongoClient
+      .db()
+      .collection(`matriculados${nivel}${year}`)
+      .aggregate([
+        { $match: { estadoMatricula: 'DEFINITIVA' } },
+        { $lookup: { from: `pensiones${nivel}${year}`, localField: '_id', foreignField: 'alumnoId', as: 'pensiones' } },
+        { $unwind: '$pensiones' },
+        {
+          $addFields: {
+            data: {
+              $filter: {
+                input: '$pensiones.pensiones',
+                as: 'p',
+                cond: {
+                  $lte: ['$$p.mes', currentMonth],
+                },
+              },
+            },
+          },
+        },
+        {
+          $unwind: '$data',
+        },
+        { $project: { data: 1 } },
+        {
+          $group: {
+            _id: '$data.mes',
+            total: { $sum: '$data.monto_pagar' },
+            recaudado: { $sum: '$data.monto_pagado' },
+            pendiente: { $sum: { $subtract: ['$data.monto_pagar', '$data.monto_pagado'] } },
+            // porcentaje: { $cond: [{ $eq: ['$data.monto_pagar', 0] }, 0, { $avg: { $multiply: [{ $divide: ['$data.monto_pagado', '$data.monto_pagar'] }, 100] } }] },
+          },
+        },
+        {
+          $addFields: {
+            porcentaje: {
+              $cond: [{ $eq: ['$total', 0] }, 0, { $multiply: [100, { $divide: ['$recaudado', '$total'] }] }],
+            },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ])
+      .toArray()
+    return response
+  }
+  static async getRecaudacionMesActual({ nivel, year }: { nivel: Nivel; year: Year }) {
+    const currentMonth = new Date().getMonth()
+
+    const response = await mongoClient
+      .db()
+      .collection(`alumnos${nivel}${year}`)
+      .aggregate([
+        {
+          $match: {
+            estadoMatricula: 'DEFINITIVA',
+          },
+        },
+        {
+          $lookup: {
+            from: `pensiones${nivel}${year}`,
+            localField: '_id',
+            foreignField: 'alumnoId',
+            as: 'pensiones',
+          },
+        },
+        {
+          $addFields: {
+            currentMonth: {
+              $filter: {
+                input: '$pensiones.pensiones',
+                as: 'p',
+                cond: { $eq: ['$$p.mes', currentMonth] },
+              },
+            },
+          },
+        },
+        {
+          $unwind: '$currentMonth',
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$currentMonth.monto_pagar' },
+            recaudado: { $sum: '$currenthMonth.monto_pagado' },
+          },
+        },
+      ])
+      .toArray()
+
+    return response[0]
+  }
   static async getAlumnosEnRiesgoDeSuspension({ nivel, year }: { nivel: Nivel; year: Year }) {
     const currentMonth = new Date().getMonth()
     const numDePensionesAtrasadasAntesDeSuspension = 2
