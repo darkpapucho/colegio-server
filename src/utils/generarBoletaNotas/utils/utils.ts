@@ -129,10 +129,16 @@ export function conclusionesDescriptivasTabla({
   document.text('4', 50, 89 + 132, { width: 70, align: 'center' })
   let count = 0
   for (const conclusion of conclusionesDescriptivas) {
+    const length = conclusion.length
+
+    let sub = conclusion.substring(0, 170)
+    if (length > 180) {
+      sub = (sub + '...').trim()
+    }
     document
       .fillColor('#202020')
       .fontSize(9)
-      .text(conclusion, 124, 78 + count, { width: 422, align: 'justify' })
+      .text(sub, 124, 78 + count, { width: 422, align: 'left' })
     count += 44
   }
 }
