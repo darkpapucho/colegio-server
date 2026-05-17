@@ -190,7 +190,9 @@ function tablaNotasDatosInicial({ document, cursos, grado }) {
             for (const CURSO_INICIAL_5 of constants_1.CURSOS_INICIAL_5_BOLETA_NOTAS) {
                 for (let i = 0; i < cursos[CURSO_INICIAL_5.key].numCompetencias; i++) {
                     //una nota por cada competencia
-                    document.fontSize(9).text(cursos[CURSO_INICIAL_5.key][periodo][i] ? cursos[CURSO_INICIAL_5.key][periodo][i] : ' ', 315 + vars_1.NOTA_CELDA_WIDTH * (0, utils_1.convertPeriodoKeyToIndex)(periodo), 237 + count, { width: 30, align: 'center' });
+                    document
+                        .fontSize(9)
+                        .text(cursos[CURSO_INICIAL_5.key][periodo][i] ? cursos[CURSO_INICIAL_5.key][periodo][i] : ' ', 315 + vars_1.NOTA_CELDA_WIDTH * (0, utils_1.convertPeriodoKeyToIndex)(periodo), 237 + count, { width: 30, align: 'center' });
                     count += vars_1.NOTA_CELDA_HEIGHT;
                 }
             }
@@ -202,7 +204,9 @@ function tablaNotasDatosInicial({ document, cursos, grado }) {
         for (const periodo of PERIODOS) {
             for (const CURSO_INICIAL_3_4 of constants_1.CURSOS_INICIAL_3_4_BOLETA_NOTAS) {
                 for (let i = 0; i < cursos[CURSO_INICIAL_3_4.key].numCompetencias; i++) {
-                    document.fontSize(9).text(cursos[CURSO_INICIAL_3_4.key][periodo][i] ? cursos[CURSO_INICIAL_3_4.key][periodo][i] : ' ', 315 + vars_1.NOTA_CELDA_WIDTH * (0, utils_1.convertPeriodoKeyToIndex)(periodo), 237 + count, { width: 30, align: 'center' });
+                    document
+                        .fontSize(9)
+                        .text(cursos[CURSO_INICIAL_3_4.key][periodo][i] ? cursos[CURSO_INICIAL_3_4.key][periodo][i] : ' ', 315 + vars_1.NOTA_CELDA_WIDTH * (0, utils_1.convertPeriodoKeyToIndex)(periodo), 237 + count, { width: 30, align: 'center' });
                     count += vars_1.NOTA_CELDA_HEIGHT;
                 }
             }

@@ -1,8 +1,29 @@
 import { CursoNotaRecord } from '../../../types/documents'
 import { Grado } from '../../../types/enums'
-import { CURSOS_INICIAL_3_4_BOLETA_NOTAS, CURSOS_INICIAL_5_BOLETA_NOTAS, ESPACIOS_ENTRE_CURSOS_INICIAL, NUMERO_COMPETENCIAS_3_4_INICIAL, NUMERO_COMPETENCIAS_5_INICIAL } from '../../../vars/constants'
+import {
+  CURSOS_INICIAL_3_4_BOLETA_NOTAS,
+  CURSOS_INICIAL_5_BOLETA_NOTAS,
+  ESPACIOS_ENTRE_CURSOS_INICIAL,
+  NUMERO_COMPETENCIAS_3_4_INICIAL,
+  NUMERO_COMPETENCIAS_5_INICIAL,
+} from '../../../vars/constants'
 import { convertPeriodoKeyToIndex } from './utils'
-import { BOLD_FONT, BORDER_COLOR, COMPETENCIA_CELDA_WIDTH, CONCLUSION_DESCRIPTIVA_CELDA_WIDTH, CURSO_CELDA_WIDTH, FILL_COLOR, HEADER_FONT_COLOR, MARGIN_LEFT, NORMAL_FONT, NOTAS_TABLE_HEADER_HEIGHT, NOTAS_TABLE_WIDTH, NOTA_CELDA_HEIGHT, NOTA_CELDA_WIDTH, TEXT_COLOR } from './vars'
+import {
+  BOLD_FONT,
+  BORDER_COLOR,
+  COMPETENCIA_CELDA_WIDTH,
+  CONCLUSION_DESCRIPTIVA_CELDA_WIDTH,
+  CURSO_CELDA_WIDTH,
+  FILL_COLOR,
+  HEADER_FONT_COLOR,
+  MARGIN_LEFT,
+  NORMAL_FONT,
+  NOTAS_TABLE_HEADER_HEIGHT,
+  NOTAS_TABLE_WIDTH,
+  NOTA_CELDA_HEIGHT,
+  NOTA_CELDA_WIDTH,
+  TEXT_COLOR,
+} from './vars'
 
 export function tablaNotasEstructuraInicial({ document, grado }: { document: PDFKit.PDFDocument; grado: Grado }) {
   if (grado === 'Grupo 5 años') {
@@ -63,7 +84,10 @@ export function tablaNotasEstructuraInicial({ document, grado }: { document: PDF
         .stroke()
       document
         .moveTo(MARGIN_LEFT + CURSO_CELDA_WIDTH + COMPETENCIA_CELDA_WIDTH + 5 * NOTA_CELDA_WIDTH, initialHeight + NOTA_CELDA_HEIGHT * curso.competencias.length)
-        .lineTo(MARGIN_LEFT + CURSO_CELDA_WIDTH + COMPETENCIA_CELDA_WIDTH + 5 * NOTA_CELDA_WIDTH + NOTA_CELDA_WIDTH + CONCLUSION_DESCRIPTIVA_CELDA_WIDTH, initialHeight + NOTA_CELDA_HEIGHT * curso.competencias.length)
+        .lineTo(
+          MARGIN_LEFT + CURSO_CELDA_WIDTH + COMPETENCIA_CELDA_WIDTH + 5 * NOTA_CELDA_WIDTH + NOTA_CELDA_WIDTH + CONCLUSION_DESCRIPTIVA_CELDA_WIDTH,
+          initialHeight + NOTA_CELDA_HEIGHT * curso.competencias.length,
+        )
         .stroke()
       initialHeight += NOTA_CELDA_HEIGHT * curso.competencias.length
     }
@@ -123,7 +147,10 @@ export function tablaNotasEstructuraInicial({ document, grado }: { document: PDF
         .stroke()
       document
         .moveTo(MARGIN_LEFT + CURSO_CELDA_WIDTH + COMPETENCIA_CELDA_WIDTH + 5 * NOTA_CELDA_WIDTH, initialHeight + NOTA_CELDA_HEIGHT * curso.competencias.length)
-        .lineTo(MARGIN_LEFT + CURSO_CELDA_WIDTH + COMPETENCIA_CELDA_WIDTH + 5 * NOTA_CELDA_WIDTH + NOTA_CELDA_WIDTH + CONCLUSION_DESCRIPTIVA_CELDA_WIDTH, initialHeight + NOTA_CELDA_HEIGHT * curso.competencias.length)
+        .lineTo(
+          MARGIN_LEFT + CURSO_CELDA_WIDTH + COMPETENCIA_CELDA_WIDTH + 5 * NOTA_CELDA_WIDTH + NOTA_CELDA_WIDTH + CONCLUSION_DESCRIPTIVA_CELDA_WIDTH,
+          initialHeight + NOTA_CELDA_HEIGHT * curso.competencias.length,
+        )
         .stroke()
       initialHeight += NOTA_CELDA_HEIGHT * curso.competencias.length
     }
@@ -192,6 +219,7 @@ export function tablaNotasCamposInicial({ document, grado }: { document: PDFKit.
 //notas de los cursos
 export function tablaNotasDatosInicial({ document, cursos, grado }: { grado: Grado; document: PDFKit.PDFDocument; cursos: { [key: string]: CursoNotaRecord } }) {
   //inicial
+
   const PERIODOS: (keyof Omit<CursoNotaRecord, 'numCompetencias'>)[] = ['primerPeriodo', 'segundoPeriodo', 'tercerPeriodo', 'cuartoPeriodo']
   document.fill(TEXT_COLOR).font(NORMAL_FONT)
   if (grado === 'Grupo 5 años') {
@@ -200,7 +228,14 @@ export function tablaNotasDatosInicial({ document, cursos, grado }: { grado: Gra
       for (const CURSO_INICIAL_5 of CURSOS_INICIAL_5_BOLETA_NOTAS) {
         for (let i = 0; i < cursos[CURSO_INICIAL_5.key].numCompetencias; i++) {
           //una nota por cada competencia
-          document.fontSize(9).text(cursos[CURSO_INICIAL_5.key][periodo][i] ? cursos[CURSO_INICIAL_5.key][periodo][i] : ' ', 315 + NOTA_CELDA_WIDTH * convertPeriodoKeyToIndex(periodo), 237 + count, { width: 30, align: 'center' })
+          document
+            .fontSize(9)
+            .text(
+              cursos[CURSO_INICIAL_5.key][periodo][i] ? cursos[CURSO_INICIAL_5.key][periodo][i] : ' ',
+              315 + NOTA_CELDA_WIDTH * convertPeriodoKeyToIndex(periodo),
+              237 + count,
+              { width: 30, align: 'center' },
+            )
           count += NOTA_CELDA_HEIGHT
         }
       }
@@ -211,7 +246,14 @@ export function tablaNotasDatosInicial({ document, cursos, grado }: { grado: Gra
     for (const periodo of PERIODOS) {
       for (const CURSO_INICIAL_3_4 of CURSOS_INICIAL_3_4_BOLETA_NOTAS) {
         for (let i = 0; i < cursos[CURSO_INICIAL_3_4.key].numCompetencias; i++) {
-          document.fontSize(9).text(cursos[CURSO_INICIAL_3_4.key][periodo][i] ? cursos[CURSO_INICIAL_3_4.key][periodo][i] : ' ', 315 + NOTA_CELDA_WIDTH * convertPeriodoKeyToIndex(periodo), 237 + count, { width: 30, align: 'center' })
+          document
+            .fontSize(9)
+            .text(
+              cursos[CURSO_INICIAL_3_4.key][periodo][i] ? cursos[CURSO_INICIAL_3_4.key][periodo][i] : ' ',
+              315 + NOTA_CELDA_WIDTH * convertPeriodoKeyToIndex(periodo),
+              237 + count,
+              { width: 30, align: 'center' },
+            )
           count += NOTA_CELDA_HEIGHT
         }
       }

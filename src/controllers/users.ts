@@ -29,7 +29,7 @@ export class UserControllers {
       const { username, password, nivel, year } = req.body
       const usersCollectionName = `users${nivel}`
       const empleadosCollectionName = `empleados${nivel}${year}`
-      console.log({ username, password, nivel, year })
+
       const userCredentials = await User.getByUsername({ collectionName: usersCollectionName, username })
 
       assert(userCredentials != null, ErrorMessages.INVALID_CREDENTIALS)

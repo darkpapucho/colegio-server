@@ -47,9 +47,9 @@ export function fillDataInBoletaNotaPerStudent({ document, registro, year, nivel
 
 export function generatePDFBuffer({ nivel, year, registro }: { registro: ExtendedRegistroNota; year: Year; nivel: Nivel }): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const pdfBuffer: Buffer[] = []
+    const pdfBuffer: Uint8Array[] = []
     const pdfDocument = new PdfDocument({ layout: 'portrait', size: 'A4', font: 'Courier', margins: { top: 20, left: 20, right: 20, bottom: 20 }, autoFirstPage: false })
-    pdfDocument.on('data', (data: Buffer) => pdfBuffer.push(data))
+    pdfDocument.on('data', (data: Uint8Array) => pdfBuffer.push(data))
     pdfDocument.on('end', () => resolve(Buffer.concat(pdfBuffer)))
     pdfDocument.on('error', (err: unknown) => reject(err))
     fillDataInBoletaNotaPerStudent({ nivel, year, registro, document: pdfDocument })

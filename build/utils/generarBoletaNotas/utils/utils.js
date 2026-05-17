@@ -125,11 +125,16 @@ function conclusionesDescriptivasTabla({ document, conclusionesDescriptivas, }) 
     document.text('4', 50, 89 + 132, { width: 70, align: 'center' });
     let count = 0;
     for (const conclusion of conclusionesDescriptivas) {
-        const length = conclusion.length;
-        let sub = conclusion.substring(0, 170);
-        if (length > 180) {
-            sub = (sub + '...').trim();
+        const trimmed = conclusion.trim();
+        const length = trimmed.length;
+        let sub = '';
+        if (length > 0) {
+            sub = trimmed.substring(0, 170);
+            if (length > 170) {
+                sub = sub + '...';
+            }
         }
+        console.log({ sub });
         document
             .fillColor('#202020')
             .fontSize(9)
