@@ -4,14 +4,14 @@ exports.parseMonthNameToMonthNumber1to12 = exports.convertNumberToMonthName = ex
 const enums_1 = require("../error/enums");
 const asistencia_1 = require("../types/asistencia");
 const calendario_1 = require("../utils/calendario");
-exports.primerPeriodoStart = '03-03-2025'; //MM-DD-YYYY
-exports.primerPeriodoEnd = '05-09-2025';
-exports.segundoPeriodoStart = '05-12-2025';
-exports.segundoPeriodoEnd = '07-18-2025';
-exports.tercerPeriodoStart = '08-04-2025';
-exports.tercerPeriodoEnd = '10-10-2025';
-exports.cuartoPeriodoStart = '10-13-2025';
-exports.cuartoPeriodoEnd = '12-19-2025';
+exports.primerPeriodoStart = '03-02-2026'; //MM-DD-YYYY
+exports.primerPeriodoEnd = '05-08-2026';
+exports.segundoPeriodoStart = '05-11-2026';
+exports.segundoPeriodoEnd = '07-17-2026';
+exports.tercerPeriodoStart = '08-03-2026';
+exports.tercerPeriodoEnd = '10-09-2026';
+exports.cuartoPeriodoStart = '10-12-2026';
+exports.cuartoPeriodoEnd = '12-18-2026';
 function getPeriodoStartDate(periodo) {
     switch (periodo) {
         case 'primerPeriodo':

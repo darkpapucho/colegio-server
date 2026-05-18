@@ -127,8 +127,8 @@ export default class DocumentoControllers {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { grado, seccion, estadosMatricula, zipped, excluirAtrasados } = req.body
 
-      assertGrado(grado)
-      assertSeccion(seccion)
+      // assertGrado(grado)
+      // assertSeccion(seccion)
 
       const registros = await Documento.getRegistrosByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula, excluirAtrasados })
 

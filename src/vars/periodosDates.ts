@@ -3,14 +3,14 @@ import { Periodo } from '../types/alumno'
 import { Month, VALID_MONTHS } from '../types/asistencia'
 import { MONTHS_YEAR } from '../utils/calendario'
 
-export const primerPeriodoStart = '03-03-2025' //MM-DD-YYYY
-export const primerPeriodoEnd = '05-09-2025'
-export const segundoPeriodoStart = '05-12-2025'
-export const segundoPeriodoEnd = '07-18-2025'
-export const tercerPeriodoStart = '08-04-2025'
-export const tercerPeriodoEnd = '10-10-2025'
-export const cuartoPeriodoStart = '10-13-2025'
-export const cuartoPeriodoEnd = '12-19-2025'
+export const primerPeriodoStart = '03-02-2026' //MM-DD-YYYY
+export const primerPeriodoEnd = '05-08-2026'
+export const segundoPeriodoStart = '05-11-2026'
+export const segundoPeriodoEnd = '07-17-2026'
+export const tercerPeriodoStart = '08-03-2026'
+export const tercerPeriodoEnd = '10-09-2026'
+export const cuartoPeriodoStart = '10-12-2026'
+export const cuartoPeriodoEnd = '12-18-2026'
 
 export function getPeriodoStartDate(periodo: Periodo) {
   switch (periodo) {

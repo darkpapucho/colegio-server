@@ -114,10 +114,9 @@ class NotasController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                if (nivel !== 'primaria')
-                    throw new Error('Esta ruta solo aplica al nivel primaria');
+                if (nivel === 'inicial')
+                    throw new Error('Esta ruta solo aplica al nivel primaria y secundaria');
                 const { grado, seccion, zipped, estadosMatricula, excluirAtrasados, } = req.body;
-                // console.log({ nivel, year, zipped })
                 const tutor = yield empleado_1.default.findTutorByGradoSeccion({ grado, seccion, nivel, year });
                 const registro = yield Notas_1.default.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados });
                 const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, grado, year });

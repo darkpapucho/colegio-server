@@ -105,15 +105,15 @@ export default class NotasController {
   static async generateLibretasPrimaria(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      if (nivel !== 'primaria') throw new Error('Esta ruta solo aplica al nivel primaria')
+      if (nivel === 'inicial') throw new Error('Esta ruta solo aplica al nivel primaria y secundaria')
       const {
         grado,
         seccion,
         zipped,
         estadosMatricula,
         excluirAtrasados,
-      }: { excluirAtrasados: boolean; grado: Grado; seccion: Seccion; all: boolean; zipped: boolean; estadosMatricula: EstadoMatricula[] } = req.body
-      // console.log({ nivel, year, zipped })
+      }: { excluirAtrasados: boolean; grado: Grado; seccion: Seccion; zipped: boolean; estadosMatricula: EstadoMatricula[] } = req.body
+
       const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
       const registro = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados })
       const cursosSalon = await Cursos.getCursosSalon({ nivel, grado, year })

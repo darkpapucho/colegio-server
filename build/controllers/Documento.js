@@ -169,8 +169,8 @@ class DocumentoControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { grado, seccion, estadosMatricula, zipped, excluirAtrasados } = req.body;
-                (0, global_1.assertGrado)(grado);
-                (0, global_1.assertSeccion)(seccion);
+                // assertGrado(grado)
+                // assertSeccion(seccion)
                 const registros = yield documentos_1.default.getRegistrosByGradoSeccion({ grado, seccion, nivel, year, estadosMatricula, excluirAtrasados });
                 //creacion de la libreta
                 //zip archive
