@@ -29,6 +29,9 @@ export default class NotasController {
         const ponderado = ((academico + conducta) / 2).toFixed(2)
         result.push({ alumno: row.alumno, academico: academico.toFixed(2), conducta: conducta.toFixed(2), ponderado })
       })
+      const sortedResult = result.sort((prev, curr) => {
+        return Number(prev.ponderado) < Number(curr.ponderado) ? 1 : -1
+      })
 
       const reporte = new PdfDocument({
         layout: 'portrait',
@@ -38,12 +41,7 @@ export default class NotasController {
         autoFirstPage: false,
       })
       reporte.pipe(res)
-      generateInformeRendimientoAcademicoPDF(
-        reporte,
-        grado,
-        seccion,
-        result.sort((prev, curr) => (prev.ponderado < curr.ponderado ? 1 : -1)),
-      )
+      generateInformeRendimientoAcademicoPDF(reporte, grado, seccion, sortedResult)
       reporte.end()
     } catch (err) {
       errorResponseHandler(res, err)

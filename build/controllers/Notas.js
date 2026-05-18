@@ -39,6 +39,9 @@ class NotasController {
                     const ponderado = ((academico + conducta) / 2).toFixed(2);
                     result.push({ alumno: row.alumno, academico: academico.toFixed(2), conducta: conducta.toFixed(2), ponderado });
                 });
+                const sortedResult = result.sort((prev, curr) => {
+                    return Number(prev.ponderado) < Number(curr.ponderado) ? 1 : -1;
+                });
                 const reporte = new pdfkit_1.default({
                     layout: 'portrait',
                     size: 'A4',
@@ -47,7 +50,7 @@ class NotasController {
                     autoFirstPage: false,
                 });
                 reporte.pipe(res);
-                (0, generarInformeRendimientoPDF_1.generateInformeRendimientoAcademicoPDF)(reporte, grado, seccion, result.sort((prev, curr) => (prev.ponderado < curr.ponderado ? 1 : -1)));
+                (0, generarInformeRendimientoPDF_1.generateInformeRendimientoAcademicoPDF)(reporte, grado, seccion, sortedResult);
                 reporte.end();
             }
             catch (err) {
