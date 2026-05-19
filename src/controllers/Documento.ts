@@ -91,7 +91,7 @@ export default class DocumentoControllers {
           throw new Error('No se encontró el record de notas del alumno')
         }
         generarBoletasDeNotasPdf({ res, registros: notasRecord, year, nivel })
-      } else if (nivel === 'primaria') {
+      } else {
         const notas = await Notas.getNotasByAlumnoId({ alumnoId, nivel, year })
         const alumnoData = await Alumno.getById({ nivel, year, id: alumnoId })
         if (!alumnoData) throw new Error('no se encontró al alumno')

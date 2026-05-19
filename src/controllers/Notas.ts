@@ -115,7 +115,6 @@ export default class NotasController {
       const tutor = await Empleado.findTutorByGradoSeccion({ grado, seccion, nivel, year })
       const registro = await Notas.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados })
       const cursosSalon = await Cursos.getCursosSalon({ nivel, grado, year })
-      //const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
 
       if (cursosSalon == null) throw new Error('error parsing data')
       if (zipped) {

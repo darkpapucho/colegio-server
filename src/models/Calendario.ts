@@ -413,19 +413,12 @@ export default class Calendario {
     const modifiedList = daysList.map((record) => {
       return { ...record, status: 'disabled', createdAt: currentTime } //removed salones:[]
     })
-    // console.log({ daysList, modifiedList })
+
     const response = await mongoClient
       .db()
       .collection(`calendario${nivel}${year}`)
       .insertMany([...modifiedList])
     return response
-    // modifiedList.forEach(async (record) => {
-    //   await mongoClient
-    //     .db()
-    //     .collection(`calendario${nivel}${year}`)
-    //     .updateOne({ month: record.month, day: record.day }, { $set: { ...record } }, { upsert: true })
-    // })
-    // mongoClient.db().collection(`asistencias${nivel}${year}`).updateMany()
   }
 
   static async fetchAsistenciaListByGradoSeccionDayId({

@@ -499,19 +499,11 @@ class Calendario {
             const modifiedList = daysList.map((record) => {
                 return Object.assign(Object.assign({}, record), { status: 'disabled', createdAt: currentTime }); //removed salones:[]
             });
-            // console.log({ daysList, modifiedList })
             const response = yield db_1.mongoClient
                 .db()
                 .collection(`calendario${nivel}${year}`)
                 .insertMany([...modifiedList]);
             return response;
-            // modifiedList.forEach(async (record) => {
-            //   await mongoClient
-            //     .db()
-            //     .collection(`calendario${nivel}${year}`)
-            //     .updateOne({ month: record.month, day: record.day }, { $set: { ...record } }, { upsert: true })
-            // })
-            // mongoClient.db().collection(`asistencias${nivel}${year}`).updateMany()
         });
     }
     static fetchAsistenciaListByGradoSeccionDayId({ nivel, year, grado, seccion, dayId, estadosMatricula, }) {

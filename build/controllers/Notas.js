@@ -123,7 +123,6 @@ class NotasController {
                 const tutor = yield empleado_1.default.findTutorByGradoSeccion({ grado, seccion, nivel, year });
                 const registro = yield Notas_1.default.getNotasByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, excluirAtrasados });
                 const cursosSalon = yield Cursos_1.default.getCursosSalon({ nivel, grado, year });
-                //const currentPeriodo = await Calendario.fetchCurrentPeriodo({ nivel, year })
                 if (cursosSalon == null)
                     throw new Error('error parsing data');
                 if (zipped) {

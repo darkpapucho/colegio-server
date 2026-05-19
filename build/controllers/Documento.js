@@ -134,7 +134,7 @@ class DocumentoControllers {
                     }
                     (0, generarBoletaNotas_1.default)({ res, registros: notasRecord, year, nivel });
                 }
-                else if (nivel === 'primaria') {
+                else {
                     const notas = yield Notas_1.default.getNotasByAlumnoId({ alumnoId, nivel, year });
                     const alumnoData = yield alumno_1.Alumno.getById({ nivel, year, id: alumnoId });
                     if (!alumnoData)
