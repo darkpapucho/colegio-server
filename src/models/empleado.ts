@@ -1,13 +1,27 @@
 import { Grado, Nivel, Seccion, Year } from '../types/enums'
 import { mongoClient } from '../db'
 import { ClientSession, ObjectId } from 'mongodb'
-import { ProfesorData } from '../types/user'
-import { Profesor } from '../types/empleado'
+import { Profesor, ProfesorData, Psicologo } from '../types/user'
 import { hashPassword } from '../utils/hashPassword'
 import { Curso, SalonProfesor } from '../types/salon'
 import { HorarioProfesorCell } from '../types/horarioProfesor'
 
 export default class Empleado {
+  static async findEmpleadoByDni({ nivel, year, dni, session }: { nivel: Nivel; year: Year; dni: string; session?: ClientSession }) {
+    const empleado = await mongoClient.db().collection(`empleados${nivel}${year}`).findOne({ dni }, { session })
+    return empleado
+  }
+  static async fetchPsicologos({ nivel, year, session }: { session?: ClientSession; nivel: Nivel; year: Year }) {
+    const data = await mongoClient.db().collection(`empleados${nivel}${year}`).find({ rol: 'psicologo' }, { session }).toArray()
+    return data
+  }
+  static async agregarPsicologo({ nivel, year, data, userId }: { userId: ObjectId; nivel: Nivel; year: Year; data: Psicologo }) {
+    const response = await mongoClient
+      .db()
+      .collection(`empleados${nivel}${year}`)
+      .insertOne({ ...data, rol: 'psicologo', userId })
+    return response
+  }
   static async findTutorByGradoSeccion({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
     const cursor = mongoClient
       .db()

@@ -34,6 +34,52 @@ const validators_1 = require("../utils/validators");
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 class EmpleadoControllers {
+    static fetchPsicologos(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const psicologos = yield empleado_1.default.fetchPsicologos({ nivel, year });
+                res.send((0, responses_1.responseOk)(psicologos));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static agregarPsicologo(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const session = db_1.mongoClient.startSession();
+                session.startTransaction();
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const data = req.body;
+                const empleado = yield empleado_1.default.findEmpleadoByDni({ nivel, year, dni: data.dni, session });
+                if (empleado) {
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    return res.send((0, responses_1.responseError)('User already exists'));
+                }
+                const response1 = yield user_1.User.crearNuevoUsuario({ nivel, dni: data.dni, session });
+                if (!response1.insertedId) {
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    return res.send((0, responses_1.responseError)('Error al crear nuevo usuario'));
+                }
+                const response2 = yield empleado_1.default.agregarPsicologo({ nivel, year, data, userId: response1.insertedId });
+                if (!response2.insertedId) {
+                    yield session.abortTransaction();
+                    yield session.endSession();
+                    return res.send((0, responses_1.responseError)('Error, no se pudo agregar los datos del nuevo psicólogo'));
+                }
+                yield session.commitTransaction();
+                yield session.endSession();
+                return res.send((0, responses_1.responseOk)(response2.acknowledged ? true : false));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static findTutorByGradoSeccion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -177,7 +223,7 @@ class EmpleadoControllers {
                 //create new user for the profesor
                 const session = db_1.mongoClient.startSession();
                 session.startTransaction();
-                const response = yield user_1.User.crearNuevoUsuarioProfesor({ nivel, dni: '' + profesorData.dni, session });
+                const response = yield user_1.User.crearNuevoUsuario({ nivel, dni: '' + profesorData.dni, session });
                 if (!response.insertedId) {
                     yield session.abortTransaction();
                     session.endSession();

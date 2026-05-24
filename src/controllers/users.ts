@@ -24,7 +24,7 @@ export class UserControllers {
       return errorResponseHandler(res, err)
     }
   }
-  static async loginProfesor(req: Request, res: Response) {
+  static async loginClient(req: Request, res: Response) {
     try {
       const { username, password, nivel, year } = req.body
       const usersCollectionName = `users${nivel}`
@@ -35,15 +35,16 @@ export class UserControllers {
       assert(userCredentials != null, ErrorMessages.INVALID_CREDENTIALS)
       //validation of the password:
       const isValidPassword = await compare(password, userCredentials.password)
+
       assert(isValidPassword, ErrorMessages.INVALID_CREDENTIALS)
 
       //fetch profesor:
-      const profesorInfo = await User.getProfesorInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id.toString() })
+      const userInfo = await User.getUserClientInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id.toString() })
 
-      assert(profesorInfo != null, ErrorMessages.INVALID_CREDENTIALS)
+      assert(userInfo != null, ErrorMessages.INVALID_CREDENTIALS)
       const token = signToken({ _id: userCredentials._id.toString() })
 
-      res.status(200).send(responseOk({ profesor: profesorInfo, token }))
+      res.status(200).send(responseOk({ user: userInfo, token }))
     } catch (err) {
       errorResponseHandler(res, err)
     }

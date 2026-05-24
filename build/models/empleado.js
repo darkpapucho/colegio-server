@@ -31,6 +31,27 @@ const db_1 = require("../db");
 const mongodb_1 = require("mongodb");
 const hashPassword_1 = require("../utils/hashPassword");
 class Empleado {
+    static findEmpleadoByDni({ nivel, year, dni, session }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const empleado = yield db_1.mongoClient.db().collection(`empleados${nivel}${year}`).findOne({ dni }, { session });
+            return empleado;
+        });
+    }
+    static fetchPsicologos({ nivel, year, session }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield db_1.mongoClient.db().collection(`empleados${nivel}${year}`).find({ rol: 'psicologo' }, { session }).toArray();
+            return data;
+        });
+    }
+    static agregarPsicologo({ nivel, year, data, userId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`empleados${nivel}${year}`)
+                .insertOne(Object.assign(Object.assign({}, data), { rol: 'psicologo', userId }));
+            return response;
+        });
+    }
     static findTutorByGradoSeccion({ nivel, year, grado, seccion }) {
         var _a, e_1, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {

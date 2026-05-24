@@ -7,10 +7,52 @@ import { assert, extractNivelYearFromHeaders } from '../utils/global'
 import { responseError, responseOk } from '../utils/responses'
 import { assertIsProfesorData } from '../utils/validators'
 import { Request, Response } from 'express'
-import { ObjectId } from 'mongodb'
+import { ClientSession, ObjectId } from 'mongodb'
 import { mongoClient } from '../db'
 import { Grado, Seccion } from '../types/enums'
 export default class EmpleadoControllers {
+  static async fetchPsicologos(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const psicologos = await Empleado.fetchPsicologos({ nivel, year })
+
+      res.send(responseOk(psicologos))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async agregarPsicologo(req: Request, res: Response) {
+    try {
+      const session: ClientSession = mongoClient.startSession()
+      session.startTransaction()
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const data = req.body
+
+      const empleado = await Empleado.findEmpleadoByDni({ nivel, year, dni: data.dni, session })
+      if (empleado) {
+        await session.abortTransaction()
+        await session.endSession()
+        return res.send(responseError('User already exists'))
+      }
+      const response1 = await User.crearNuevoUsuario({ nivel, dni: data.dni, session })
+      if (!response1.insertedId) {
+        await session.abortTransaction()
+        await session.endSession()
+        return res.send(responseError('Error al crear nuevo usuario'))
+      }
+      const response2 = await Empleado.agregarPsicologo({ nivel, year, data, userId: response1.insertedId })
+      if (!response2.insertedId) {
+        await session.abortTransaction()
+        await session.endSession()
+        return res.send(responseError('Error, no se pudo agregar los datos del nuevo psicólogo'))
+      }
+      await session.commitTransaction()
+      await session.endSession()
+      return res.send(responseOk(response2.acknowledged ? true : false))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
   static async findTutorByGradoSeccion(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -132,7 +174,7 @@ export default class EmpleadoControllers {
       //create new user for the profesor
       const session = mongoClient.startSession()
       session.startTransaction()
-      const response = await User.crearNuevoUsuarioProfesor({ nivel, dni: '' + profesorData.dni, session })
+      const response = await User.crearNuevoUsuario({ nivel, dni: '' + profesorData.dni, session })
       if (!response.insertedId) {
         await session.abortTransaction()
         session.endSession()

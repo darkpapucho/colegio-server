@@ -23,9 +23,8 @@ export class User {
     return response
   }
 
-  static async crearNuevoUsuarioProfesor({ nivel, dni, session }: { session?: ClientSession; nivel: Nivel; dni: string }) {
+  static async crearNuevoUsuario({ nivel, dni, session }: { session?: ClientSession; nivel: Nivel; dni: string }) {
     const usersCollection = `users${nivel}`
-
     const password = await hashPassword(dni)
     const response = await db.collection(usersCollection).insertOne({ username: dni, password }, { session })
     return response
@@ -44,9 +43,9 @@ export class User {
       resolve(user)
     })
   }
-  static async getProfesorInfo({ collectionName, userId }: { collectionName: string; userId: string }) {
+  static async getUserClientInfo({ collectionName, userId }: { collectionName: string; userId: string }) {
     return new Promise(async (resolve) => {
-      const userInfo = await db.collection<UserInfo>(collectionName).findOne({ userId: new ObjectId(userId), rol: 'profesor' })
+      const userInfo = await db.collection<UserInfo>(collectionName).findOne({ userId: new ObjectId(userId) })
       resolve(userInfo)
     })
   }

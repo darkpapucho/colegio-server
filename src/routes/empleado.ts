@@ -13,3 +13,5 @@ empleadoRouter.post('/agregar-horario-cell', verifyCredentials, EmpleadoControll
 empleadoRouter.post('/eliminar-horario-cell', verifyCredentials, EmpleadoControllers.eliminarHorarioCell)
 empleadoRouter.post('/agregar-anuncio-profesor', verifyCredentials, EmpleadoControllers.agregarAnuncioProfesor)
 empleadoRouter.post('/delete-anuncio-profesor', verifyCredentials, EmpleadoControllers.deleteAnuncioProfesor)
+empleadoRouter.post('/agregar-psicologo', verifyCredentials, EmpleadoControllers.agregarPsicologo)
+empleadoRouter.get('/fetch-psicologos', verifyCredentials, EmpleadoControllers.fetchPsicologos)

@@ -6,6 +6,6 @@ import { verifyCredentials } from '../middleware/verifyCredentials'
 export const userRouter = Router()
 
 userRouter.post('/login', UserControllers.login)
-userRouter.post('/login-profesor', UserControllers.loginProfesor)
+userRouter.post('/login-client', UserControllers.loginClient)
 userRouter.get('/verify', UserControllers.verify)
 userRouter.post('/reset-profesor-password', verifyCredentials, UserControllers.resetProfesorPassword)

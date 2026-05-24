@@ -19,9 +19,6 @@ interface UserInfo {
   dni: string
   correo: string
   telefono: string
-  specificInfo?: {
-    salones: SalonInicial[] | SalonPrimaria[]
-  }
 }
 
 export interface LoginRequestParams {
@@ -47,15 +44,12 @@ export interface SelectedDocuments {
 
 export type SalonProfesor = { tutor: boolean; label: string; value: { grado: Grado; seccion: Seccion }; order: number; cursos: { label: string; key: string }[] }
 
-export type ProfesorData = {
-  nombres: string
-  apellidos: string
-  dni: number
-  telefono?: number
-  rol: 'profesor'
-  userId: string
+export type ProfesorData = UserInfo & {
   salones: SalonProfesor[]
+  horario: { curso: string; salon: string; start: Date; end: Date }[]
 }
 export type Profesor = ProfesorData & {
   _id: string
 }
+
+export type Psicologo = UserInfo & {}
