@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -16,6 +25,7 @@ const anotacionesRelevantes_1 = require("./routes/anotacionesRelevantes");
 const anuncios_1 = require("./routes/anuncios");
 const cursos_1 = require("./routes/cursos");
 const notas_1 = require("./routes/notas");
+const hashPassword_1 = require("./utils/hashPassword");
 // import { hashPassword } from './utils/hashPassword'
 const PORT = process.env.PORT || 4000;
 const app = (0, express_1.default)();
@@ -32,12 +42,11 @@ app.use('/anotaciones-relevantes', anotacionesRelevantes_1.anotacionesRelevantes
 app.use('/announcements', anuncios_1.anunciosRouter);
 app.use('/cursos', cursos_1.cursosRouter);
 app.use('/notas', notas_1.notasRouter);
-// app.get('/pass', async (req, res) => {
-//   const { password } = req.query
-//   console.log(password)
-//   const hashedPass = await hashPassword(password as string)
-//   res.send(hashedPass)
-// })
+app.get('/pass', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { password } = req.query;
+    const hashedPass = yield (0, hashPassword_1.hashPassword)(password);
+    res.send(hashedPass);
+}));
 // app.use('/pagos', pagosRouter)
 app.use((err, _req, res, _next) => {
     console.log('error catched');

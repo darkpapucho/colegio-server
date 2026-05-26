@@ -358,29 +358,132 @@ export default class Pension {
   static async getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate }: { nivel: Nivel; year: Year; initDate: string; endDate: string }) {
     initDate = initDate + 'T00:00'
     endDate = endDate + 'T23:59'
-    const response = mongoClient
+    // const response = mongoClient
+    //   .db()
+    //   .collection(`pensiones${nivel}${year}`)
+    //   .aggregate<{ alumno: { dni: string; nombreCompleto: string; grado: Grado; seccion: Seccion }; pensiones: Pension[] }>([
+    //     { $match: {} },
+    //     {
+    //       $project: {
+    //         alumnoId: 1,
+    //         pensiones: {
+    //           $filter: {
+    //             input: '$pensiones',
+    //             as: 'pensiones',
+    //             cond: { $and: [{ $gte: ['$$pensiones.fecha', initDate] }, { $lte: ['$$pensiones.fecha', endDate] }] },
+    //           },
+    //         },
+    //       },
+    //     },
+    //     { $match: { 'pensiones.0': { $exists: true } } },
+    //     { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
+    //     { $project: { pensiones: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
+    //     { $project: { pensiones: 1, 'alumno.nombreCompleto': 1, 'alumno.grado': 1, 'alumno.seccion': 1, 'alumno.dni': 1 } },
+
+    //     { $sort: { 'alumno.nombreCompleto': 1 } },
+    //   ])
+    const response = await mongoClient
       .db()
       .collection(`pensiones${nivel}${year}`)
-      .aggregate<{ alumno: { dni: string; nombreCompleto: string; grado: Grado; seccion: Seccion }; pensiones: Pension[] }>([
+      .aggregate([
         { $match: {} },
         {
           $project: {
             alumnoId: 1,
-            pensiones: { $filter: { input: '$pensiones', as: 'pensiones', cond: { $and: [{ $gte: ['$$pensiones.fecha', initDate] }, { $lte: ['$$pensiones.fecha', endDate] }] } } },
+            pensiones: {
+              $filter: {
+                input: '$pensiones',
+                as: 'pension',
+                cond: {
+                  $and: [{ $gte: ['$$pension.fecha', initDate] }, { $lte: ['$$pension.fecha', endDate] }],
+                },
+              },
+            },
           },
         },
         { $match: { 'pensiones.0': { $exists: true } } },
-        { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
-        { $project: { pensiones: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
-        { $project: { pensiones: 1, 'alumno.nombreCompleto': 1, 'alumno.grado': 1, 'alumno.seccion': 1, 'alumno.dni': 1 } },
+
+        // Lookup para obtener datos del alumno
+        {
+          $lookup: {
+            from: `matriculados${nivel}${year}`,
+            localField: 'alumnoId',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+
+        // Desestructurar el array de alumno para trabajar más fácil
+        { $unwind: '$alumno' },
+
+        // Desestructurar cada pensión para tratarlas individualmente
+        { $unwind: '$pensiones' },
+
+        // Lookup del recibo para cada pensión
+        {
+          $lookup: {
+            from: `recibos${year}`,
+            localField: 'pensiones.reciboId',
+            foreignField: '_id',
+            as: 'recibo',
+          },
+        },
+
+        // Desestructurar el recibo (si existe)
+        { $unwind: { path: '$recibo', preserveNullAndEmptyArrays: true } },
+
+        // Lookup del empleado que emitió el recibo
+        {
+          $lookup: {
+            from: `empleados${nivel}${year}`,
+            localField: 'recibo.detalles.issuer',
+            foreignField: 'userId',
+            as: 'empleado',
+          },
+        },
+
+        // Desestructurar el empleado (si existe)
+        { $unwind: { path: '$empleado', preserveNullAndEmptyArrays: true } },
+
+        // Agrupar nuevamente por el documento original de pensiones
+        {
+          $group: {
+            _id: '$_id',
+            alumno: { $first: '$alumno' },
+            pensiones: {
+              $push: {
+                mes: '$pensiones.mes',
+                monto_pagar: '$pensiones.monto_pagar',
+                monto_pagado: '$pensiones.monto_pagado',
+                pagado: '$pensiones.pagado',
+                fecha: '$pensiones.fecha',
+                reciboId: '$pensiones.reciboId',
+                numRecibo: '$recibo.numRecibo',
+                issuerNombres: '$empleado.nombres',
+                issuerApellidos: '$empleado.apellidos',
+                issuerId: '$recibo.detalles.issuer', // Opcional: para verificar el ID
+              },
+            },
+          },
+        },
+
+        // Proyección final para limpiar el resultado
+        {
+          $project: {
+            _id: 0,
+            'alumno.dni': 1,
+            'alumno.nombreCompleto': 1,
+            'alumno.grado': 1,
+            'alumno.seccion': 1,
+            pensiones: 1,
+          },
+        },
+
+        // Ordenar por nombre completo del alumno
         { $sort: { 'alumno.nombreCompleto': 1 } },
       ])
-    const result = []
-    for await (const doc of response) {
-      result.push(doc)
-    }
-
-    return result
+      .toArray()
+    return response
   }
   static async getListAlumnosByNumPensionesAtrasadas({
     currentMonth,

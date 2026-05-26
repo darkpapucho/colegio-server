@@ -422,11 +422,33 @@ class Pension {
         });
     }
     static getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate }) {
-        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             initDate = initDate + 'T00:00';
             endDate = endDate + 'T23:59';
-            const response = db_1.mongoClient
+            // const response = mongoClient
+            //   .db()
+            //   .collection(`pensiones${nivel}${year}`)
+            //   .aggregate<{ alumno: { dni: string; nombreCompleto: string; grado: Grado; seccion: Seccion }; pensiones: Pension[] }>([
+            //     { $match: {} },
+            //     {
+            //       $project: {
+            //         alumnoId: 1,
+            //         pensiones: {
+            //           $filter: {
+            //             input: '$pensiones',
+            //             as: 'pensiones',
+            //             cond: { $and: [{ $gte: ['$$pensiones.fecha', initDate] }, { $lte: ['$$pensiones.fecha', endDate] }] },
+            //           },
+            //         },
+            //       },
+            //     },
+            //     { $match: { 'pensiones.0': { $exists: true } } },
+            //     { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
+            //     { $project: { pensiones: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
+            //     { $project: { pensiones: 1, 'alumno.nombreCompleto': 1, 'alumno.grado': 1, 'alumno.seccion': 1, 'alumno.dni': 1 } },
+            //     { $sort: { 'alumno.nombreCompleto': 1 } },
+            //   ])
+            const response = yield db_1.mongoClient
                 .db()
                 .collection(`pensiones${nivel}${year}`)
                 .aggregate([
@@ -434,36 +456,94 @@ class Pension {
                 {
                     $project: {
                         alumnoId: 1,
-                        pensiones: { $filter: { input: '$pensiones', as: 'pensiones', cond: { $and: [{ $gte: ['$$pensiones.fecha', initDate] }, { $lte: ['$$pensiones.fecha', endDate] }] } } },
+                        pensiones: {
+                            $filter: {
+                                input: '$pensiones',
+                                as: 'pension',
+                                cond: {
+                                    $and: [{ $gte: ['$$pension.fecha', initDate] }, { $lte: ['$$pension.fecha', endDate] }],
+                                },
+                            },
+                        },
                     },
                 },
                 { $match: { 'pensiones.0': { $exists: true } } },
-                { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
-                { $project: { pensiones: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
-                { $project: { pensiones: 1, 'alumno.nombreCompleto': 1, 'alumno.grado': 1, 'alumno.seccion': 1, 'alumno.dni': 1 } },
+                // Lookup para obtener datos del alumno
+                {
+                    $lookup: {
+                        from: `matriculados${nivel}${year}`,
+                        localField: 'alumnoId',
+                        foreignField: '_id',
+                        as: 'alumno',
+                    },
+                },
+                // Desestructurar el array de alumno para trabajar más fácil
+                { $unwind: '$alumno' },
+                // Desestructurar cada pensión para tratarlas individualmente
+                { $unwind: '$pensiones' },
+                // Lookup del recibo para cada pensión
+                {
+                    $lookup: {
+                        from: `recibos${year}`,
+                        localField: 'pensiones.reciboId',
+                        foreignField: '_id',
+                        as: 'recibo',
+                    },
+                },
+                // Desestructurar el recibo (si existe)
+                { $unwind: { path: '$recibo', preserveNullAndEmptyArrays: true } },
+                // Lookup del empleado que emitió el recibo
+                {
+                    $lookup: {
+                        from: `empleados${nivel}${year}`,
+                        localField: 'recibo.detalles.issuer',
+                        foreignField: 'userId',
+                        as: 'empleado',
+                    },
+                },
+                // Desestructurar el empleado (si existe)
+                { $unwind: { path: '$empleado', preserveNullAndEmptyArrays: true } },
+                // Agrupar nuevamente por el documento original de pensiones
+                {
+                    $group: {
+                        _id: '$_id',
+                        alumno: { $first: '$alumno' },
+                        pensiones: {
+                            $push: {
+                                mes: '$pensiones.mes',
+                                monto_pagar: '$pensiones.monto_pagar',
+                                monto_pagado: '$pensiones.monto_pagado',
+                                pagado: '$pensiones.pagado',
+                                fecha: '$pensiones.fecha',
+                                reciboId: '$pensiones.reciboId',
+                                numRecibo: '$recibo.numRecibo',
+                                issuerNombres: '$empleado.nombres',
+                                issuerApellidos: '$empleado.apellidos',
+                                issuerId: '$recibo.detalles.issuer', // Opcional: para verificar el ID
+                            },
+                        },
+                    },
+                },
+                // Proyección final para limpiar el resultado
+                {
+                    $project: {
+                        _id: 0,
+                        'alumno.dni': 1,
+                        'alumno.nombreCompleto': 1,
+                        'alumno.grado': 1,
+                        'alumno.seccion': 1,
+                        pensiones: 1,
+                    },
+                },
+                // Ordenar por nombre completo del alumno
                 { $sort: { 'alumno.nombreCompleto': 1 } },
-            ]);
-            const result = [];
-            try {
-                for (var _d = true, response_4 = __asyncValues(response), response_4_1; response_4_1 = yield response_4.next(), _a = response_4_1.done, !_a; _d = true) {
-                    _c = response_4_1.value;
-                    _d = false;
-                    const doc = _c;
-                    result.push(doc);
-                }
-            }
-            catch (e_4_1) { e_4 = { error: e_4_1 }; }
-            finally {
-                try {
-                    if (!_d && !_a && (_b = response_4.return)) yield _b.call(response_4);
-                }
-                finally { if (e_4) throw e_4.error; }
-            }
-            return result;
+            ])
+                .toArray();
+            return response;
         });
     }
     static getListAlumnosByNumPensionesAtrasadas({ currentMonth, nivel, year, numeroPensionesAtrasadas, }) {
-        var _a, e_5, _b, _c;
+        var _a, e_4, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -517,18 +597,18 @@ class Pension {
                     result.push(doc);
                 }
             }
-            catch (e_5_1) { e_5 = { error: e_5_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
                 }
-                finally { if (e_5) throw e_5.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             return result;
         });
     }
     static getPensionesGlobalReport({ nivel, year }) {
-        var _a, e_6, _b, _c;
+        var _a, e_5, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient.db().collection(`pensiones${nivel}${year}`).find({});
             const list = [];
@@ -540,12 +620,12 @@ class Pension {
                     list.push(doc);
                 }
             }
-            catch (e_6_1) { e_6 = { error: e_6_1 }; }
+            catch (e_5_1) { e_5 = { error: e_5_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
                 }
-                finally { if (e_6) throw e_6.error; }
+                finally { if (e_5) throw e_5.error; }
             }
             return list;
         });
@@ -560,7 +640,7 @@ class Pension {
         });
     }
     static getListByGradoSeccion({ nivel, year, grado, seccion, estadosMatricula, }) {
-        var _a, e_7, _b, _c;
+        var _a, e_6, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const response = db_1.mongoClient
                 .db()
@@ -579,25 +659,25 @@ class Pension {
             ]);
             const result = [];
             try {
-                for (var _d = true, response_5 = __asyncValues(response), response_5_1; response_5_1 = yield response_5.next(), _a = response_5_1.done, !_a; _d = true) {
-                    _c = response_5_1.value;
+                for (var _d = true, response_4 = __asyncValues(response), response_4_1; response_4_1 = yield response_4.next(), _a = response_4_1.done, !_a; _d = true) {
+                    _c = response_4_1.value;
                     _d = false;
                     const doc = _c;
                     result.push(doc);
                 }
             }
-            catch (e_7_1) { e_7 = { error: e_7_1 }; }
+            catch (e_6_1) { e_6 = { error: e_6_1 }; }
             finally {
                 try {
-                    if (!_d && !_a && (_b = response_5.return)) yield _b.call(response_5);
+                    if (!_d && !_a && (_b = response_4.return)) yield _b.call(response_4);
                 }
-                finally { if (e_7) throw e_7.error; }
+                finally { if (e_6) throw e_6.error; }
             }
             return result;
         });
     }
     static getListByNivel({ nivel, year, estadosMatricula, session }) {
-        var _a, e_8, _b, _c;
+        var _a, e_7, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const cursor = db_1.mongoClient
                 .db()
@@ -617,12 +697,12 @@ class Pension {
                     response.push(doc);
                 }
             }
-            catch (e_8_1) { e_8 = { error: e_8_1 }; }
+            catch (e_7_1) { e_7 = { error: e_7_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = cursor_3.return)) yield _b.call(cursor_3);
                 }
-                finally { if (e_8) throw e_8.error; }
+                finally { if (e_7) throw e_7.error; }
             }
             return response;
         });
