@@ -40,12 +40,13 @@ const periodosDates_1 = require("../vars/periodosDates");
 const Notas_1 = __importDefault(require("./Notas"));
 const Cursos_1 = __importDefault(require("./Cursos"));
 class Alumno {
-    static agregarApoderado({ alumnoId, apoderado, nivel, year }) {
+    static agregarApoderado({ alumnoId, apoderado, nivel, year, issuer }) {
         return __awaiter(this, void 0, void 0, function* () {
+            const nuevoApoderado = Object.assign(Object.assign({}, apoderado), { issuer: new mongodb_1.ObjectId(issuer) });
             const response = yield db_1.mongoClient
                 .db()
                 .collection(`matriculados${nivel}${year}`)
-                .updateOne({ _id: new mongodb_1.ObjectId(alumnoId) }, { $push: { apoderados: apoderado } });
+                .updateOne({ _id: new mongodb_1.ObjectId(alumnoId) }, { $push: { apoderados: nuevoApoderado } });
             return response;
         });
     }

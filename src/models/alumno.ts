@@ -13,11 +13,12 @@ import Cursos from './Cursos'
 import { CURSO_SALON } from '../types/cursos'
 
 export class Alumno {
-  static async agregarApoderado({ alumnoId, apoderado, nivel, year }: { alumnoId: string; apoderado: Apoderado; nivel: Nivel; year: Year }) {
+  static async agregarApoderado({ alumnoId, apoderado, nivel, year, issuer }: { alumnoId: string; apoderado: Apoderado; nivel: Nivel; year: Year; issuer: string }) {
+    const nuevoApoderado = { ...apoderado, issuer: new ObjectId(issuer) }
     const response = await mongoClient
       .db()
       .collection(`matriculados${nivel}${year}`)
-      .updateOne({ _id: new ObjectId(alumnoId) }, { $push: { apoderados: apoderado } })
+      .updateOne({ _id: new ObjectId(alumnoId) }, { $push: { apoderados: nuevoApoderado } })
     return response
   }
   static async editarApoderado({ alumnoId, apoderado, nivel, year }: { alumnoId: string; apoderado: Apoderado; nivel: Nivel; year: Year }) {

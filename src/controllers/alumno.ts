@@ -16,8 +16,10 @@ export class AlumnoControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { alumnoId, apoderado }: { alumnoId: string; apoderado: any } = req.body
+      const issuer = req.body.issuer
+
       apoderado._id = new ObjectId()
-      await Alumno.agregarApoderado({ alumnoId, apoderado, nivel, year })
+      await Alumno.agregarApoderado({ alumnoId, apoderado, nivel, year, issuer })
 
       res.send(responseOk(null))
     } catch (error) {
@@ -28,6 +30,8 @@ export class AlumnoControllers {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { alumnoId, apoderado }: { alumnoId: string; apoderado: any } = req.body
+      const issuer = req.body.issuer as string
+      apoderado.issuer = new ObjectId(issuer)
       await Alumno.editarApoderado({ alumnoId, apoderado, nivel, year })
       res.send(responseOk(null))
     } catch (error) {

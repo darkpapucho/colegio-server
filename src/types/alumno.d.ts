@@ -13,6 +13,7 @@ type NuevoApoderado = {
   correo: string
   telefono: string
   relacion: TipoApoderado
+  issuer?: string
 }
 
 type Apoderado = NuevoApoderado & { _id: string }

@@ -29,8 +29,9 @@ class AlumnoControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumnoId, apoderado } = req.body;
+                const issuer = req.body.issuer;
                 apoderado._id = new mongodb_1.ObjectId();
-                yield alumno_1.Alumno.agregarApoderado({ alumnoId, apoderado, nivel, year });
+                yield alumno_1.Alumno.agregarApoderado({ alumnoId, apoderado, nivel, year, issuer });
                 res.send((0, responses_1.responseOk)(null));
             }
             catch (error) {
@@ -43,6 +44,8 @@ class AlumnoControllers {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumnoId, apoderado } = req.body;
+                const issuer = req.body.issuer;
+                apoderado.issuer = new mongodb_1.ObjectId(issuer);
                 yield alumno_1.Alumno.editarApoderado({ alumnoId, apoderado, nivel, year });
                 res.send((0, responses_1.responseOk)(null));
             }
