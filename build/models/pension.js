@@ -304,10 +304,10 @@ class Pension {
             return response;
         });
     }
-    static getRetrasadosList({ nivel, year, grado, seccion }) {
+    static getRetrasadosList({ nivel, year, grado, seccion, mes }) {
         var _a, e_3, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            const currentMonth = new Date().getMonth();
+            const currentMonth = mes;
             const response = db_1.mongoClient
                 .db()
                 .collection(`matriculados${nivel}${year}`)
@@ -337,7 +337,7 @@ class Pension {
                                 input: '$pensionInfo.pensiones',
                                 as: 'pension',
                                 cond: {
-                                    $and: [{ $gte: ['$$pension.mes', 2] }, { $lt: ['$$pension.mes', currentMonth] }, { $eq: ['$$pension.pagado', false] }],
+                                    $and: [{ $gte: ['$$pension.mes', 2] }, { $lte: ['$$pension.mes', currentMonth] }, { $eq: ['$$pension.pagado', false] }],
                                 },
                             },
                         },

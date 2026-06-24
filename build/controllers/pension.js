@@ -91,8 +91,8 @@ class PensionController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { grado, seccion } = req.body;
-                const response = yield pension_1.default.getRetrasadosList({ nivel, year, grado, seccion });
+                const { grado, seccion, mes } = req.body;
+                const response = yield pension_1.default.getRetrasadosList({ nivel, year, grado, seccion, mes });
                 res.send((0, responses_1.responseOk)(response));
             }
             catch (err) {
