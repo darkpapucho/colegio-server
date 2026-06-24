@@ -65,7 +65,7 @@ export class UserControllers {
       assert(userCredentials != null, ErrorMessages.INVALID_CREDENTIALS)
       //validation of the password
       const isValidPassword = await compare(password, userCredentials.password)
-
+      console.log({ isValidPassword })
       assert(isValidPassword, ErrorMessages.INVALID_CREDENTIALS)
       //fetch user info from database
       const userInfo = await User.getInfo({ collectionName: empleadosCollectionName, userId: userCredentials._id })

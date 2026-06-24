@@ -68,9 +68,9 @@ export default class PensionController {
   static async getRetrasadosList(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { grado, seccion } = req.body
+      const { grado, seccion, mes } = req.body
 
-      const response = await Pension.getRetrasadosList({ nivel, year, grado, seccion })
+      const response = await Pension.getRetrasadosList({ nivel, year, grado, seccion, mes })
 
       res.send(responseOk(response))
     } catch (err) {
@@ -173,6 +173,7 @@ export default class PensionController {
       const { initDate, endDate } = req.body
 
       const response = await Pension.getRecordPensionesPagadasByDateRange({ nivel, year, initDate, endDate })
+
       res.send(responseOk(response))
     } catch (err) {
       errorResponseHandler(res, err)

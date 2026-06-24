@@ -259,8 +259,8 @@ export default class Pension {
       .updateOne({ alumnoId: new ObjectId(alumnoId) }, { $set: { ultimoCobro: { detalle, fecha } } })
     return response
   }
-  static async getRetrasadosList({ nivel, year, grado, seccion }: { nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
-    const currentMonth = new Date().getMonth()
+  static async getRetrasadosList({ nivel, year, grado, seccion, mes }: { mes: number; nivel: Nivel; year: Year; grado: Grado; seccion: Seccion }) {
+    const currentMonth = mes
 
     const response = mongoClient
       .db()
@@ -291,7 +291,7 @@ export default class Pension {
                 input: '$pensionInfo.pensiones',
                 as: 'pension',
                 cond: {
-                  $and: [{ $gte: ['$$pension.mes', 2] }, { $lt: ['$$pension.mes', currentMonth] }, { $eq: ['$$pension.pagado', false] }],
+                  $and: [{ $gte: ['$$pension.mes', 2] }, { $lte: ['$$pension.mes', currentMonth] }, { $eq: ['$$pension.pagado', false] }],
                 },
               },
             },
