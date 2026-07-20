@@ -1,15 +1,16 @@
-import { cuartoPeriodoEnd, cuartoPeriodoStart, segundoPeriodoStart, tercerPeriodoStart } from '../vars/periodosDates'
+import { Periodo } from '../types/alumno'
 
 //0-11;
-export function getLastMonthToEvaluatePensiones(): number {
-  const currentDate = new Date()
-  if (currentDate >= new Date(segundoPeriodoStart) && currentDate < new Date(tercerPeriodoStart)) {
-    return 4
-  } else if (currentDate >= new Date(tercerPeriodoStart) && currentDate < new Date(cuartoPeriodoStart)) {
-    return 6
-  } else if (currentDate >= new Date(cuartoPeriodoStart) && currentDate < new Date(cuartoPeriodoEnd)) {
-    return 9
-  } else {
-    return 12
+export function getLastMonthToEvaluatePensiones(currentPeriodo: Periodo): number {
+  switch (currentPeriodo) {
+    case 'primerPeriodo':
+      return 5
+    case 'segundoPeriodo':
+      return 7
+    case 'tercerPeriodo':
+      return 10
+    case 'cuartoPeriodo':
+    default:
+      return 12
   }
 }

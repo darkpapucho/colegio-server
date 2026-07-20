@@ -15,10 +15,14 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const getCurrentPeriodo_1 = require("../utils/getCurrentPeriodo");
+const Calendario_1 = __importDefault(require("./Calendario"));
 class Notas {
     static getNotasByAlumnoId({ nivel, year, alumnoId }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -86,7 +90,9 @@ class Notas {
             const pensionesCollection = `pensiones${nivel}${year}`;
             const notasCollection = `notas${nivel}${year}`;
             //evaluar en que periodo nos encontramos
-            const monthToEvaluate = (0, getCurrentPeriodo_1.getLastMonthToEvaluatePensiones)(); // less than this month
+            const currentPeriodoResponse = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
+            const currentPeriodo = (currentPeriodoResponse === null || currentPeriodoResponse === void 0 ? void 0 : currentPeriodoResponse.periodo) || 'primerPeriodo';
+            const monthToEvaluate = (0, getCurrentPeriodo_1.getLastMonthToEvaluatePensiones)(currentPeriodo); // less than this month
             if (excluirAtrasados) {
                 cursor = db_1.mongoClient
                     .db()

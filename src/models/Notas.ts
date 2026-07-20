@@ -4,6 +4,7 @@ import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { QueryProfesor, QueryTutor, RecordNotas } from '../types/notas'
 import { CURSO_SALON } from '../types/cursos'
 import { getLastMonthToEvaluatePensiones } from '../utils/getCurrentPeriodo'
+import Calendario from './Calendario'
 export default class Notas {
   static async getNotasByAlumnoId({ nivel, year, alumnoId }: { nivel: Nivel; year: Year; alumnoId: string }) {
     const cursor = await mongoClient
@@ -92,7 +93,9 @@ export default class Notas {
     const pensionesCollection = `pensiones${nivel}${year}`
     const notasCollection = `notas${nivel}${year}`
     //evaluar en que periodo nos encontramos
-    const monthToEvaluate = getLastMonthToEvaluatePensiones() // less than this month
+    const currentPeriodoResponse = await Calendario.fetchCurrentPeriodo({ nivel, year })
+    const currentPeriodo = currentPeriodoResponse?.periodo || 'primerPeriodo'
+    const monthToEvaluate = getLastMonthToEvaluatePensiones(currentPeriodo) // less than this month
 
     if (excluirAtrasados) {
       cursor = mongoClient
