@@ -15,9 +15,14 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
+const getCurrentPeriodo_1 = require("../utils/getCurrentPeriodo");
+const Calendario_1 = __importDefault(require("./Calendario"));
 class Documento {
     static updateRegistroNotasProfesor({ nivel, year, isTutor, registro }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -207,7 +212,9 @@ class Documento {
             const notasCollection = `notas${nivel}${year}`;
             const alumnosCollection = `matriculados${nivel}${year}`;
             const pensionesCollection = `pensiones${nivel}${year}`;
-            const currentMes = new Date().getMonth();
+            const currentPeriodoResponse = yield Calendario_1.default.fetchCurrentPeriodo({ nivel, year });
+            const currentPeriodo = (currentPeriodoResponse === null || currentPeriodoResponse === void 0 ? void 0 : currentPeriodoResponse.periodo) || 'primerPeriodo';
+            const monthToEvaluate = (0, getCurrentPeriodo_1.getLastMonthToEvaluatePensiones)(currentPeriodo); // less than this month
             let cursor;
             if (excluirAtrasados) {
                 cursor = db_1.mongoClient
@@ -219,8 +226,8 @@ class Documento {
                     { $set: { recordPensiones: { $arrayElemAt: ['$recordPensiones', 0] } } },
                     {
                         $addFields: {
-                            pensiones: { $filter: { input: '$recordPensiones', cond: { $lt: ['$$this.mes', currentMes] } } },
-                            pensionesPagadas: { $filter: { input: '$recordPensiones', cond: { $and: [{ $lt: ['$$this.mes', currentMes] }, { $eq: ['$$this.pagado', true] }] } } },
+                            pensiones: { $filter: { input: '$recordPensiones', cond: { $lt: ['$$this.mes', monthToEvaluate] } } },
+                            pensionesPagadas: { $filter: { input: '$recordPensiones', cond: { $and: [{ $lt: ['$$this.mes', monthToEvaluate] }, { $eq: ['$$this.pagado', true] }] } } },
                         },
                     },
                     { $match: { $expr: { $eq: [{ $size: '$pensiones' }, { $size: '$pensionesPagadas' }] } } },

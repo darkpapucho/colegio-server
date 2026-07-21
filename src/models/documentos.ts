@@ -4,6 +4,8 @@ import { mongoClient } from '../db'
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { CursoNotaRecord, ExtendedRegistroNota, RegistroNota } from '../types/documents'
 import { SalonProfesor } from '../types/user'
+import { getLastMonthToEvaluatePensiones } from '../utils/getCurrentPeriodo'
+import Calendario from './Calendario'
 
 export default class Documento {
   static async updateRegistroNotasProfesor({ nivel, year, isTutor, registro }: { registro: RegistroNota[]; isTutor: boolean; nivel: Nivel; year: Year }) {
@@ -166,8 +168,9 @@ export default class Documento {
     const notasCollection = `notas${nivel}${year}`
     const alumnosCollection = `matriculados${nivel}${year}`
     const pensionesCollection = `pensiones${nivel}${year}`
-    const currentMes = new Date().getMonth()
-
+    const currentPeriodoResponse = await Calendario.fetchCurrentPeriodo({ nivel, year })
+    const currentPeriodo = currentPeriodoResponse?.periodo || 'primerPeriodo'
+    const monthToEvaluate = getLastMonthToEvaluatePensiones(currentPeriodo) // less than this month
     let cursor: AggregationCursor<ExtendedRegistroNota>
     if (excluirAtrasados) {
       cursor = mongoClient
@@ -179,8 +182,8 @@ export default class Documento {
           { $set: { recordPensiones: { $arrayElemAt: ['$recordPensiones', 0] } } },
           {
             $addFields: {
-              pensiones: { $filter: { input: '$recordPensiones', cond: { $lt: ['$$this.mes', currentMes] } } },
-              pensionesPagadas: { $filter: { input: '$recordPensiones', cond: { $and: [{ $lt: ['$$this.mes', currentMes] }, { $eq: ['$$this.pagado', true] }] } } },
+              pensiones: { $filter: { input: '$recordPensiones', cond: { $lt: ['$$this.mes', monthToEvaluate] } } },
+              pensionesPagadas: { $filter: { input: '$recordPensiones', cond: { $and: [{ $lt: ['$$this.mes', monthToEvaluate] }, { $eq: ['$$this.pagado', true] }] } } },
             },
           },
           { $match: { $expr: { $eq: [{ $size: '$pensiones' }, { $size: '$pensionesPagadas' }] } } },
