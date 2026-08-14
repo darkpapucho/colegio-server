@@ -258,7 +258,7 @@ export class AlumnoControllers {
   static async nuevaMatricula(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
-      const { alumno }: { alumno: NuevoAlumno } = req.body
+      const { alumno, montoMatricula, montoPension }: { alumno: NuevoAlumno; montoMatricula: number; montoPension: number } = req.body
 
       assertIsNuevoAlumno(alumno)
 
@@ -281,29 +281,12 @@ export class AlumnoControllers {
       if (foundAlumno) {
         return res.send(responseError(`Ya existe un alumno matriculado con ${reason[0]}`))
       }
-      //TODO: CREATE SESSION MONGO
-      //matricular nuevo alumno
-      // const result = await Alumno.nuevaMatricula({ alumno, nivel, year })
-      // if (!result.acknowledged) {
-      //   return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
-      // }
-      // const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year })
-      // const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
-      // //insertar asistencia records de acuerdo a la fecha de la mtricula
-      // const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
-      // //insertar nuevo record en asistencias{nivel}{year}
-      // const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
-      //   return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
-      // })
-      // const result2 = await Calendario.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: result.insertedId, records: alumnoAsistenciaRecords })
-      // if (!result2.acknowledged) {
-      //   return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
-      // }
-      const result = await Alumno.ProcesoNuevoMatricula({ nivel, year, alumno })
+
+      const result = await Alumno.ProcesoNuevoMatricula({ nivel, year, alumno, montoMatricula, montoPension, issuer: req.body.issuer })
       if (!result) {
         return res.send(responseError('Error durante el proceso de matrícula, intentelo nuevamente'))
       }
-      return res.status(202).send(responseOk(null)) // 202=acepted
+      return res.status(202).send(responseOk({ ...result, nombreCompleto: result.apellidos + ', ' + result.nombres })) // 202=acepted
     } catch (error) {
       return errorResponseHandler(res, error)
     }

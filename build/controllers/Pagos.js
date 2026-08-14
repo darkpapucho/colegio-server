@@ -1,45 +1,41 @@
 "use strict";
-// import { Request, Response } from 'express'
-// import { errorResponseHandler } from '../error/errors'
-// // import Pagos from '../models/Pagos'
-// import { responseOk } from '../utils/responses'
-// import axios from 'axios'
-// export default class PagosController {
-//   static async nuevoPago(req: Request, res: Response) {
-//     try {
-//       const { email, phone, token, amount } = req.body
-//       console.log({ email, phone, token, amount: +amount })
-//       const requestToken = await axios.post(
-//         'https://api.mercadopago.com/platforms/pci/yape/v1/payment?public_key=TEST-6e888352-5516-4958-98c5-afa41d70dbe6',
-//         { phoneNumber: '111111111', otp: '123456', requestId: '312736712fsaf4234' },
-//         { headers: { 'Content-Type': 'application/json' } },
-//       )
-//       console.log({ token: requestToken.data.id })
-//       const body = {
-//         transaction_amount: 1.0,
-//         token: 'TEST-12345678901234567890123456789012', // Fake test token
-//         payment_method_id: 'yape',
-//         payer: {
-//           email: 'test_user_123456@testuser.com',
-//           phone: { area_code: '51', number: '111111111' },
-//         },
-//         installments: 1,
-//       }
-//       console.log({ body })
-//       // const response = await Pagos.newPago({ body })
-//       const bearerToken = 'TEST-4685814286484028-041302-8914fc00609dd310f391c28744ebca75-163348043'
-//       await axios.post('https://api.mercadopago.com/v1/payments', body, {
-//         headers: {
-//           'Content-Type': 'application/json',
-//           'X-Idempotency-Key': Date.now().toString() + Math.random().toString(36).substring(2),
-//           Authorization: 'Bearer ' + bearerToken,
-//         },
-//       })
-//       //   console.log({ response2 })
-//       res.send(responseOk(null))
-//     } catch (err) {
-//       //   console.log((err as any).errors[0]?.details)
-//       errorResponseHandler(res, err)
-//     }
-//   }
-// }
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const errors_1 = require("../error/errors");
+const generateReciboMatr_cula_1 = __importDefault(require("../utils/Recibos/generateReciboMatr\u00EDcula"));
+const pdfkit_1 = __importDefault(require("pdfkit"));
+const global_1 = require("../utils/global");
+const Pagos_1 = __importDefault(require("../models/Pagos"));
+const COSTO_MATRICULA_2026 = 150;
+class PagosController {
+    static getReciboMatricula(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { reciboMatricula } = req.body;
+                const data = yield Pagos_1.default.requestReciboById({ nivel, year, reciboId: reciboMatricula });
+                if (!data)
+                    throw new Error('Invalid recibo, unable to retrieve data');
+                const pdfDocument = new pdfkit_1.default({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' });
+                pdfDocument.pipe(res);
+                (0, generateReciboMatr_cula_1.default)(data, pdfDocument, COSTO_MATRICULA_2026);
+                pdfDocument.end();
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+}
+exports.default = PagosController;

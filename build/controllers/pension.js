@@ -18,8 +18,9 @@ const global_1 = require("../utils/global");
 const responses_1 = require("../utils/responses");
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const pensionTablePdf_1 = require("../utils/pensionTablePdf");
-const generateReciboPension_1 = __importDefault(require("../utils/generateReciboPension"));
+const generateReciboPension_1 = __importDefault(require("../utils/Recibos/generateReciboPension"));
 const fs_1 = require("fs");
+const Pagos_1 = __importDefault(require("../models/Pagos"));
 class PensionController {
     static getHistorialRecaudaciones(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -106,7 +107,7 @@ class PensionController {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { reciboId } = req.query;
-                const data = yield pension_1.default.requestReciboById({ nivel, year, reciboId: reciboId });
+                const data = yield Pagos_1.default.requestReciboById({ nivel, year, reciboId: reciboId });
                 if (!data)
                     throw new Error('Invalid recibo, unable to retrieve data');
                 const response = yield pension_1.default.getPrecioPension({ nivel, year });

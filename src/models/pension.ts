@@ -2,10 +2,10 @@ import { ClientSession, ObjectId } from 'mongodb'
 import { mongoClient } from '../db'
 import { EstadoMatricula, Grado, Nivel, Seccion, Year } from '../types/enums'
 import { AMatriculado } from '../types/alumno'
-import { PensionRecord } from '../types/pensiones'
+import { PensionRecord, PensionTable } from '../types/pensiones'
 import { VALID_MONTHS } from '../types/asistencia'
-import { CorrelativoType } from '../types/correlativos'
-import { ReciboData } from '../types/recibo'
+import { OperacionPago } from '../types/recibo'
+import Pagos from './Pagos'
 
 export default class Pension {
   static async getHistorialRecaudaciones({ nivel, year }: { nivel: Nivel; year: Year }) {
@@ -332,18 +332,6 @@ export default class Pension {
     return response
   }
 
-  static async requestReciboById({ nivel, year, reciboId }: { nivel: Nivel; year: Year; reciboId: string }) {
-    const response = (await mongoClient
-      .db()
-      .collection(`recibos${year}`)
-      .aggregate([
-        { $match: { _id: new ObjectId(reciboId), nivel } },
-        { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
-        { $project: { numRecibo: 1, nivel: 1, fecha: 1, operacion: 1, detalles: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
-      ])
-      .next()) as ReciboData | null
-    return response
-  }
   static async getLastUpdateDate({ year, nivel }: { nivel: Nivel; year: Year }) {
     const response = await mongoClient
       .db()
@@ -579,9 +567,9 @@ export default class Pension {
     const response = mongoClient
       .db()
       .collection(`pensiones${nivel}${year}`)
-      .aggregate<{ alumnoId: ObjectId; pensiones: PensionRecord[]; estudiante: AMatriculado; numPensionesPagadas: number }>([
+      .aggregate<PensionTable>([
         { $lookup: { from: `matriculados${nivel}${year}`, foreignField: '_id', localField: 'alumnoId', as: 'estudiante' } },
-        { $project: { _id: 0, alumnoId: 1, pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
+        { $project: { _id: 0, alumnoId: 1, pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] }, montoMatricula: 1, reciboMatricula: 1 } },
         {
           $match: {
             'estudiante.grado': grado,
@@ -651,40 +639,11 @@ export default class Pension {
     //si esta pagado completamente, creamos un recibo y incrementamos el correlativo de recibos
     if (pagadoCompletamente) {
       //fetch numero de recibo:
-      const reciboNumberResponse = await mongoClient.db().collection(`correlativos${year}`).findOne<{ tipo: CorrelativoType; current: number }>({ tipo: 'recibo' })
-      let reciboNumber: number
-      if (!reciboNumberResponse) {
-        reciboNumber = 0
-      } else {
-        reciboNumber = reciboNumberResponse.current
-      }
+      const reciboNumber = await Pagos.getNextReciboNumber({ year })
+      const operacion: OperacionPago = nivel === 'inicial' ? 'PEI' : nivel === 'primaria' ? 'PEP' : 'PES'
       //crear recibo:
-      const createReciboResponse = await mongoClient
-        .db()
-        .collection(`recibos${year}`)
-        .insertOne(
-          {
-            numRecibo: reciboNumber + 1,
-            nivel,
-            alumnoId: new ObjectId(alumnoId),
-            fecha,
-            operacion: nivel === 'inicial' ? 'PEI' : nivel === 'primaria' ? 'PEP' : 'PES',
-            detalles: {
-              issuer: new ObjectId(issuer),
-              descripcion: `pensión ${VALID_MONTHS[mes]}`,
-              montoPagado: monto_pagado + monto_abonado,
-              mora,
-            },
-          },
-          { session },
-        )
-
-      if (!createReciboResponse.insertedId || !createReciboResponse.acknowledged) {
-        await session.abortTransaction()
-        session.endSession()
-        throw new Error('error procesando el pago')
-      }
-      reciboId = createReciboResponse.insertedId
+      const descripcion = `pensión ${VALID_MONTHS[mes]}`
+      reciboId = await Pagos.createNewReciboPago({ mora, nivel, year, alumnoId, fecha, descripcion, monto_abonado, monto_pagado, issuer, session, operacion })
       //increase the current in the correlativos:
 
       const increaseCorrelativoResponse = await mongoClient

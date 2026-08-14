@@ -9,8 +9,10 @@ import { generatePensionTablePdf } from '../utils/pensionTablePdf'
 import { Grado, Seccion } from '../types/enums'
 import { PensionRecord } from '../types/pensiones'
 import { Salon } from '../types/salones'
-import generateReciboPension from '../utils/generateReciboPension'
+import generateReciboPension from '../utils/Recibos/generateReciboPension'
 import { createWriteStream } from 'fs'
+import { ReciboData } from '../types/recibo'
+import Pagos from '../models/Pagos'
 
 export default class PensionController {
   static async getHistorialRecaudaciones(req: Request, res: Response) {
@@ -81,12 +83,13 @@ export default class PensionController {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { reciboId } = req.query
-      const data = await Pension.requestReciboById({ nivel, year, reciboId: reciboId as string })
+      const data: ReciboData | null = await Pagos.requestReciboById({ nivel, year, reciboId: reciboId as string })
 
       if (!data) throw new Error('Invalid recibo, unable to retrieve data')
-      const response = await Pension.getPrecioPension({ nivel, year })
+      const response: { costo: number } | null = await Pension.getPrecioPension({ nivel, year })
 
       const recibo = new PDFDocument({ layout: 'portrait', margins: { top: 20, bottom: 20, left: 20, right: 20 }, autoFirstPage: false, size: 'A4' })
+
       recibo.pipe(createWriteStream('files/recibo.pdf'))
       recibo.pipe(res)
       generateReciboPension(data, recibo, response?.costo ?? 0)

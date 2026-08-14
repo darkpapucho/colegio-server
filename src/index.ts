@@ -12,6 +12,7 @@ import { anunciosRouter } from './routes/anuncios'
 import { cursosRouter } from './routes/cursos'
 import { notasRouter } from './routes/notas'
 import { hashPassword } from './utils/hashPassword'
+import { pagosRouter } from './routes/pagos'
 // import { hashPassword } from './utils/hashPassword'
 
 const PORT = process.env.PORT || 4000
@@ -29,6 +30,7 @@ app.use('/anotaciones-relevantes', anotacionesRelevantesRouter)
 app.use('/announcements', anunciosRouter)
 app.use('/cursos', cursosRouter)
 app.use('/notas', notasRouter)
+app.use('/pagos', pagosRouter)
 app.get('/pass', async (req, res) => {
   const { password } = req.query
 

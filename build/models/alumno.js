@@ -39,6 +39,7 @@ const Calendario_1 = __importDefault(require("./Calendario"));
 const periodosDates_1 = require("../vars/periodosDates");
 const Notas_1 = __importDefault(require("./Notas"));
 const Cursos_1 = __importDefault(require("./Cursos"));
+const Pagos_1 = __importDefault(require("../models/Pagos"));
 class Alumno {
     static agregarApoderado({ alumnoId, apoderado, nivel, year, issuer }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -59,7 +60,7 @@ class Alumno {
             return response;
         });
     }
-    static ProcesoNuevoMatricula({ nivel, year, alumno }) {
+    static ProcesoNuevoMatricula({ nivel, year, alumno, montoMatricula, montoPension, issuer, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const session = db_1.mongoClient.startSession();
             session.startTransaction();
@@ -70,6 +71,19 @@ class Alumno {
                     yield session.endSession();
                     return false;
                 }
+                const reciboId = yield Pagos_1.default.createNewReciboPago({
+                    mora: 0,
+                    nivel,
+                    year,
+                    alumnoId: matriculaResult.insertedId.toString(),
+                    fecha: alumno.fechaMatricula,
+                    descripcion: `matrícula ${nivel} ${year}`,
+                    monto_abonado: montoMatricula,
+                    monto_pagado: 0,
+                    issuer,
+                    session,
+                    operacion: nivel === 'inicial' ? 'MAI' : nivel === 'primaria' ? 'MAP' : 'MAS',
+                });
                 const lastDayFromCalendar = yield Calendario_1.default.fetchLastDayOfCalendarioEscolar({ nivel, year });
                 if (!lastDayFromCalendar) {
                     yield session.abortTransaction();
@@ -84,8 +98,8 @@ class Alumno {
                 const alumnoAsistenciaRecords = calendarioDaysForMatricula.map((element) => {
                     return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' };
                 });
-                const result2 = yield Calendario_1.default.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: matriculaResult.insertedId, records: alumnoAsistenciaRecords });
-                if (!result2.acknowledged) {
+                const asistenciaResult = yield Calendario_1.default.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: matriculaResult.insertedId, records: alumnoAsistenciaRecords });
+                if (!asistenciaResult.acknowledged) {
                     yield session.abortTransaction();
                     yield session.endSession();
                     return false;
@@ -93,13 +107,13 @@ class Alumno {
                 //insertar pensiones de acuerdo a la fecha de matricula
                 const pensiones = [];
                 for (let i = fechaMatricula.getMonth(); i <= 11; i++) {
-                    const record = { fecha: '', monto_pagar: nivel === 'primaria' ? 170 : 160, monto_pagado: 0, mes: i, pagado: false };
+                    const record = { fecha: '', monto_pagar: montoPension, monto_pagado: 0, mes: i, pagado: false };
                     pensiones.push(record);
                 }
                 const pensionesResponse = yield db_1.mongoClient
                     .db()
                     .collection(`pensiones${nivel}${year}`)
-                    .insertOne({ numPensionesPagadas: 0, alumnoId: matriculaResult.insertedId, pensiones }, { session });
+                    .insertOne({ numPensionesPagadas: 0, alumnoId: matriculaResult.insertedId, pensiones, montoMatricula, reciboMatricula: reciboId }, { session });
                 if (!pensionesResponse.acknowledged || !pensionesResponse.insertedId) {
                     yield session.abortTransaction();
                     yield session.endSession();
@@ -122,7 +136,7 @@ class Alumno {
                 }
                 yield session.commitTransaction();
                 yield session.endSession();
-                return true;
+                return Object.assign(Object.assign({}, alumno), { _id: matriculaResult.insertedId });
             }
             catch (error) {
                 yield session.abortTransaction();

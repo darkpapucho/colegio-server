@@ -296,7 +296,7 @@ class AlumnoControllers {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                const { alumno } = req.body;
+                const { alumno, montoMatricula, montoPension } = req.body;
                 (0, validators_1.assertIsNuevoAlumno)(alumno);
                 alumno.apellidos = alumno.apellidos.toUpperCase();
                 alumno.nombres = alumno.nombres.toUpperCase();
@@ -318,29 +318,11 @@ class AlumnoControllers {
                 if (foundAlumno) {
                     return res.send((0, responses_1.responseError)(`Ya existe un alumno matriculado con ${reason[0]}`));
                 }
-                //TODO: CREATE SESSION MONGO
-                //matricular nuevo alumno
-                // const result = await Alumno.nuevaMatricula({ alumno, nivel, year })
-                // if (!result.acknowledged) {
-                //   return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
-                // }
-                // const lastDayFromCalendar = await Calendario.fetchLastDayOfCalendarioEscolar({ nivel, year })
-                // const lastDate = new Date(`${lastDayFromCalendar.month}-${lastDayFromCalendar.day}-${year}`)
-                // //insertar asistencia records de acuerdo a la fecha de la mtricula
-                // const calendarioDaysForMatricula = await Calendario.getCalendarioDaysForNewMatricula({ nivel, year, fechaMatricula: new Date(alumno.fechaMatricula), lastDate })
-                // //insertar nuevo record en asistencias{nivel}{year}
-                // const alumnoAsistenciaRecords: AsistenciaRecord[] = calendarioDaysForMatricula.map((element) => {
-                //   return { dayId: element._id, day: element.day, month: element.month, asistencia: '', modified: '' }
-                // })
-                // const result2 = await Calendario.insertNewMatriculaRecordAsistenciaEscolar({ nivel, year, alumnoId: result.insertedId, records: alumnoAsistenciaRecords })
-                // if (!result2.acknowledged) {
-                //   return res.send(responseError(ErrorMessages.OPERATION_NOT_COMPLETED))
-                // }
-                const result = yield alumno_1.Alumno.ProcesoNuevoMatricula({ nivel, year, alumno });
+                const result = yield alumno_1.Alumno.ProcesoNuevoMatricula({ nivel, year, alumno, montoMatricula, montoPension, issuer: req.body.issuer });
                 if (!result) {
                     return res.send((0, responses_1.responseError)('Error durante el proceso de matrícula, intentelo nuevamente'));
                 }
-                return res.status(202).send((0, responses_1.responseOk)(null)); // 202=acepted
+                return res.status(202).send((0, responses_1.responseOk)(Object.assign(Object.assign({}, result), { nombreCompleto: result.apellidos + ', ' + result.nombres }))); // 202=acepted
             }
             catch (error) {
                 return (0, errors_1.errorResponseHandler)(res, error);

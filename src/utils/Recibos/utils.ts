@@ -1,7 +1,6 @@
-import { ReciboData } from '../types/recibo'
+import { ReciboData } from '../../types/recibo'
 
 const RIGHT_VERTICAL_START = 50
-
 const MARGIN_ID = 30
 const MARGIN_DESCRIPCION = 85
 const MARGIN_CANTIDAD = 240
@@ -9,10 +8,9 @@ const MARGIN_PRECIO = 330
 const MARGIN_DCTO = 400
 const MARGIN_TOTAL = 480
 const VERTICAL_START = 455
-export default function generateReciboPension(data: ReciboData, pdf: PDFKit.PDFDocument, costo: number) {
-  const { numRecibo, nivel, fecha, operacion, detalles, alumno } = data
-  const mora = detalles.mora ?? 0
-  const descuento = costo - detalles.montoPagado
+
+export function reciboHeader(data: ReciboData, pdf: PDFKit.PDFDocument) {
+  const { numRecibo, fecha } = data
   pdf.addPage()
   pdf.image('assets/logo2.png', 30, 40, { width: 40 })
   pdf.font('Helvetica-Bold').fontSize(20).text('IEP Jesús el Nazareno', 80, 60, { align: 'left', underline: true })
@@ -22,9 +20,13 @@ export default function generateReciboPension(data: ReciboData, pdf: PDFKit.PDFD
   pdf.font('Helvetica').fontSize(12).text('https://colegiojesusnazareno.netlify.app', 30, 192, { align: 'left' })
   pdf.text(`Recibo N°: ${(numRecibo + '').padStart(5, '0')}`, 400, RIGHT_VERTICAL_START, { align: 'right' })
   pdf.image('assets/qr.png', 465, RIGHT_VERTICAL_START + 165, { width: 115 })
-
   pdf.font('Helvetica-Bold').fontSize(12)
   pdf.text('Fecha: ' + new Date(fecha).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }), 400, RIGHT_VERTICAL_START + 150, { align: 'right' })
+}
+
+export function reciboBody(data: ReciboData, pdf: PDFKit.PDFDocument, costo: number) {
+  const { nivel, operacion, detalles, alumno } = data
+  const descuento = costo - detalles.montoPagado
   pdf.text('DATOS DEL ALUMNO', MARGIN_ID, VERTICAL_START - 100)
   pdf
     .moveTo(MARGIN_ID, VERTICAL_START - 85)
@@ -43,7 +45,7 @@ export default function generateReciboPension(data: ReciboData, pdf: PDFKit.PDFD
   pdf.text('Cantidad', MARGIN_CANTIDAD, VERTICAL_START)
   pdf.text('Precio S/.', MARGIN_PRECIO, VERTICAL_START)
   pdf.text('Dcto S/.', MARGIN_DCTO, VERTICAL_START)
-  pdf.text('Pagado S/.', MARGIN_TOTAL, VERTICAL_START)
+  pdf.text('Monto Final S/.', MARGIN_TOTAL, VERTICAL_START)
 
   pdf
     .moveTo(30, VERTICAL_START + 15)
@@ -56,7 +58,10 @@ export default function generateReciboPension(data: ReciboData, pdf: PDFKit.PDFD
   pdf.text(`${costo.toFixed(2)}`, MARGIN_PRECIO, VERTICAL_START + 30)
   pdf.text(`${(descuento >= 0 ? descuento : 0).toFixed(2)}`, MARGIN_DCTO, VERTICAL_START + 30)
   pdf.text(`${detalles.montoPagado.toFixed(2)}`, MARGIN_TOTAL, VERTICAL_START + 30, { align: 'right', width: 80 })
+}
 
+export function reciboMora(data: ReciboData, pdf: PDFKit.PDFDocument) {
+  const mora = data.detalles.mora ?? 0
   pdf
     .moveTo(30, VERTICAL_START + 55)
     .lineTo(570, VERTICAL_START + 55)
@@ -67,11 +72,16 @@ export default function generateReciboPension(data: ReciboData, pdf: PDFKit.PDFD
     .moveTo(30, VERTICAL_START + 73)
     .lineTo(570, VERTICAL_START + 73)
     .stroke()
-  pdf.font('Helvetica-Bold').text('Total a pagar S/.', MARGIN_DCTO, VERTICAL_START + 85)
-  pdf.text(`${(detalles.montoPagado + mora).toFixed(2)}`, MARGIN_TOTAL, VERTICAL_START + 85, { align: 'right', width: 80 })
-  pdf.image('assets/cancelado.png', 396, 580, { width: 180 })
+}
 
-  pdf.moveTo(MARGIN_ID, 660).lineTo(570, 660).dash(4,{space:4}).stroke()
+export function reciboTotalPagar(data: ReciboData, pdf: PDFKit.PDFDocument) {
+  pdf.font('Helvetica-Bold').text('Monto Pagado S/.', MARGIN_DCTO, VERTICAL_START + 85)
+  pdf.text(`${data.detalles.montoPagado.toFixed(2)}`, MARGIN_TOTAL, VERTICAL_START + 85, { align: 'right', width: 80 })
+  pdf.image('assets/cancelado.png', 396, 580, { width: 180 })
+}
+
+export function reciboFooter(pdf: PDFKit.PDFDocument) {
+  pdf.moveTo(MARGIN_ID, 660).lineTo(570, 660).dash(4, { space: 4 }).stroke()
   pdf.text('Observaciones', MARGIN_ID, 680)
   pdf.fontSize(10).font('Helvetica-Oblique')
   pdf.text('1) Se considera pago a tiempo hasta el décimo día del siguiente mes.', MARGIN_ID, 700)

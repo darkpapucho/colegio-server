@@ -15,10 +15,14 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 const asistencia_1 = require("../types/asistencia");
+const Pagos_1 = __importDefault(require("./Pagos"));
 class Pension {
     static getHistorialRecaudaciones({ nivel, year }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -392,20 +396,6 @@ class Pension {
             return response;
         });
     }
-    static requestReciboById({ nivel, year, reciboId }) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const response = (yield db_1.mongoClient
-                .db()
-                .collection(`recibos${year}`)
-                .aggregate([
-                { $match: { _id: new mongodb_1.ObjectId(reciboId), nivel } },
-                { $lookup: { from: `matriculados${nivel}${year}`, localField: 'alumnoId', foreignField: '_id', as: 'alumno' } },
-                { $project: { numRecibo: 1, nivel: 1, fecha: 1, operacion: 1, detalles: 1, alumno: { $arrayElemAt: ['$alumno', 0] } } },
-            ])
-                .next());
-            return response;
-        });
-    }
     static getLastUpdateDate({ year, nivel }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
@@ -647,7 +637,7 @@ class Pension {
                 .collection(`pensiones${nivel}${year}`)
                 .aggregate([
                 { $lookup: { from: `matriculados${nivel}${year}`, foreignField: '_id', localField: 'alumnoId', as: 'estudiante' } },
-                { $project: { _id: 0, alumnoId: 1, pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] } } },
+                { $project: { _id: 0, alumnoId: 1, pensiones: 1, estudiante: { $arrayElemAt: ['$estudiante', 0] }, montoMatricula: 1, reciboMatricula: 1 } },
                 {
                     $match: {
                         'estudiante.grado': grado,
@@ -716,37 +706,11 @@ class Pension {
             //si esta pagado completamente, creamos un recibo y incrementamos el correlativo de recibos
             if (pagadoCompletamente) {
                 //fetch numero de recibo:
-                const reciboNumberResponse = yield db_1.mongoClient.db().collection(`correlativos${year}`).findOne({ tipo: 'recibo' });
-                let reciboNumber;
-                if (!reciboNumberResponse) {
-                    reciboNumber = 0;
-                }
-                else {
-                    reciboNumber = reciboNumberResponse.current;
-                }
+                const reciboNumber = yield Pagos_1.default.getNextReciboNumber({ year });
+                const operacion = nivel === 'inicial' ? 'PEI' : nivel === 'primaria' ? 'PEP' : 'PES';
                 //crear recibo:
-                const createReciboResponse = yield db_1.mongoClient
-                    .db()
-                    .collection(`recibos${year}`)
-                    .insertOne({
-                    numRecibo: reciboNumber + 1,
-                    nivel,
-                    alumnoId: new mongodb_1.ObjectId(alumnoId),
-                    fecha,
-                    operacion: nivel === 'inicial' ? 'PEI' : nivel === 'primaria' ? 'PEP' : 'PES',
-                    detalles: {
-                        issuer: new mongodb_1.ObjectId(issuer),
-                        descripcion: `pensión ${asistencia_1.VALID_MONTHS[mes]}`,
-                        montoPagado: monto_pagado + monto_abonado,
-                        mora,
-                    },
-                }, { session });
-                if (!createReciboResponse.insertedId || !createReciboResponse.acknowledged) {
-                    yield session.abortTransaction();
-                    session.endSession();
-                    throw new Error('error procesando el pago');
-                }
-                reciboId = createReciboResponse.insertedId;
+                const descripcion = `pensión ${asistencia_1.VALID_MONTHS[mes]}`;
+                reciboId = yield Pagos_1.default.createNewReciboPago({ mora, nivel, year, alumnoId, fecha, descripcion, monto_abonado, monto_pagado, issuer, session, operacion });
                 //increase the current in the correlativos:
                 const increaseCorrelativoResponse = yield db_1.mongoClient
                     .db()
