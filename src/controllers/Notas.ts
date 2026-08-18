@@ -103,6 +103,7 @@ export default class NotasController {
   static async generateLibretasPrimaria(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
+      console.log({ nivel, year })
       if (nivel === 'inicial') throw new Error('Esta ruta solo aplica al nivel primaria y secundaria')
       const {
         grado,

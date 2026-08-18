@@ -4,6 +4,8 @@ import { SalonInicial, SalonPrimaria } from './salon'
 
 type UserType = 'admin' | 'profesor'
 
+type EmpleadoRole = 'profesor' | 'conserje' | 'psicologo' | 'administrativo'
+
 interface UserCredentials {
   //_id: ObjectId
   username: string

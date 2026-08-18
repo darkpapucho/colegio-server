@@ -71,7 +71,12 @@ export type AsistenciaRecord = {
   modified: string | Date
   asistencia: AsistenciaValue
 }
-
+export type AsistenciaRecordProfesor = {
+  dayId: ObjectId
+  day: number
+  month: Month
+  hour: string
+}
 export type Apoderado = {
   _id: string | ObjectId
   nombres: string

@@ -27,6 +27,7 @@ const cursos_1 = require("./routes/cursos");
 const notas_1 = require("./routes/notas");
 const hashPassword_1 = require("./utils/hashPassword");
 const pagos_1 = require("./routes/pagos");
+const asistenciaColegio_1 = require("./routes/asistenciaColegio");
 // import { hashPassword } from './utils/hashPassword'
 const PORT = process.env.PORT || 4000;
 const app = (0, express_1.default)();
@@ -44,6 +45,7 @@ app.use('/announcements', anuncios_1.anunciosRouter);
 app.use('/cursos', cursos_1.cursosRouter);
 app.use('/notas', notas_1.notasRouter);
 app.use('/pagos', pagos_1.pagosRouter);
+app.use('/asistencia-empleados', asistenciaColegio_1.asistenciaEmpleadosRouter);
 app.get('/pass', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { password } = req.query;
     const hashedPass = yield (0, hashPassword_1.hashPassword)(password);
