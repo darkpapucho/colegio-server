@@ -12,6 +12,63 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 class Pagos {
+    static registrarNuevaDeuda({ alumnoId, nivel, year, items, fecha }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let montoTotal = 0;
+            let abonado = 0;
+            const parsedItems = items.map((row) => {
+                montoTotal += row.cantidad * row.precio_unitario;
+                abonado += row.abonado;
+                return Object.assign(Object.assign({}, row), { _id: new mongodb_1.ObjectId() });
+            });
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`otrasdeudas${nivel}${year}`)
+                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) }, { push: { items: parsedItems }, $inc: { deudaTotal: montoTotal, abonado: abonado }, $set: { lastUpdateDate: fecha } }, { upsert: true });
+            return response;
+        });
+    }
+    static updateOtrasDeudasAlumno({ alumnoId, nivel, year, deudaItemId, montoAbonado, fecha, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const currentData = yield db_1.mongoClient
+                .db()
+                .collection(`otrasdeudas${nivel}$year}`)
+                .findOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) }, { projection: { abonado: 1, deudaTotal: 1 } });
+            if (!currentData)
+                throw new Error('datos inválidos, es probable que este alumno no tenga un historial de deudas aún');
+            const { deuda: { abonado, deudaTotal }, } = currentData;
+            const isTotallyPayed = deudaTotal == abonado + montoAbonado;
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`otrasdeudas${nivel}${year}`)
+                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId) }, {
+                $set: { lastUpdateDate: fecha, 'items.$[elem].lastUpdateDate': fecha, status: isTotallyPayed ? 'pagado' : 'pendiente' },
+                $inc: { abonado: montoAbonado, 'items.$[elem].abonado': montoAbonado },
+            }, { arrayFilters: [{ 'elem._id': new mongodb_1.ObjectId(deudaItemId) }] });
+            return response;
+        });
+    }
+    static fetchOtrasDeudas({ nivel, year, soloDeudasPendientes }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`otrasdeudas${nivel}${year}`)
+                .aggregate([
+                { $match: { 'deudas.status': soloDeudasPendientes ? 'pendiente' : 'pagado' } },
+                { $project: { alumnoId: 1, deudas: { $filter: { input: '$deudas', as: 'deuda', cond: { $eq: ['$$deuda.status', soloDeudasPendientes ? 'pendiente' : 'pagado'] } } } } },
+                {
+                    $lookup: {
+                        from: `matriculados${nivel}${year}`,
+                        localField: 'alumnoId',
+                        foreignField: '_id',
+                        as: 'alumno',
+                    },
+                },
+            ])
+                .toArray();
+            return response;
+        });
+    }
     static getNextReciboNumber({ year }) {
         return __awaiter(this, void 0, void 0, function* () {
             const reciboNumberResponse = yield db_1.mongoClient.db().collection(`correlativos${year}`).findOne({ tipo: 'recibo' });

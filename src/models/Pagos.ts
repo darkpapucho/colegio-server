@@ -3,8 +3,85 @@ import { mongoClient } from '../db'
 import { CorrelativoType } from '../types/correlativos'
 import { Nivel, Year } from '../types/enums'
 import { OperacionPago, ReciboData } from '../types/recibo'
+import { ItemDeuda, OtrasDeudas } from '../types/pagos'
 
 export default class Pagos {
+  static async registrarNuevaDeuda({ alumnoId, nivel, year, items, fecha }: { fecha: string; alumnoId: string; nivel: Nivel; year: Year; items: ItemDeuda[] }) {
+    let montoTotal = 0
+    let abonado = 0
+
+    const parsedItems = items.map((row) => {
+      montoTotal += row.cantidad * row.precio_unitario
+      abonado += row.abonado
+      return { ...row, _id: new ObjectId() }
+    })
+
+    const response = await mongoClient
+      .db()
+      .collection(`otrasdeudas${nivel}${year}`)
+      .updateOne(
+        { alumnoId: new ObjectId(alumnoId) },
+        { push: { items: parsedItems }, $inc: { deudaTotal: montoTotal, abonado: abonado }, $set: { lastUpdateDate: fecha } },
+        { upsert: true },
+      )
+    return response
+  }
+  static async updateOtrasDeudasAlumno({
+    alumnoId,
+    nivel,
+    year,
+    deudaItemId,
+    montoAbonado,
+    fecha,
+  }: {
+    montoAbonado: number
+    fecha: string
+    deudaItemId: string
+    alumnoId: string
+    nivel: Nivel
+    year: Year
+  }) {
+    const currentData = await mongoClient
+      .db()
+      .collection<OtrasDeudas>(`otrasdeudas${nivel}$year}`)
+      .findOne({ alumnoId: new ObjectId(alumnoId) }, { projection: { abonado: 1, deudaTotal: 1 } })
+    if (!currentData) throw new Error('datos inválidos, es probable que este alumno no tenga un historial de deudas aún')
+    const {
+      deuda: { abonado, deudaTotal },
+    } = currentData
+    const isTotallyPayed = deudaTotal == abonado + montoAbonado
+    const response = await mongoClient
+      .db()
+      .collection(`otrasdeudas${nivel}${year}`)
+      .updateOne(
+        { alumnoId: new ObjectId(alumnoId) },
+        {
+          $set: { lastUpdateDate: fecha, 'items.$[elem].lastUpdateDate': fecha, status: isTotallyPayed ? 'pagado' : 'pendiente' },
+          $inc: { abonado: montoAbonado, 'items.$[elem].abonado': montoAbonado },
+        },
+        { arrayFilters: [{ 'elem._id': new ObjectId(deudaItemId) }] },
+      )
+    return response
+  }
+  static async fetchOtrasDeudas({ nivel, year, soloDeudasPendientes }: { nivel: Nivel; year: Year; soloDeudasPendientes: boolean }) {
+    const response = await mongoClient
+      .db()
+      .collection(`otrasdeudas${nivel}${year}`)
+      .aggregate<OtrasDeudas>([
+        { $match: { 'deudas.status': soloDeudasPendientes ? 'pendiente' : 'pagado' } },
+        { $project: { alumnoId: 1, deudas: { $filter: { input: '$deudas', as: 'deuda', cond: { $eq: ['$$deuda.status', soloDeudasPendientes ? 'pendiente' : 'pagado'] } } } } },
+        {
+          $lookup: {
+            from: `matriculados${nivel}${year}`,
+            localField: 'alumnoId',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+      ])
+      .toArray()
+    return response
+  }
   static async getNextReciboNumber({ year }: { year: Year }) {
     const reciboNumberResponse = await mongoClient.db().collection(`correlativos${year}`).findOne<{ tipo: CorrelativoType; current: number }>({ tipo: 'recibo' })
     let reciboNumber: number

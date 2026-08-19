@@ -5,7 +5,10 @@ import { ReciboData } from '../types/recibo'
 import PdfDocument from 'pdfkit'
 import { extractNivelYearFromHeaders } from '../utils/global'
 import Pagos from '../models/Pagos'
+import { responseOk } from '../utils/responses'
+
 const COSTO_MATRICULA_2026 = 150
+
 export default class PagosController {
   static async getReciboMatricula(req: Request, res: Response) {
     try {
@@ -18,6 +21,16 @@ export default class PagosController {
       pdfDocument.pipe(res)
       generateReciboMatricula(data, pdfDocument, COSTO_MATRICULA_2026)
       pdfDocument.end()
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async fetchOtrasDeudas(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { soloDeudasPendientes } = req.query
+      const data = await Pagos.fetchOtrasDeudas({ nivel, year, soloDeudasPendientes: soloDeudasPendientes as unknown as boolean })
+      res.send(responseOk(data))
     } catch (err) {
       errorResponseHandler(res, err)
     }

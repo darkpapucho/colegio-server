@@ -17,6 +17,7 @@ const generateReciboMatr_cula_1 = __importDefault(require("../utils/Recibos/gene
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const global_1 = require("../utils/global");
 const Pagos_1 = __importDefault(require("../models/Pagos"));
+const responses_1 = require("../utils/responses");
 const COSTO_MATRICULA_2026 = 150;
 class PagosController {
     static getReciboMatricula(req, res) {
@@ -31,6 +32,19 @@ class PagosController {
                 pdfDocument.pipe(res);
                 (0, generateReciboMatr_cula_1.default)(data, pdfDocument, COSTO_MATRICULA_2026);
                 pdfDocument.end();
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static fetchOtrasDeudas(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { soloDeudasPendientes } = req.query;
+                const data = yield Pagos_1.default.fetchOtrasDeudas({ nivel, year, soloDeudasPendientes: soloDeudasPendientes });
+                res.send((0, responses_1.responseOk)(data));
             }
             catch (err) {
                 (0, errors_1.errorResponseHandler)(res, err);

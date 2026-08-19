@@ -4,3 +4,4 @@ import PagosController from '../controllers/Pagos'
 export const pagosRouter = Router()
 
 pagosRouter.post('/get-recibo-matricula', verifyCredentials, PagosController.getReciboMatricula)
+pagosRouter.get('/fetch-otras-deudas', verifyCredentials, PagosController.fetchOtrasDeudas)
