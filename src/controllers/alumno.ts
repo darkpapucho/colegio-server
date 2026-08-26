@@ -12,6 +12,17 @@ import Calendario from '../models/Calendario'
 import convertDateToPeriodo from '../utils/convertDateToPeriodo'
 
 export class AlumnoControllers {
+  static async fetchApoderadosData(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { alumnoId } = req.body
+      const response = await Alumno.getApoderadosData({ alumnoId, nivel, year })
+      if (!response) return res.send(responseError('no hay datos del apoderado'))
+      return res.status(200).send(responseOk(response.apoderados))
+    } catch (err) {
+      return errorResponseHandler(res, err)
+    }
+  }
   static async agregarApoderado(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

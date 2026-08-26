@@ -24,6 +24,21 @@ const mongodb_1 = require("mongodb");
 const Calendario_1 = __importDefault(require("../models/Calendario"));
 const convertDateToPeriodo_1 = __importDefault(require("../utils/convertDateToPeriodo"));
 class AlumnoControllers {
+    static fetchApoderadosData(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId } = req.body;
+                const response = yield alumno_1.Alumno.getApoderadosData({ alumnoId, nivel, year });
+                if (!response)
+                    return res.send((0, responses_1.responseError)('no hay datos del apoderado'));
+                return res.status(200).send((0, responses_1.responseOk)(response.apoderados));
+            }
+            catch (err) {
+                return (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static agregarApoderado(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

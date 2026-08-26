@@ -14,5 +14,6 @@ exports.alumnoRouter.post('/buscar', verifyCredentials_1.verifyCredentials, alum
 exports.alumnoRouter.post('/editar', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.editarAlumno);
 exports.alumnoRouter.post('/fetch-asistencia-list', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.fetchAsistenciaList);
 exports.alumnoRouter.post('/update-asistencia-list', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.updateAsistenciaList);
-exports.alumnoRouter.post("/agregar-apoderado", verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.agregarApoderado);
-exports.alumnoRouter.post("/editar-apoderado", verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.editarApoderado);
+exports.alumnoRouter.post('/agregar-apoderado', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.agregarApoderado);
+exports.alumnoRouter.post('/editar-apoderado', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.editarApoderado);
+exports.alumnoRouter.post('/get-apoderados-data', verifyCredentials_1.verifyCredentials, alumno_1.AlumnoControllers.fetchApoderadosData);

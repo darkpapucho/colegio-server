@@ -41,6 +41,15 @@ const Notas_1 = __importDefault(require("./Notas"));
 const Cursos_1 = __importDefault(require("./Cursos"));
 const Pagos_1 = __importDefault(require("../models/Pagos"));
 class Alumno {
+    static getApoderadosData({ alumnoId, nivel, year }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`matriculados${nivel}${year}`)
+                .findOne({ _id: new mongodb_1.ObjectId(alumnoId) }, { projection: { apoderados: 1, _id: 0 } });
+            return response;
+        });
+    }
     static agregarApoderado({ alumnoId, apoderado, nivel, year, issuer }) {
         return __awaiter(this, void 0, void 0, function* () {
             const nuevoApoderado = Object.assign(Object.assign({}, apoderado), { issuer: new mongodb_1.ObjectId(issuer) });
