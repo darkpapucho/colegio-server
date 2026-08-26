@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { AMatriculado } from './alumno'
 
-export type DeudaStatus = 'pendiente' | 'pagado'
+export type DeudaStatus = 'pendiente' | 'cancelado'
 export type ItemDeuda = {
   _id: ObjectId
   descripcion: string

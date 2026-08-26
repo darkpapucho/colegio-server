@@ -6,25 +6,129 @@ import { OperacionPago, ReciboData } from '../types/recibo'
 import { ItemDeuda, OtrasDeudas } from '../types/pagos'
 
 export default class Pagos {
-  static async registrarNuevaDeuda({ alumnoId, nivel, year, items, fecha }: { fecha: string; alumnoId: string; nivel: Nivel; year: Year; items: ItemDeuda[] }) {
-    let montoTotal = 0
-    let abonado = 0
-
-    const parsedItems = items.map((row) => {
-      montoTotal += row.cantidad * row.precio_unitario
-      abonado += row.abonado
-      return { ...row, _id: new ObjectId() }
-    })
-
+  static async pagarItemDeuda({
+    nivel,
+    year,
+    alumnoId,
+    itemDeudaId,
+    abonado,
+    fecha,
+  }: {
+    fecha: string
+    nivel: Nivel
+    year: Year
+    alumnoId: string
+    itemDeudaId: string
+    abonado: number
+  }) {
     const response = await mongoClient
       .db()
       .collection(`otrasdeudas${nivel}${year}`)
       .updateOne(
-        { alumnoId: new ObjectId(alumnoId) },
-        { push: { items: parsedItems }, $inc: { deudaTotal: montoTotal, abonado: abonado }, $set: { lastUpdateDate: fecha } },
-        { upsert: true },
+        {
+          alumnoId: new ObjectId(alumnoId),
+          'deuda.items._id': new ObjectId(itemDeudaId),
+        },
+        [
+          {
+            $set: {
+              deuda: {
+                $let: {
+                  vars: {
+                    itemId: new ObjectId(itemDeudaId),
+                    paymentAmount: abonado,
+                    currentDeuda: '$deuda',
+                    today: fecha, // Or use new Date() for proper dates
+                  },
+                  in: {
+                    $mergeObjects: [
+                      '$$currentDeuda',
+                      {
+                        items: {
+                          $map: {
+                            input: '$$currentDeuda.items',
+                            as: 'item',
+                            in: {
+                              $cond: [
+                                { $eq: ['$$item._id', '$$itemId'] },
+                                {
+                                  $mergeObjects: [
+                                    '$$item',
+                                    {
+                                      abonado: { $add: ['$$item.abonado', '$$paymentAmount'] },
+                                      lastUpdateDate: '$$today',
+                                    },
+                                  ],
+                                },
+                                '$$item',
+                              ],
+                            },
+                          },
+                        },
+                        deudaTotal: {
+                          $subtract: ['$$currentDeuda.deudaTotal', '$$paymentAmount'],
+                        },
+                        lastUpdateDate: '$$today',
+                        status: {
+                          $cond: [{ $eq: [{ $subtract: ['$$currentDeuda.deudaTotal', '$$paymentAmount'] }, 0] }, 'cancelado', '$$currentDeuda.status'],
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        ],
       )
     return response
+  }
+  static async registrarNuevaDeuda({ alumnoId, nivel, year, item, fecha, issuer }: { issuer: string; fecha: string; alumnoId: string; nivel: Nivel; year: Year; item: ItemDeuda }) {
+    const itemId = new ObjectId()
+    const itemDeuda = { ...item, _id: itemId, issuer: new ObjectId(issuer) }
+    const response = await mongoClient
+      .db()
+      .collection(`otrasdeudas${nivel}${year}`)
+      .updateOne(
+        { alumnoId: new ObjectId(alumnoId) }, // Filter by alumnoId instead of _id
+        [
+          {
+            $set: {
+              deuda: {
+                $let: {
+                  vars: {
+                    newItem: itemDeuda,
+                  },
+                  in: {
+                    $mergeObjects: [
+                      { $ifNull: ['$deuda', { deudaTotal: 0, items: [], lastUpdateDate: '', status: 'pendiente' }] },
+                      {
+                        items: {
+                          $concatArrays: [{ $ifNull: ['$deuda.items', []] }, ['$$newItem']],
+                        },
+                        deudaTotal: {
+                          $add: [
+                            { $ifNull: ['$deuda.deudaTotal', 0] },
+                            {
+                              $subtract: [{ $multiply: ['$$newItem.precio_unitario', '$$newItem.cantidad'] }, '$$newItem.abonado'],
+                            },
+                          ],
+                        },
+                        lastUpdateDate: fecha,
+                        status: 'pendiente',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        ],
+        { upsert: true },
+      )
+
+    if (!response.acknowledged) throw new Error('no se pudo registrar la nueva deuda')
+    return itemId
   }
   static async updateOtrasDeudasAlumno({
     alumnoId,
@@ -56,30 +160,56 @@ export default class Pagos {
       .updateOne(
         { alumnoId: new ObjectId(alumnoId) },
         {
-          $set: { lastUpdateDate: fecha, 'items.$[elem].lastUpdateDate': fecha, status: isTotallyPayed ? 'pagado' : 'pendiente' },
-          $inc: { abonado: montoAbonado, 'items.$[elem].abonado': montoAbonado },
+          $set: { 'deuda.lastUpdateDate': fecha, 'deuda.items.$[elem].lastUpdateDate': fecha, 'deuda.status': isTotallyPayed ? 'pagado' : 'pendiente' },
+          $inc: { 'deuda.abonado': montoAbonado, 'deuda.items.$[elem].abonado': montoAbonado },
         },
         { arrayFilters: [{ 'elem._id': new ObjectId(deudaItemId) }] },
       )
     return response
   }
   static async fetchOtrasDeudas({ nivel, year, soloDeudasPendientes }: { nivel: Nivel; year: Year; soloDeudasPendientes: boolean }) {
-    const response = await mongoClient
-      .db()
-      .collection(`otrasdeudas${nivel}${year}`)
-      .aggregate<OtrasDeudas>([
-        { $match: { 'deudas.status': soloDeudasPendientes ? 'pendiente' : 'pagado' } },
-        { $project: { alumnoId: 1, deudas: { $filter: { input: '$deudas', as: 'deuda', cond: { $eq: ['$$deuda.status', soloDeudasPendientes ? 'pendiente' : 'pagado'] } } } } },
-        {
-          $lookup: {
-            from: `matriculados${nivel}${year}`,
-            localField: 'alumnoId',
-            foreignField: '_id',
-            as: 'alumno',
-          },
+    // Construir el pipeline de forma más robusta
+    const pipeline: any[] = []
+
+    // 1. Match inicial (si hay filtro por deuda pendiente)
+    if (soloDeudasPendientes != false) {
+      pipeline.push({
+        $match: {
+          'deuda.status': 'pendiente', // Asegúrate que 'deuda' existe en el documento original
         },
-      ])
-      .toArray()
+      })
+    }
+
+    // 2. Proyección inicial
+    pipeline.push({
+      $project: {
+        alumnoId: 1,
+        deuda: 1,
+        // Opcional: incluir otros campos que necesites
+      },
+    })
+
+    // 3. Lookup para obtener datos del alumno
+    pipeline.push({
+      $lookup: {
+        from: `matriculados${nivel}${year}`,
+        localField: 'alumnoId',
+        foreignField: '_id',
+        as: 'alumno',
+      },
+    })
+
+    // 4. Desestructurar el array de alumno
+    pipeline.push({
+      $project: {
+        alumno: { $arrayElemAt: ['$alumno', 0] },
+        deuda: 1,
+        alumnoId: 1,
+      },
+    })
+
+    const response = await mongoClient.db().collection(`otrasdeudas${nivel}${year}`).aggregate<OtrasDeudas>(pipeline).toArray()
+
     return response
   }
   static async getNextReciboNumber({ year }: { year: Year }) {

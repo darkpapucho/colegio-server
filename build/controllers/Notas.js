@@ -117,7 +117,6 @@ class NotasController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
-                console.log({ nivel, year });
                 if (nivel === 'inicial')
                     throw new Error('Esta ruta solo aplica al nivel primaria y secundaria');
                 const { grado, seccion, zipped, estadosMatricula, excluirAtrasados, } = req.body;

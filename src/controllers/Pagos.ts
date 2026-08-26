@@ -6,10 +6,33 @@ import PdfDocument from 'pdfkit'
 import { extractNivelYearFromHeaders } from '../utils/global'
 import Pagos from '../models/Pagos'
 import { responseOk } from '../utils/responses'
+import { ItemDeuda } from '../types/pagos'
 
 const COSTO_MATRICULA_2026 = 150
 
 export default class PagosController {
+  static async pagarItemDeuda(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { alumnoId, itemDeudaId, abonado, fecha } = req.body
+      const response = await Pagos.pagarItemDeuda({ nivel, year, alumnoId, itemDeudaId, abonado, fecha })
+
+      if (!response.acknowledged) throw new Error('no se pudo realizar el pago')
+      res.status(200).send(responseOk(null))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
+  static async registrarItemDeuda(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { itemDeuda, issuer, alumnoId }: { itemDeuda: ItemDeuda; issuer: string; alumnoId: string } = req.body
+      const response = await Pagos.registrarNuevaDeuda({ alumnoId, item: itemDeuda, nivel, year, fecha: itemDeuda.fecha, issuer })
+      res.send(responseOk({ ...itemDeuda, issuer, _id: response }))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async getReciboMatricula(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
@@ -29,7 +52,9 @@ export default class PagosController {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { soloDeudasPendientes } = req.query
-      const data = await Pagos.fetchOtrasDeudas({ nivel, year, soloDeudasPendientes: soloDeudasPendientes as unknown as boolean })
+
+      const data = await Pagos.fetchOtrasDeudas({ nivel, year, soloDeudasPendientes: soloDeudasPendientes == 'true' })
+
       res.send(responseOk(data))
     } catch (err) {
       errorResponseHandler(res, err)

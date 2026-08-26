@@ -20,6 +20,34 @@ const Pagos_1 = __importDefault(require("../models/Pagos"));
 const responses_1 = require("../utils/responses");
 const COSTO_MATRICULA_2026 = 150;
 class PagosController {
+    static pagarItemDeuda(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId, itemDeudaId, abonado, fecha } = req.body;
+                const response = yield Pagos_1.default.pagarItemDeuda({ nivel, year, alumnoId, itemDeudaId, abonado, fecha });
+                if (!response.acknowledged)
+                    throw new Error('no se pudo realizar el pago');
+                res.status(200).send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
+    static registrarItemDeuda(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { itemDeuda, issuer, alumnoId } = req.body;
+                const response = yield Pagos_1.default.registrarNuevaDeuda({ alumnoId, item: itemDeuda, nivel, year, fecha: itemDeuda.fecha, issuer });
+                res.send((0, responses_1.responseOk)(Object.assign(Object.assign({}, itemDeuda), { issuer, _id: response })));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static getReciboMatricula(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -43,7 +71,7 @@ class PagosController {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { soloDeudasPendientes } = req.query;
-                const data = yield Pagos_1.default.fetchOtrasDeudas({ nivel, year, soloDeudasPendientes: soloDeudasPendientes });
+                const data = yield Pagos_1.default.fetchOtrasDeudas({ nivel, year, soloDeudasPendientes: soloDeudasPendientes == 'true' });
                 res.send((0, responses_1.responseOk)(data));
             }
             catch (err) {

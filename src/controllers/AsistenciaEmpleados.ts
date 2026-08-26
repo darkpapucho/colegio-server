@@ -22,12 +22,9 @@ export default class AsistenciaEmpleadosController {
 
   static async getEmpleadoInfoByFingerprintId(req: Request, res: Response) {
     try {
-      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { year } = extractNivelYearFromHeaders(req)
       const { id } = req.query
-
       const empleadoInfo = await AsistenciaEmpleados.getEmpleadoInfoByFingerprintId({ year, fingerprintId: id as unknown as number })
-      console.log({ nivel, year })
-      console.log({ empleadoInfo })
       res.status(200).send(responseOk(empleadoInfo))
     } catch (err) {
       errorResponseHandler(res, err)

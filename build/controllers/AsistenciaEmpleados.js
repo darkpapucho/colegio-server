@@ -36,11 +36,9 @@ class AsistenciaEmpleadosController {
     static getEmpleadoInfoByFingerprintId(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { id } = req.query;
                 const empleadoInfo = yield AsistenciaEmpleados_1.default.getEmpleadoInfoByFingerprintId({ year, fingerprintId: id });
-                console.log({ nivel, year });
-                console.log({ empleadoInfo });
                 res.status(200).send((0, responses_1.responseOk)(empleadoInfo));
             }
             catch (err) {
