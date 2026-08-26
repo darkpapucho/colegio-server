@@ -31,8 +31,8 @@ class AlumnoControllers {
                 const { alumnoId } = req.body;
                 const response = yield alumno_1.Alumno.getApoderadosData({ alumnoId, nivel, year });
                 if (!response)
-                    return res.send((0, responses_1.responseError)('no hay datos del apoderado'));
-                return res.status(200).send((0, responses_1.responseOk)(response.apoderados));
+                    return res.send((0, responses_1.responseError)('error, no existen datos del alumno'));
+                return res.status(200).send((0, responses_1.responseOk)(response.apoderados ? response.apoderados : []));
             }
             catch (err) {
                 return (0, errors_1.errorResponseHandler)(res, err);

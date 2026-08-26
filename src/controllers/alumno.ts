@@ -17,8 +17,8 @@ export class AlumnoControllers {
       const { nivel, year } = extractNivelYearFromHeaders(req)
       const { alumnoId } = req.body
       const response = await Alumno.getApoderadosData({ alumnoId, nivel, year })
-      if (!response) return res.send(responseError('no hay datos del apoderado'))
-      return res.status(200).send(responseOk(response.apoderados))
+      if (!response) return res.send(responseError('error, no existen datos del alumno'))
+      return res.status(200).send(responseOk(response.apoderados ? response.apoderados : []))
     } catch (err) {
       return errorResponseHandler(res, err)
     }
