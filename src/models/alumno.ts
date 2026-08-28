@@ -17,7 +17,7 @@ export class Alumno {
   static async getApoderadosData({ alumnoId, nivel, year }: { alumnoId: string; nivel: Nivel; year: Year }) {
     const response = await mongoClient
       .db()
-      .collection<{ apoderados: Apoderado[] }>(`matriculados${nivel}${year}`)
+      .collection<{ apoderados?: Apoderado[] }>(`matriculados${nivel}${year}`)
       .findOne({ _id: new ObjectId(alumnoId) }, { projection: { apoderados: 1, _id: 0 } })
     return response
   }
