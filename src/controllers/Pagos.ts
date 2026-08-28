@@ -11,6 +11,19 @@ import { ItemDeuda } from '../types/pagos'
 const COSTO_MATRICULA_2026 = 150
 
 export default class PagosController {
+  static async updateItemDeudaComentarios(req: Request, res: Response) {
+    try {
+      const { nivel, year } = extractNivelYearFromHeaders(req)
+      const { alumnoId, itemDeudaId, comentarios, fecha } = req.body
+      console.log({ comentarios, fecha })
+      const response = await Pagos.updateItemDeudaComentarios({ nivel, year, alumnoId, itemDeudaId, comentarios, fecha })
+      console.log({ response })
+      if (!response.acknowledged) throw new Error('no se pudo actualizar los comentarios')
+      res.status(200).send(responseOk(null))
+    } catch (err) {
+      errorResponseHandler(res, err)
+    }
+  }
   static async pagarItemDeuda(req: Request, res: Response) {
     try {
       const { nivel, year } = extractNivelYearFromHeaders(req)

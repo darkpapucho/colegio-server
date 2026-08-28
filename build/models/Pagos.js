@@ -12,6 +12,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const db_1 = require("../db");
 class Pagos {
+    static updateItemDeudaComentarios({ alumnoId, itemDeudaId, comentarios, fecha, nivel, year, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield db_1.mongoClient
+                .db()
+                .collection(`otrospagos${nivel}${year}`)
+                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId), 'deuda.items._id': new mongodb_1.ObjectId(itemDeudaId) }, {
+                $set: { 'deuda.items._id.$.detalles.comentarios': comentarios, 'deuda.items._id.$.detalles.fecha': fecha },
+            });
+            return response;
+        });
+    }
     static pagarItemDeuda({ nivel, year, alumnoId, itemDeudaId, abonado, fecha, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient

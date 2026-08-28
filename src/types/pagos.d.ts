@@ -10,6 +10,10 @@ export type ItemDeuda = {
   abonado: number
   lastUpdateDate: string
   fecha: string
+  detalles: {
+    fecha: string
+    comentarios: string
+  }
 }
 export type DeudaInfo = {
   deudaTotal: number

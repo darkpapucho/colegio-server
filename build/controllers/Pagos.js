@@ -20,6 +20,23 @@ const Pagos_1 = __importDefault(require("../models/Pagos"));
 const responses_1 = require("../utils/responses");
 const COSTO_MATRICULA_2026 = 150;
 class PagosController {
+    static updateItemDeudaComentarios(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
+                const { alumnoId, itemDeudaId, comentarios, fecha } = req.body;
+                console.log({ comentarios, fecha });
+                const response = yield Pagos_1.default.updateItemDeudaComentarios({ nivel, year, alumnoId, itemDeudaId, comentarios, fecha });
+                console.log({ response });
+                if (!response.acknowledged)
+                    throw new Error('no se pudo actualizar los comentarios');
+                res.status(200).send((0, responses_1.responseOk)(null));
+            }
+            catch (err) {
+                (0, errors_1.errorResponseHandler)(res, err);
+            }
+        });
+    }
     static pagarItemDeuda(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

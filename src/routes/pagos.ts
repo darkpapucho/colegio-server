@@ -7,3 +7,4 @@ pagosRouter.post('/get-recibo-matricula', verifyCredentials, PagosController.get
 pagosRouter.get('/fetch-otras-deudas', verifyCredentials, PagosController.fetchOtrasDeudas)
 pagosRouter.post('/registrar-item-deuda', verifyCredentials, PagosController.registrarItemDeuda)
 pagosRouter.post('/pagar-item-deuda', verifyCredentials, PagosController.pagarItemDeuda)
+pagosRouter.post('/comentar-item-deuda', verifyCredentials, PagosController.updateItemDeudaComentarios)

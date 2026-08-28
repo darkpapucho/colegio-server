@@ -6,6 +6,32 @@ import { OperacionPago, ReciboData } from '../types/recibo'
 import { ItemDeuda, OtrasDeudas } from '../types/pagos'
 
 export default class Pagos {
+  static async updateItemDeudaComentarios({
+    alumnoId,
+    itemDeudaId,
+    comentarios,
+    fecha,
+    nivel,
+    year,
+  }: {
+    nivel: Nivel
+    year: Year
+    alumnoId: string
+    itemDeudaId: string
+    comentarios: string
+    fecha: string
+  }) {
+    const response = await mongoClient
+      .db()
+      .collection(`otrospagos${nivel}${year}`)
+      .updateOne(
+        { alumnoId: new ObjectId(alumnoId), 'deuda.items._id': new ObjectId(itemDeudaId) },
+        {
+          $set: { 'deuda.items._id.$.detalles.comentarios': comentarios, 'deuda.items._id.$.detalles.fecha': fecha },
+        },
+      )
+    return response
+  }
   static async pagarItemDeuda({
     nivel,
     year,
