@@ -1,4 +1,4 @@
-import { ClientSession, ObjectId } from 'mongodb'
+import { ClientSession, Document, ObjectId } from 'mongodb'
 import { mongoClient } from '../db'
 import { CorrelativoType } from '../types/correlativos'
 import { Nivel, Year } from '../types/enums'
@@ -23,11 +23,17 @@ export default class Pagos {
   }) {
     const response = await mongoClient
       .db()
-      .collection(`otrospagos${nivel}${year}`)
+      .collection(`otrasdeudas${nivel}${year}`)
       .updateOne(
-        { alumnoId: new ObjectId(alumnoId), 'deuda.items._id': new ObjectId(itemDeudaId) },
         {
-          $set: { 'deuda.items._id.$.detalles.comentarios': comentarios, 'deuda.items._id.$.detalles.fecha': fecha },
+          alumnoId: new ObjectId(alumnoId),
+          'deuda.items._id': new ObjectId(itemDeudaId),
+        },
+        {
+          $set: {
+            'deuda.items.$.detalles.comentarios': comentarios,
+            'deuda.items.$.detalles.fecha': fecha,
+          },
         },
       )
     return response
@@ -195,7 +201,7 @@ export default class Pagos {
   }
   static async fetchOtrasDeudas({ nivel, year, soloDeudasPendientes }: { nivel: Nivel; year: Year; soloDeudasPendientes: boolean }) {
     // Construir el pipeline de forma más robusta
-    const pipeline: any[] = []
+    const pipeline: Document[] = []
 
     // 1. Match inicial (si hay filtro por deuda pendiente)
     if (soloDeudasPendientes != false) {

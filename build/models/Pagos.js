@@ -16,9 +16,15 @@ class Pagos {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield db_1.mongoClient
                 .db()
-                .collection(`otrospagos${nivel}${year}`)
-                .updateOne({ alumnoId: new mongodb_1.ObjectId(alumnoId), 'deuda.items._id': new mongodb_1.ObjectId(itemDeudaId) }, {
-                $set: { 'deuda.items._id.$.detalles.comentarios': comentarios, 'deuda.items._id.$.detalles.fecha': fecha },
+                .collection(`otrasdeudas${nivel}${year}`)
+                .updateOne({
+                alumnoId: new mongodb_1.ObjectId(alumnoId),
+                'deuda.items._id': new mongodb_1.ObjectId(itemDeudaId),
+            }, {
+                $set: {
+                    'deuda.items.$.detalles.comentarios': comentarios,
+                    'deuda.items.$.detalles.fecha': fecha,
+                },
             });
             return response;
         });

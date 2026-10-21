@@ -25,10 +25,8 @@ class PagosController {
             try {
                 const { nivel, year } = (0, global_1.extractNivelYearFromHeaders)(req);
                 const { alumnoId, itemDeudaId, comentarios, fecha } = req.body;
-                console.log({ comentarios, fecha });
                 const response = yield Pagos_1.default.updateItemDeudaComentarios({ nivel, year, alumnoId, itemDeudaId, comentarios, fecha });
-                console.log({ response });
-                if (!response.acknowledged)
+                if (!response.modifiedCount)
                     throw new Error('no se pudo actualizar los comentarios');
                 res.status(200).send((0, responses_1.responseOk)(null));
             }
